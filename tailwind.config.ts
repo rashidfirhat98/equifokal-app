@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import type { Config } from "tailwindcss";
 
 export default {
@@ -11,6 +12,9 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+      },
+      gridTemplateColumns: {
+        gallery: "repeat(auto-fit, minmax(250px, 1fr))",
       },
     },
   },
