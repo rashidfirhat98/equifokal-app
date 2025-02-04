@@ -1,4 +1,3 @@
-import { revalidatePath } from "next/cache";
 import type { Config } from "tailwindcss";
 
 export default {
