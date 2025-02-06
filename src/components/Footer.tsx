@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Fragment } from "react";
 
 type Props = {
   topic: string;
@@ -17,17 +18,17 @@ export default function Footer({ topic, page, prevPage, nextPage }: Props) {
     }
   }
 
-  const nextPageArea = nextPage ? (
+  const nextPageArea = nextPage && (
     <Link
       href={`/results/${topic}/${nextPage}`}
       className={!prevPage ? "mx-auto" : ""}
     >
       {!prevPage ? "more" : null} &gt;&gt;&gt;
     </Link>
-  ) : null;
+  );
 
-  const prevPageArea = prevPage ? (
-    <>
+  const prevPageArea = prevPage && (
+    <Fragment key={crypto.randomUUID()}>
       <Link
         href={`/results/${topic}/${prevPage}`}
         className={!nextPage ? "mx-auto" : ""}
@@ -43,8 +44,8 @@ export default function Footer({ topic, page, prevPage, nextPage }: Props) {
           </Link>
         )
       )}
-    </>
-  ) : null;
+    </Fragment>
+  );
 
   return (
     <footer className="flex flex-row justify-between items-center px-2 py-4 font-bold w-60 mx-auto">
