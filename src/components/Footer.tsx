@@ -28,7 +28,7 @@ export default function Footer({ topic, page, prevPage, nextPage }: Props) {
   );
 
   const prevPageArea = prevPage && (
-    <Fragment key={crypto.randomUUID()}>
+    <>
       <Link
         href={`/results/${topic}/${prevPage}`}
         className={!nextPage ? "mx-auto" : ""}
@@ -39,12 +39,12 @@ export default function Footer({ topic, page, prevPage, nextPage }: Props) {
         page && num === parseInt(page) ? (
           <span key={i}>{num}</span>
         ) : (
-          <Link href={`/results/${topic}/${num}`} className="underline">
+          <Link key={i} href={`/results/${topic}/${num}`} className="underline">
             {num}
           </Link>
         )
       )}
-    </Fragment>
+    </>
   );
 
   return (
