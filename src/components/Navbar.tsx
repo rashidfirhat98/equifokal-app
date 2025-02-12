@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Search from "./Search";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/authOptions";
 import SignOutButton from "./SignOutButton";
 
 export default async function Navbar() {

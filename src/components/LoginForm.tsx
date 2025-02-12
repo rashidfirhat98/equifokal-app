@@ -3,9 +3,11 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 export default function LoginForm() {
+  const router = useRouter();
   const [loginData, setLoginData] = useState({
     email: "",
     password: "",
@@ -24,7 +26,6 @@ export default function LoginForm() {
 
   const onSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
-    console.log(loginData);
 
     try {
       const res = await signIn("credentials", {
@@ -38,7 +39,10 @@ export default function LoginForm() {
         setAlert({ status: "error", message: "Invalid email or password" });
         return;
       }
-    } catch (error: any) {
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (error) {
       console.log({ error });
       setAlert({ status: "error", message: "Network error. Please try again" });
     }
@@ -64,7 +68,6 @@ export default function LoginForm() {
             Sign in to your account
           </h2>
         </div>
-
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
           <form onSubmit={onSubmit} className="space-y-6">
             <div>
@@ -87,7 +90,6 @@ export default function LoginForm() {
                 />
               </div>
             </div>
-
             <div>
               <div className="flex items-center justify-between">
                 <label
@@ -118,7 +120,6 @@ export default function LoginForm() {
                 />
               </div>
             </div>
-
             <div>
               <button
                 type="submit"
@@ -128,7 +129,6 @@ export default function LoginForm() {
               </button>
             </div>
           </form>
-
           <p className="mt-10 text-center text-sm/6 text-gray-500">
             Not a member?{" "}
             <Link

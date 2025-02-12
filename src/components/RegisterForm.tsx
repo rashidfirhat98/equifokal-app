@@ -2,8 +2,10 @@
 
 import React, { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useRouter } from "next/navigation";
 
 export default function RegisterForm() {
+  const router = useRouter();
   const [registerData, setRegisterData] = useState({
     name: "",
     email: "",
@@ -51,7 +53,10 @@ export default function RegisterForm() {
           status: "error",
           message: data?.error || "Something went wrong",
         });
+        return;
       }
+
+      router.push("/login");
     } catch (error) {
       console.log({ error });
       setAlert({ status: "error", message: "Network error. Please try again" });
@@ -79,7 +84,6 @@ export default function RegisterForm() {
             Create an account
           </h2>
         </div>
-
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
           <form onSubmit={onSubmit} className="space-y-6">
             <div>
@@ -102,7 +106,6 @@ export default function RegisterForm() {
                 />
               </div>
             </div>
-
             <div>
               <label
                 htmlFor="email"
@@ -123,7 +126,6 @@ export default function RegisterForm() {
                 />
               </div>
             </div>
-
             <div>
               <div className="flex items-center justify-between">
                 <label
@@ -146,7 +148,6 @@ export default function RegisterForm() {
                 />
               </div>
             </div>
-
             <div>
               <div className="flex items-center justify-between">
                 <label
@@ -169,7 +170,6 @@ export default function RegisterForm() {
                 />
               </div>
             </div>
-
             <div>
               <button
                 type="submit"
