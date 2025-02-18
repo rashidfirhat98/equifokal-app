@@ -16,8 +16,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import Gallery from "@/components/Gallery";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const getCurrentUser = async () => {
   try {
@@ -75,7 +88,7 @@ export default async function DashboardPage() {
                 <h4 className="font-semibold">30</h4>
               </div>
               <div className="flex flex-col items-center">
-                <p className="text-xs font-thin text-gray-600 whitespace-nowrap">
+                <p className="text-xs font-thin text-muted-foreground whitespace-nowrap">
                   FOLLOWING
                 </p>
                 <h4 className="font-semibold">30</h4>
@@ -84,6 +97,7 @@ export default async function DashboardPage() {
             <div>
               <p>
                 Insert bio here - just your friendly neighborhood photographer
+                and traveller in town
               </p>
             </div>
           </div>
@@ -91,35 +105,137 @@ export default async function DashboardPage() {
       </section>
 
       <Tabs orientation="vertical" defaultValue="gallery" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
           <TabsTrigger value="gallery">Gallery</TabsTrigger>
-          <TabsTrigger value="password">Portfolio</TabsTrigger>
+          <TabsTrigger value="bucket">Bucket</TabsTrigger>
+          <TabsTrigger value="article">Article</TabsTrigger>
           <TabsTrigger value="followers">Followers</TabsTrigger>
+          <TabsTrigger value="following">Following</TabsTrigger>
         </TabsList>
-        <TabsContent value="gallery">
+        <TabsContent value="portfolio">
           <Gallery />
         </TabsContent>
-        <TabsContent value="password">
-          <Card>
+        <TabsContent value="gallery">
+          <Card className="mx-3">
             <CardHeader>
-              <CardTitle>Password</CardTitle>
+              <CardTitle>Create a gallery</CardTitle>
               <CardDescription>
-                Change your password here. After saving, you'll be logged out.
+                Add a photos from your bucket to create a gallery here.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="space-y-1">
-                <Label htmlFor="current">Current password</Label>
-                <Input id="current" type="password" />
+                <Label htmlFor="current">Gallery title</Label>
+                <Input id="current" type="text" />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="new">New password</Label>
-                <Input id="new" type="password" />
+                <Label htmlFor="new">Select photos</Label>
+                <Select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Theme" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>North America</SelectLabel>
+                      <SelectItem value="est">
+                        Eastern Standard Time (EST)
+                      </SelectItem>
+                      <SelectItem value="cst">
+                        Central Standard Time (CST)
+                      </SelectItem>
+                      <SelectItem value="mst">
+                        Mountain Standard Time (MST)
+                      </SelectItem>
+                      <SelectItem value="pst">
+                        Pacific Standard Time (PST)
+                      </SelectItem>
+                      <SelectItem value="akst">
+                        Alaska Standard Time (AKST)
+                      </SelectItem>
+                      <SelectItem value="hst">
+                        Hawaii Standard Time (HST)
+                      </SelectItem>
+                    </SelectGroup>
+                    <SelectGroup>
+                      <SelectLabel>Europe & Africa</SelectLabel>
+                      <SelectItem value="gmt">
+                        Greenwich Mean Time (GMT)
+                      </SelectItem>
+                      <SelectItem value="cet">
+                        Central European Time (CET)
+                      </SelectItem>
+                      <SelectItem value="eet">
+                        Eastern European Time (EET)
+                      </SelectItem>
+                      <SelectItem value="west">
+                        Western European Summer Time (WEST)
+                      </SelectItem>
+                      <SelectItem value="cat">
+                        Central Africa Time (CAT)
+                      </SelectItem>
+                      <SelectItem value="eat">
+                        East Africa Time (EAT)
+                      </SelectItem>
+                    </SelectGroup>
+                    <SelectGroup>
+                      <SelectLabel>Asia</SelectLabel>
+                      <SelectItem value="msk">Moscow Time (MSK)</SelectItem>
+                      <SelectItem value="ist">
+                        India Standard Time (IST)
+                      </SelectItem>
+                      <SelectItem value="cst_china">
+                        China Standard Time (CST)
+                      </SelectItem>
+                      <SelectItem value="jst">
+                        Japan Standard Time (JST)
+                      </SelectItem>
+                      <SelectItem value="kst">
+                        Korea Standard Time (KST)
+                      </SelectItem>
+                      <SelectItem value="ist_indonesia">
+                        Indonesia Central Standard Time (WITA)
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
             <CardFooter>
-              <Button>Save password</Button>
+              <Button>Save gallery</Button>
             </CardFooter>
+          </Card>
+        </TabsContent>
+        <TabsContent value="bucket">
+          <Card className="mx-3 flex flex-col items-center text-center">
+            <CardHeader className="items-center pt-8">
+              <CardTitle>Photo Bucket</CardTitle>
+              <CardDescription>
+                You don't have any photos in the bucket. Click to add more
+                photos. Or how about viewing the creations of other travellers
+                for some inspiration?
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 w-full">
+              <Collapsible className="space-y-10">
+                <div className="flex flex-row justify-center items-center gap-4">
+                  <CollapsibleTrigger asChild>
+                    <Button variant="default">Add Photos</Button>
+                  </CollapsibleTrigger>
+                  <Button variant="outline">Get Inspired</Button>
+                </div>
+                <CollapsibleContent className="space-y-1 ">
+                  <Input
+                    className="outline-dashed border-none outline-gray-300 w-full min-h-56 shadow-none"
+                    id="current"
+                    type="file"
+                    multiple
+                    placeholder="Drag or click to add files"
+                  />
+                </CollapsibleContent>
+              </Collapsible>
+            </CardContent>
+            <CardFooter className="flex justify-center items-center"></CardFooter>
           </Card>
         </TabsContent>
         <TabsContent value="followers">
