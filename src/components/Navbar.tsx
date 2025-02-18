@@ -16,7 +16,7 @@ export default async function Navbar() {
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-5">
           <Search />
-          <div className="flex flex-row gap-5">
+          <div className="flex flex-row gap-5 cursor-pointer">
             {session ? (
               <SignOutButton />
             ) : (
