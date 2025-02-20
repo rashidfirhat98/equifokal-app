@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import Image from "next/image";
 import { unauthorized } from "next/navigation";
 import profilePic from "@/assets/images/EQFKL_logo.jpg";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import UploadForm from "@/components/UploadForm";
 
 const getCurrentUser = async () => {
   try {
@@ -39,7 +39,6 @@ const getCurrentUser = async () => {
     const currentUser = await prisma.user.findUnique({
       where: { email: session?.user.email || undefined },
     });
-    console.log("user:" + currentUser);
     if (!currentUser) return;
 
     return currentUser;
@@ -50,7 +49,6 @@ const getCurrentUser = async () => {
 };
 export default async function DashboardPage() {
   const user = await getCurrentUser();
-  console.log(user);
   if (!user) {
     unauthorized();
   }
@@ -207,36 +205,7 @@ export default async function DashboardPage() {
           </Card>
         </TabsContent>
         <TabsContent value="bucket">
-          <Card className="mx-3 flex flex-col items-center text-center">
-            <CardHeader className="items-center pt-8">
-              <CardTitle>Photo Bucket</CardTitle>
-              <CardDescription>
-                You don't have any photos in the bucket. Click to add more
-                photos. Or how about viewing the creations of other travellers
-                for some inspiration?
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2 w-full">
-              <Collapsible className="space-y-10">
-                <div className="flex flex-row justify-center items-center gap-4">
-                  <CollapsibleTrigger asChild>
-                    <Button variant="default">Add Photos</Button>
-                  </CollapsibleTrigger>
-                  <Button variant="outline">Get Inspired</Button>
-                </div>
-                <CollapsibleContent className="space-y-1 ">
-                  <Input
-                    className="outline-dashed border-none outline-gray-300 w-full min-h-56 shadow-none"
-                    id="current"
-                    type="file"
-                    multiple
-                    placeholder="Drag or click to add files"
-                  />
-                </CollapsibleContent>
-              </Collapsible>
-            </CardContent>
-            <CardFooter className="flex justify-center items-center"></CardFooter>
-          </Card>
+          <UploadForm />
         </TabsContent>
         <TabsContent value="followers">
           <div>Insert Follower list here</div>
