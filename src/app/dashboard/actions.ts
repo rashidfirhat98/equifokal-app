@@ -39,10 +39,11 @@ export async function uploadImage(prevState: any, formData: FormData) {
     }
 
     for (const file of files) {
-      if (!(file instanceof File)) continue; // Ensure it's a File object
+      if (!(file instanceof Blob)) continue; // Ensure it's a File object
 
       const buffer: Buffer = Buffer.from(await file.arrayBuffer());
-      await uploadFileToS3(buffer, file.name);
+      const fileName = (file as any).name || `file-${Date.now()}`;
+      await uploadFileToS3(buffer, fileName);
     }
 
     revalidatePath("/");
