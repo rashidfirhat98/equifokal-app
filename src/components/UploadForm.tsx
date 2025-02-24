@@ -6,6 +6,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "./ui/card";
@@ -30,6 +31,8 @@ import {
   AcceptedImageTypeSchema,
   AcceptedImageUploads,
 } from "@/models/ImageUploadSchema";
+import { useFormStatus } from "react-dom";
+import { Loader2 } from "lucide-react";
 
 export default function UploadForm() {
   const form = useForm<AcceptedImageUploads>({
@@ -42,12 +45,18 @@ export default function UploadForm() {
   const { setValue } = form;
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [photoDetails, setPhotoDetails] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [alert, setAlert] = useState({
+    status: "",
+    message: "",
+  });
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
       setSelectedFiles(files);
       setValue("img_uploads", files, { shouldValidate: true });
+      setAlert({ status: "", message: "" });
 
       // Extract metadata from all images concurrently
       const metadataPromises = Array.from(files).map(async (file) => {
@@ -72,7 +81,7 @@ export default function UploadForm() {
     }
   };
 
-  function onSubmit(data: AcceptedImageUploads) {
+  async function onSubmit(data: AcceptedImageUploads) {
     let formData = new FormData();
 
     if (data.img_uploads && photoDetails.length) {
@@ -93,11 +102,16 @@ export default function UploadForm() {
       });
     }
 
-    console.log([...formData.entries()]); // Debugging: Log FormData contents
     try {
-      uploadImage(null, formData);
+      setIsLoading(true);
+      const response = await uploadImage(formData);
+
+      setAlert({ status: response.status, message: response.message });
     } catch (error) {
       console.log(error);
+      setAlert({ status: "error", message: "Network error. Please try again" });
+    } finally {
+      setIsLoading(false);
     }
   }
   return (
@@ -147,13 +161,32 @@ export default function UploadForm() {
                   )}
                 />
                 <div className="flex flex-row justify-end w-full">
-                  <Button type="submit">Upload</Button>
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="animate-spin" /> Uploading
+                      </>
+                    ) : (
+                      "Upload"
+                    )}
+                  </Button>
                 </div>
               </form>
             </Form>
           </CollapsibleContent>
         </Collapsible>
       </CardContent>
+      {alert.message && (
+        <CardFooter>
+          <p
+            className={`${
+              alert.status === "success" ? "text-green-500" : "text-red-500"
+            }`}
+          >
+            {alert.message}
+          </p>
+        </CardFooter>
+      )}
     </Card>
   );
 }

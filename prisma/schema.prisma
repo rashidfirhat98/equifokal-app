@@ -14,20 +14,22 @@ datasource db {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
+  id            String    @id @default(uuid())
   name          String
   email         String    @unique
   emailVerified DateTime?
   password      String?
-  image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
+  profilePic    String?  
+  bio           String?  
+  images        Image[]
 }
 
 model Account {
-  id                Int     @id @default(autoincrement())
-  userId            Int
+  id                String  @id @default(uuid())
+  userId            String
   provider          String
   providerAccountId String
   type              String?
@@ -41,4 +43,26 @@ model Account {
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+}
+
+model Image {
+  id        String    @id @default(uuid())
+  userId    String    // Make sure this matches User.id type
+  user      User      @relation(fields: [userId], references: [id])
+  url       String
+  fileName  String
+  metadata  Metadata? @relation("ImageMetadata") 
+  createdAt DateTime  @default(now())
+}
+
+model Metadata {
+  id            String  @id @default(uuid())
+  imageId       String  @unique
+  image         Image   @relation("ImageMetadata", fields: [imageId], references: [id], onDelete: Cascade) 
+  model         String?
+  aperture      Float?
+  focalLength   Float?
+  exposureTime  Float?
+  iso           Int?
+  flash         String?
 }

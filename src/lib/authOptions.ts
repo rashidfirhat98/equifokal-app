@@ -41,7 +41,7 @@ export const authOptions: AuthOptions = {
           id: String(user.id), // NextAuth requires an `id`
           name: user.name,
           email: user.email,
-          image: user.image, // Optional, but expected by NextAuth
+          image: user.profilePic, // Optional, but expected by NextAuth
         };
       },
     }),
