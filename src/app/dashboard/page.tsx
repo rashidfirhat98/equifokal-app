@@ -15,12 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Gallery from "@/components/Gallery";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+
 import {
   Select,
   SelectContent,
@@ -31,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import UploadForm from "@/components/UploadForm";
+import Portfolio from "@/components/Portfolio";
 
 const getCurrentUser = async () => {
   try {
@@ -112,7 +108,7 @@ export default async function DashboardPage() {
           <TabsTrigger value="following">Following</TabsTrigger>
         </TabsList>
         <TabsContent value="portfolio">
-          <Gallery />
+          <Portfolio />
         </TabsContent>
         <TabsContent value="gallery">
           <Card className="mx-3">

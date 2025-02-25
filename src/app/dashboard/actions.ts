@@ -59,35 +59,37 @@ export async function uploadImage(formData: FormData) {
       const file = files[index] as File;
       const metadata = metadataList[index]; // Ensure we match file with its metadata
       const buffer = Buffer.from(await file.arrayBuffer());
-
       // Upload file to S3 and get the URL
-      if (session) {
-        const fileUrl = await uploadFileToS3(buffer, file.name);
-
-        // Save to database
-        await prisma.image.create({
-          data: {
-            userId: session.user.id, // Ensure this comes from session/auth
-            url: fileUrl,
-            fileName: file.name,
-            metadata: metadata
-              ? {
-                  create: {
-                    model: metadata.model,
-                    aperture: metadata.aperture,
-                    focalLength: metadata.focalLength,
-                    exposureTime: metadata.exposureTime,
-                    iso: metadata.iso,
-                    flash: metadata.flash,
-                  },
-                }
-              : undefined,
-          },
-          include: {
-            metadata: true,
-          },
-        });
+      if (!session) {
+        return { status: "error", message: "User not found" };
       }
+      const fileUrl = await uploadFileToS3(buffer, file.name);
+
+      // Save to database
+      await prisma.image.create({
+        data: {
+          userId: session.user.id, // Ensure this comes from session/auth
+          url: fileUrl,
+          fileName: file.name,
+          metadata: metadata
+            ? {
+                create: {
+                  model: metadata.model,
+                  aperture: metadata.aperture,
+                  focalLength: metadata.focalLength,
+                  exposureTime: metadata.exposureTime,
+                  iso: metadata.iso,
+                  flash: metadata.flash,
+                  width: metadata.width,
+                  height: metadata.height,
+                },
+              }
+            : undefined,
+        },
+        include: {
+          metadata: true,
+        },
+      });
 
       revalidatePath("/");
     }
@@ -99,4 +101,21 @@ export async function uploadImage(formData: FormData) {
     console.error("Upload Error:", error);
     return { status: "error", message: "Failed to upload images" };
   }
+}
+
+export async function getUserImages() {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return [];
+  }
+  const images = await prisma.image.findMany({
+    where: { userId: session.user.id },
+    include: { metadata: true }, // Include metadata if needed
+    orderBy: { createdAt: "desc" }, // Sort by newest first
+  });
+
+  console.log(images);
+
+  return images; // Returns an array of image objects
 }

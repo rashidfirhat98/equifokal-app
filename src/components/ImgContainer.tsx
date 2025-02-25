@@ -17,7 +17,7 @@ export default function ImgContainer({ photo }: Props) {
       style={{ gridRow: `span ${photoSpans}` }}
     >
       <Link
-        href={photo.url}
+        href={photo.url ?? ""}
         target="_blank"
         className="grid place-content-center"
       >

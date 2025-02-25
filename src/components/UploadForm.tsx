@@ -59,24 +59,61 @@ export default function UploadForm() {
       setAlert({ status: "", message: "" });
 
       // Extract metadata from all images concurrently
-      const metadataPromises = Array.from(files).map(async (file) => {
-        const metadata = await exifr.parse(file).catch(() => ({}));
-        return metadata
-          ? {
-              file,
-              exifMetadata: {
-                model: metadata.Model ?? null,
-                aperture: metadata.FNumber ?? null,
-                focalLength: metadata.FocalLength ?? null,
-                exposureTime: metadata.ExposureTime ?? null,
-                iso: metadata.ISO ?? null,
-                flash: metadata.Flash ?? null,
-              },
-            }
-          : { file };
-      });
+      const metadataPromises = Array.from(files).map(
+        (file) =>
+          new Promise((resolve) => {
+            exifr
+              .parse(file)
+              .then((metadata) => {
+                metadata = metadata || {}; // Ensure metadata is always an object
+
+                const img = new Image();
+                img.src = URL.createObjectURL(file);
+
+                img.onload = () => {
+                  resolve({
+                    file,
+                    exifMetadata: {
+                      height: metadata.ImageHeight ?? img.height,
+                      width: metadata.ImageWidth ?? img.width,
+                      model: metadata.Model ?? null,
+                      aperture: metadata.FNumber ?? null,
+                      focalLength: metadata.FocalLength ?? null,
+                      exposureTime: metadata.ExposureTime ?? null,
+                      iso: metadata.ISO ?? null,
+                      flash: metadata.Flash ?? null,
+                    },
+                  });
+                };
+              })
+              .catch(() => {
+                // If EXIF fails, fallback to image dimensions only
+                const img = new Image();
+                img.src = URL.createObjectURL(file);
+
+                img.onload = () => {
+                  resolve({
+                    file,
+                    exifMetadata: {
+                      height: img.height,
+                      width: img.width,
+                      model: null,
+                      aperture: null,
+                      focalLength: null,
+                      exposureTime: null,
+                      iso: null,
+                      flash: null,
+                    },
+                  });
+                };
+              });
+          })
+      );
+
       // Wait for all metadata to be processed
       const allMetadata = await Promise.all(metadataPromises);
+      console.log(allMetadata);
+
       setPhotoDetails(allMetadata);
     }
   };
