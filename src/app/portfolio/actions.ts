@@ -33,7 +33,7 @@ export async function getUserImages(
     total_results,
     photos: images.map((image) => ({
       id: image.id,
-      url: image.url,
+      url: `/photo/${image.id}`,
       height: image.metadata?.height || 2000,
       width: image.metadata?.width || 2000,
       alt: image.fileName,

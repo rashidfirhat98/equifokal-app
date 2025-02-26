@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ["equifokal-dev.s3.ap-southeast-2.amazonaws.com"],
     remotePatterns: [
       {
         protocol: "https",
@@ -15,6 +14,10 @@ const nextConfig: NextConfig = {
         hostname: "randomuser.me",
         port: "",
         pathname: "/photos/**",
+      },
+      {
+        protocol: "https",
+        hostname: "equifokal-dev.s3.ap-southeast-2.amazonaws.com",
       },
     ],
   },

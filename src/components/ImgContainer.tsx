@@ -1,6 +1,9 @@
+"use client";
+
 import type { Photo } from "@/models/Images";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Props = {
   photo: Photo;
@@ -17,11 +20,11 @@ export default function ImgContainer({ photo }: Props) {
       style={{ gridRow: `span ${photoSpans}` }}
     >
       <Link
-        href={photo.url ?? ""}
-        target="_blank"
+        href={`/photo/${photo.id}`}
+        // target="_blank"
         className="grid place-content-center"
       >
-        <div className="rounded-xl overflow-hidden group">
+        <div className=" overflow-hidden group cursor-pointer">
           <Image
             src={photo.src.large}
             alt={photo.alt}
