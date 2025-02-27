@@ -46,13 +46,16 @@ model Account {
 }
 
 model Image {
-  id        Int       @id @default(autoincrement())
-  userId    String    // Make sure this matches User.id type
-  user      User      @relation(fields: [userId], references: [id])
-  url       String
-  fileName  String
-  metadata  Metadata? @relation("ImageMetadata") 
-  createdAt DateTime  @default(now())
+  id          Int       @id @default(autoincrement())
+  userId      String    
+  user        User      @relation(fields: [userId], references: [id])
+  url         String
+  fileName    String
+  galleryId   Int? 
+  createdAt   DateTime  @default(now())     
+  metadata    Metadata? @relation("ImageMetadata")
+  gallery     Gallery?  @relation(fields: [galleryId], references: [id])
+  
 }
 
 model Metadata {
@@ -67,4 +70,13 @@ model Metadata {
   flash         String?
   height        Int?
   width         Int?
+}
+
+model Gallery {
+  id          Int      @id @default(autoincrement()) 
+  title       String   
+  description String?  // Optional description
+  images      Image[]  // Relation to Photo table
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

@@ -3,6 +3,7 @@ import Search from "./Search";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import SignOutButton from "./SignOutButton";
+import NavAccountIcon from "./NavAccountIcon";
 
 export default async function Navbar() {
   const session = await getServerSession(authOptions);
@@ -16,10 +17,15 @@ export default async function Navbar() {
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-5">
           <Search />
-          <div className="flex flex-row gap-5 cursor-pointer">
+          <div className="flex flex-row gap-5 items-center">
             {session ? (
-              <SignOutButton />
+              // <div className="col-span-1 flex items-center justify-center">
+              <>
+                <NavAccountIcon />
+                <SignOutButton />
+              </>
             ) : (
+              // </div>
               <>
                 <h2>
                   <Link href="/login">Login</Link>

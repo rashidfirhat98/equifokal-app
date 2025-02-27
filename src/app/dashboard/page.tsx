@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import UploadForm from "@/components/UploadForm";
 import Portfolio from "@/components/Portfolio";
+import GalleryForm from "@/components/GalleryForm";
 
 const getCurrentUser = async () => {
   try {
@@ -111,94 +112,7 @@ export default async function DashboardPage() {
           <Portfolio />
         </TabsContent>
         <TabsContent value="gallery">
-          <Card className="mx-3">
-            <CardHeader>
-              <CardTitle>Create a gallery</CardTitle>
-              <CardDescription>
-                Add a photos from your bucket to create a gallery here.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="space-y-1">
-                <Label htmlFor="current">Gallery title</Label>
-                <Input id="current" type="text" />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="new">Select photos</Label>
-                <Select>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Theme" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>North America</SelectLabel>
-                      <SelectItem value="est">
-                        Eastern Standard Time (EST)
-                      </SelectItem>
-                      <SelectItem value="cst">
-                        Central Standard Time (CST)
-                      </SelectItem>
-                      <SelectItem value="mst">
-                        Mountain Standard Time (MST)
-                      </SelectItem>
-                      <SelectItem value="pst">
-                        Pacific Standard Time (PST)
-                      </SelectItem>
-                      <SelectItem value="akst">
-                        Alaska Standard Time (AKST)
-                      </SelectItem>
-                      <SelectItem value="hst">
-                        Hawaii Standard Time (HST)
-                      </SelectItem>
-                    </SelectGroup>
-                    <SelectGroup>
-                      <SelectLabel>Europe & Africa</SelectLabel>
-                      <SelectItem value="gmt">
-                        Greenwich Mean Time (GMT)
-                      </SelectItem>
-                      <SelectItem value="cet">
-                        Central European Time (CET)
-                      </SelectItem>
-                      <SelectItem value="eet">
-                        Eastern European Time (EET)
-                      </SelectItem>
-                      <SelectItem value="west">
-                        Western European Summer Time (WEST)
-                      </SelectItem>
-                      <SelectItem value="cat">
-                        Central Africa Time (CAT)
-                      </SelectItem>
-                      <SelectItem value="eat">
-                        East Africa Time (EAT)
-                      </SelectItem>
-                    </SelectGroup>
-                    <SelectGroup>
-                      <SelectLabel>Asia</SelectLabel>
-                      <SelectItem value="msk">Moscow Time (MSK)</SelectItem>
-                      <SelectItem value="ist">
-                        India Standard Time (IST)
-                      </SelectItem>
-                      <SelectItem value="cst_china">
-                        China Standard Time (CST)
-                      </SelectItem>
-                      <SelectItem value="jst">
-                        Japan Standard Time (JST)
-                      </SelectItem>
-                      <SelectItem value="kst">
-                        Korea Standard Time (KST)
-                      </SelectItem>
-                      <SelectItem value="ist_indonesia">
-                        Indonesia Central Standard Time (WITA)
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button>Save gallery</Button>
-            </CardFooter>
-          </Card>
+          <GalleryForm />
         </TabsContent>
         <TabsContent value="bucket">
           <UploadForm />
