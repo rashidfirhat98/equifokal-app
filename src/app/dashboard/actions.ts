@@ -6,6 +6,8 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
+import { ImagesResults } from "@/models/Images";
+import * as z from "zod";
 
 const s3Client = new S3Client({
   region: env.NEXT_AWS_S3_REGION,
@@ -13,6 +15,12 @@ const s3Client = new S3Client({
     accessKeyId: env.NEXT_AWS_S3_ACCESS_KEY_ID,
     secretAccessKey: env.NEXT_AWS_S3_SECRET_ACCESS_KEY,
   },
+});
+
+const gallerySchema = z.object({
+  title: z.string().min(3),
+  description: z.string().optional(),
+  photoIds: z.array(z.number()).min(1),
 });
 
 async function uploadFileToS3(buffer: Buffer, fileName: string) {
@@ -103,19 +111,74 @@ export async function uploadImage(formData: FormData) {
   }
 }
 
-export async function getUserImages() {
+export async function getUserImages(
+  page: number = 1,
+  per_page: number = 10
+): Promise<ImagesResults | undefined> {
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    return [];
+    return { photos: [], page, per_page, total_results: 0 };
   }
-  const images = await prisma.image.findMany({
+
+  const total_results = await prisma.image.count({
     where: { userId: session.user.id },
-    include: { metadata: true }, // Include metadata if needed
-    orderBy: { createdAt: "desc" }, // Sort by newest first
   });
 
-  console.log(images);
+  const images = await prisma.image.findMany({
+    where: { userId: session.user.id },
+    include: { metadata: true },
+    orderBy: { createdAt: "desc" },
+    take: per_page,
+    skip: (page - 1) * per_page,
+  });
 
-  return images; // Returns an array of image objects
+  return {
+    page,
+    per_page,
+    total_results,
+    photos: images.map((image) => ({
+      id: image.id,
+      url: `/photo/${image.id}`,
+      height: image.metadata?.height || 2000,
+      width: image.metadata?.width || 2000,
+      alt: image.fileName,
+      src: {
+        large: image.url, // Adjust based on your storage
+      },
+    })),
+    prev_page:
+      page > 1
+        ? `/api/images?page=${page - 1}&per_page=${per_page}`
+        : undefined,
+    next_page:
+      page * per_page < total_results
+        ? `/api/images?page=${page + 1}&per_page=${per_page}`
+        : undefined,
+  };
+}
+
+export async function createGallery(data: z.infer<typeof gallerySchema>) {
+  const validatedData = gallerySchema.parse(data);
+
+  try {
+    const gallery = await prisma.gallery.create({
+      data: {
+        title: validatedData.title,
+        description: validatedData.description,
+        images: {
+          create: validatedData.photoIds.map((imageId) => ({
+            image: { connect: { id: imageId } },
+          })),
+        },
+      },
+    });
+    return {
+      gallery,
+      status: "success",
+      message: "Gallery created successfully",
+    };
+  } catch (error) {
+    throw new Error("Failed to create gallery");
+  }
 }

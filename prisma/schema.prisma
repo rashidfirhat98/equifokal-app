@@ -46,16 +46,14 @@ model Account {
 }
 
 model Image {
-  id          Int       @id @default(autoincrement())
-  userId      String    
-  user        User      @relation(fields: [userId], references: [id])
+  id          Int           @id @default(autoincrement())
+  userId      String        
+  user        User          @relation(fields: [userId], references: [id])
   url         String
   fileName    String
-  galleryId   Int? 
-  createdAt   DateTime  @default(now())     
-  metadata    Metadata? @relation("ImageMetadata")
-  gallery     Gallery?  @relation(fields: [galleryId], references: [id])
-  
+  createdAt   DateTime      @default(now())     
+  metadata    Metadata?     @relation("ImageMetadata")
+  galleries   GalleryImage[]
 }
 
 model Metadata {
@@ -73,10 +71,19 @@ model Metadata {
 }
 
 model Gallery {
-  id          Int      @id @default(autoincrement()) 
-  title       String   
-  description String?  // Optional description
-  images      Image[]  // Relation to Photo table
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          Int           @id @default(autoincrement()) 
+  title       String       
+  description String?       // Optional description
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  images      GalleryImage[]
+}
+
+model GalleryImage {
+  galleryId Int
+  imageId   Int
+  gallery   Gallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+  image     Image   @relation(fields: [imageId], references: [id], onDelete: Cascade)
+
+  @@id([galleryId, imageId]) // Composite primary key
 }

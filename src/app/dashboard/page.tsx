@@ -4,30 +4,12 @@ import Image from "next/image";
 import { unauthorized } from "next/navigation";
 import profilePic from "@/assets/images/EQFKL_logo.jpg";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import UploadForm from "@/components/UploadForm";
 import Portfolio from "@/components/Portfolio";
 import GalleryForm from "@/components/GalleryForm";
+import { ImagesResults } from "@/models/Images";
+import { getUserImages } from "./actions";
 
 const getCurrentUser = async () => {
   try {
@@ -46,6 +28,7 @@ const getCurrentUser = async () => {
 };
 export default async function DashboardPage() {
   const user = await getCurrentUser();
+  const photos: ImagesResults | undefined = await getUserImages();
   if (!user) {
     unauthorized();
   }
@@ -99,7 +82,7 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      <Tabs orientation="vertical" defaultValue="gallery" className="w-full">
+      <Tabs orientation="vertical" defaultValue="portfolio" className="w-full">
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
           <TabsTrigger value="gallery">Gallery</TabsTrigger>
@@ -112,7 +95,7 @@ export default async function DashboardPage() {
           <Portfolio />
         </TabsContent>
         <TabsContent value="gallery">
-          <GalleryForm />
+          <GalleryForm photos={photos} />
         </TabsContent>
         <TabsContent value="bucket">
           <UploadForm />

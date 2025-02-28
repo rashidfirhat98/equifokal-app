@@ -16,7 +16,6 @@ export default async function Portfolio({ topic = "curated", page }: Props) {
 
   if (!photos || photos.per_page === 0)
     return <h2 className="m-4 text-2xl font-bold">No Images Found</h2>;
-
   const photosWithBlur = await addBlurredDataUrls(photos);
 
   return (

@@ -31,7 +31,6 @@ import {
   AcceptedImageTypeSchema,
   AcceptedImageUploads,
 } from "@/models/ImageUploadSchema";
-import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
 
 export default function UploadForm() {

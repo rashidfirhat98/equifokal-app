@@ -1,7 +1,7 @@
 "use client";
 
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import { useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -17,43 +17,28 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Photo } from "@/models/Images";
+import Image from "next/image";
 
-const frameworks = [
-  {
-    value: "next.js",
-    label: "Next.js",
-  },
-  {
-    value: "sveltekit",
-    label:
-      "asdfasdfgasdfasdfasdfasdfasdfqwerqwefwadf;lasdkjvb;saodigjhqwa;oeitnasdg",
-  },
-  {
-    value: "nuxt.js",
-    label: "Nuxt.js",
-  },
-  {
-    value: "remix",
-    label: "Remix",
-  },
-  {
-    value: "astro",
-    label: "Astro",
-  },
-];
+type Props = {
+  photos: Photo[];
+  selectedPhotos: number[];
+  setSelectedPhotos: (ids: number[]) => void;
+};
 
-export default function MultiSelectInput() {
+export default function MultiSelectInput({
+  photos,
+  selectedPhotos = [],
+  setSelectedPhotos,
+}: Props) {
   const [open, setOpen] = useState(false);
-  const [selectedValues, setSelectedValues] = useState<string[]>([]); // ✅ Array for multiple selections
 
-  // Function to toggle selections
-  const handleSelect = (currentValue: string) => {
-    setSelectedValues(
-      (prev) =>
-        prev.includes(currentValue)
-          ? prev.filter((val) => val !== currentValue) // Remove if already selected
-          : [...prev, currentValue] // Add if not selected
-    );
+  const handleSelect = (photo: Photo) => {
+    const updatedPhotos = selectedPhotos.includes(photo.id)
+      ? selectedPhotos.filter((id) => id !== photo.id)
+      : [...selectedPhotos, photo.id];
+
+    setSelectedPhotos(updatedPhotos);
   };
 
   return (
@@ -63,48 +48,83 @@ export default function MultiSelectInput() {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="w-full justify-between flex flex-wrap items-center gap-3 px-3 py-2 h-auto min-h-[56px]"
         >
-          <span className="truncate max-w-[90%] whitespace-nowrap overflow-hidden text-ellipsis">
-            {selectedValues.length > 0
-              ? frameworks
-                  .filter((framework) =>
-                    selectedValues.includes(framework.value)
+          {selectedPhotos.length > 0 ? (
+            <div className="flex gap-3 flex-wrap overflow-hidden max-w-full">
+              {selectedPhotos.map((id) => {
+                const photo = photos.find((p) => p.id === id);
+                return (
+                  photo && (
+                    <div
+                      key={photo.id}
+                      className="flex flex-col items-center relative max-w-10"
+                    >
+                      <Image
+                        src={photo.src.large}
+                        alt={photo.alt}
+                        width={60}
+                        height={60}
+                        className="rounded-lg object-cover w-full h-full"
+                      />
+                      <p className="text-xs text-center mt-1 truncate w-full">
+                        {photo.alt}
+                      </p>
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelect(photo);
+                        }}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-[4px] text-xs leading-none cursor-pointer"
+                      >
+                        <X size={14} />
+                      </div>
+                    </div>
                   )
-                  .map((f) => f.label)
-                  .join(", ")
-              : "No photo selected"}
-          </span>
-
-          <ChevronsUpDown className="opacity-50 ml-2 h-4 w-4" />
+                );
+              })}
+            </div>
+          ) : (
+            <span className="text-gray-500">Select images...</span>
+          )}
+          <ChevronsUpDown className="ml-auto opacity-50" />
         </Button>
       </PopoverTrigger>
+
       <PopoverContent
-        sideOffset={0}
-        className="w-[var(--radix-popover-trigger-width)] p-0"
+        align="start"
+        className="w-[var(--radix-popover-trigger-width)] max-h-[300px]"
       >
         <Command>
-          <CommandInput placeholder="Search framework..." className="h-9" />
+          <CommandInput placeholder="Search photos..." className="h-9" />
           <CommandList>
-            <CommandEmpty>No framework found.</CommandEmpty>
-            <CommandGroup>
-              {frameworks.map((framework) => (
-                <CommandItem
-                  key={framework.value}
-                  value={framework.value}
-                  onSelect={() => handleSelect(framework.value)}
-                >
-                  {framework.label}
-                  <Check
-                    className={cn(
-                      "ml-auto",
-                      selectedValues.includes(framework.value)
-                        ? "opacity-100"
-                        : "opacity-0"
-                    )}
-                  />
-                </CommandItem>
-              ))}
+            <CommandEmpty>No images found.</CommandEmpty>
+            <CommandGroup className="max-h-60 overflow-y-auto">
+              {photos.map((photo) => {
+                const isSelected = selectedPhotos.includes(photo.id);
+                return (
+                  <CommandItem
+                    key={photo.id}
+                    onSelect={() => handleSelect(photo)}
+                    className="flex items-center gap-2 p-2"
+                  >
+                    <Image
+                      src={photo.src.large}
+                      alt={photo.alt}
+                      width={48}
+                      height={48}
+                      className="rounded-md object-cover"
+                    />
+                    <span className="text-sm truncate">{photo.alt}</span>
+                    <Check
+                      className={cn(
+                        "ml-auto",
+                        isSelected ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                  </CommandItem>
+                );
+              })}
             </CommandGroup>
           </CommandList>
         </Command>
