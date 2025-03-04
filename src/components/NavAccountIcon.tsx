@@ -40,7 +40,7 @@ export default function NavAccountIcon() {
               Dashboard
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>
+          <DropdownMenuItem >
             <Link className="flex-1" href="/upload">
               Upload Photos
             </Link>
@@ -53,7 +53,11 @@ export default function NavAccountIcon() {
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
-                <DropdownMenuItem>Create a gallery</DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link className="flex-1" href="/create/gallery">
+                    Create a gallery
+                  </Link>
+                </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>

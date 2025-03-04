@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import env from "@/lib/env";
-import { NextResponse } from "next/server";
 
 interface Photo {
   id: number;
@@ -15,9 +14,6 @@ export default async function PhotoPage({
   params: { id: string };
 }) {
   const { id } = await params;
-
-  console.log(`${env.NEXT_PUBLIC_CLIENT_URL}/api/photo/${id}`);
-  // Fetch the photo data
 
   try {
     const res = await fetch(`${env.NEXT_PUBLIC_CLIENT_URL}/api/photo/${id}`, {

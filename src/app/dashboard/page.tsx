@@ -9,7 +9,10 @@ import UploadForm from "@/components/UploadForm";
 import Portfolio from "@/components/Portfolio";
 import GalleryForm from "@/components/GalleryForm";
 import { ImagesResults } from "@/models/Images";
-import { getUserImages } from "./actions";
+import { getGalleries, getUserImages } from "./actions";
+import GalleryList from "@/components/GalleryList";
+import { GalleriesResults } from "@/models/Gallery";
+import DashboardTabs from "@/components/DashboardTabs";
 
 const getCurrentUser = async () => {
   try {
@@ -28,7 +31,7 @@ const getCurrentUser = async () => {
 };
 export default async function DashboardPage() {
   const user = await getCurrentUser();
-  const photos: ImagesResults | undefined = await getUserImages();
+
   if (!user) {
     unauthorized();
   }
@@ -82,28 +85,7 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      <Tabs orientation="vertical" defaultValue="portfolio" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
-          <TabsTrigger value="gallery">Gallery</TabsTrigger>
-          <TabsTrigger value="bucket">Bucket</TabsTrigger>
-          <TabsTrigger value="article">Article</TabsTrigger>
-          <TabsTrigger value="followers">Followers</TabsTrigger>
-          <TabsTrigger value="following">Following</TabsTrigger>
-        </TabsList>
-        <TabsContent value="portfolio">
-          <Portfolio />
-        </TabsContent>
-        <TabsContent value="gallery">
-          <GalleryForm photos={photos} />
-        </TabsContent>
-        <TabsContent value="bucket">
-          <UploadForm />
-        </TabsContent>
-        <TabsContent value="followers">
-          <div>Insert Follower list here</div>
-        </TabsContent>
-      </Tabs>
+      <DashboardTabs />
     </>
   );
 }

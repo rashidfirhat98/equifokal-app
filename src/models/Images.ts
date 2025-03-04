@@ -8,7 +8,7 @@ const BasicImageSchema = z.object({
   total_results: z.number(),
 });
 
-const PhotoSchema = z.object({
+export const PhotoSchema = z.object({
   id: z.number(),
   width: z.number(),
   height: z.number(),
@@ -22,6 +22,16 @@ const PhotoSchema = z.object({
   }),
   alt: z.string(),
   blurredDataUrl: z.string().optional(),
+  metadata: z
+    .object({
+      model: z.string().optional(),
+      aperture: z.number().optional(),
+      focalLength: z.number().optional(),
+      exposureTime: z.number().optional(),
+      iso: z.number().optional(),
+      flash: z.string().optional(),
+    })
+    .optional(),
 });
 
 export const ImagesSchemaWithPhotos = BasicImageSchema.extend({

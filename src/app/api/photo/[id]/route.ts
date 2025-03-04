@@ -15,8 +15,6 @@ export async function GET(
       },
     });
 
-    console.log(photo);
-
     if (!photo) {
       return NextResponse.json({ error: "Photo not found" }, { status: 404 });
     }
