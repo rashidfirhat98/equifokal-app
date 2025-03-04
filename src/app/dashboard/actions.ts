@@ -82,17 +82,17 @@ export async function uploadImage(formData: FormData) {
           fileName: file.name,
           metadata: metadata
             ? {
-                create: {
-                  model: metadata.model,
-                  aperture: metadata.aperture,
-                  focalLength: metadata.focalLength,
-                  exposureTime: metadata.exposureTime,
-                  iso: metadata.iso,
-                  flash: metadata.flash,
-                  width: metadata.width,
-                  height: metadata.height,
-                },
-              }
+              create: {
+                model: metadata.model,
+                aperture: metadata.aperture,
+                focalLength: metadata.focalLength,
+                exposureTime: metadata.exposureTime,
+                iso: metadata.iso,
+                flash: metadata.flash,
+                width: metadata.width,
+                height: metadata.height,
+              },
+            }
             : undefined,
         },
         include: {
@@ -160,13 +160,20 @@ export async function getUserImages(
 }
 
 export async function createGallery(data: z.infer<typeof gallerySchema>) {
-  const validatedData = gallerySchema.parse(data);
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return { status: "error", message: "User not found" };
+  }
 
+  const validatedData = gallerySchema.parse(data);
   try {
     const gallery = await prisma.gallery.create({
       data: {
         title: validatedData.title,
         description: validatedData.description,
+        user: {
+          connect: { id: session.user.id },
+        },
         images: {
           create: validatedData.photoIds.map((imageId) => ({
             image: { connect: { id: imageId } },
@@ -229,15 +236,15 @@ export async function getGalleries({
       blurredDataUrl: undefined,
       metadata: galleryImage.image.metadata
         ? {
-            model: galleryImage.image.metadata.model || undefined,
-            aperture: galleryImage.image.metadata.aperture || undefined,
-            focalLength: galleryImage.image.metadata.focalLength || undefined,
-            exposureTime: galleryImage.image.metadata.exposureTime || undefined,
-            iso: galleryImage.image.metadata.iso || undefined,
-            flash: galleryImage.image.metadata.flash || undefined,
-            height: galleryImage.image.metadata.height || undefined,
-            width: galleryImage.image.metadata.width || undefined,
-          }
+          model: galleryImage.image.metadata.model || undefined,
+          aperture: galleryImage.image.metadata.aperture || undefined,
+          focalLength: galleryImage.image.metadata.focalLength || undefined,
+          exposureTime: galleryImage.image.metadata.exposureTime || undefined,
+          iso: galleryImage.image.metadata.iso || undefined,
+          flash: galleryImage.image.metadata.flash || undefined,
+          height: galleryImage.image.metadata.height || undefined,
+          width: galleryImage.image.metadata.width || undefined,
+        }
         : undefined,
     })),
     createdAt: gallery.createdAt.toISOString(),

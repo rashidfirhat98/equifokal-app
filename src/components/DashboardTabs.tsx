@@ -8,8 +8,9 @@ import { getGalleries, getUserImages } from "@/app/dashboard/actions";
 import { ImagesResults } from "@/models/Images";
 
 export default async function DashboardTabs() {
-    const photos: ImagesResults | undefined = await getUserImages();
-    const galleries: GalleriesResults | undefined = await getGalleries({});
+    const photosRes: ImagesResults | undefined = await getUserImages();
+    const galleriesRes: GalleriesResults | undefined = await getGalleries({});
+    
   return (
     <Tabs orientation="vertical" defaultValue="portfolio" className="w-full">
         <TabsList className="grid w-full grid-cols-5">
@@ -23,10 +24,10 @@ export default async function DashboardTabs() {
           <Portfolio />
         </TabsContent>
         <TabsContent value="gallery">
-          {galleries ? (
-            <GalleryList galleries={galleries} />
+          {galleriesRes && galleriesRes.galleries.length > 0 ? (
+            <GalleryList galleries={galleriesRes} />
           ) : (
-            <GalleryForm photos={photos} />
+            <GalleryForm photos={photosRes} />
           )}
         </TabsContent>
         <TabsContent value="followers">

@@ -51,7 +51,7 @@ export default function GalleryForm({ photos }: Props) {
     defaultValues: {
       title: "",
       description: "",
-      photoIds: [], // Ensure it always initializes as an array
+      photoIds: [], 
     },
   });
 
@@ -61,7 +61,6 @@ export default function GalleryForm({ photos }: Props) {
 
     try {
       const response = await createGallery(data);
-
       setAlert({ status: response.status, message: response.message });
       form.reset();
       router.refresh();

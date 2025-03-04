@@ -43,7 +43,7 @@ export default async function GalleryPage({
 }: {
   params: { id: string };
 }) {
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const res = await fetch(`${env.NEXT_PUBLIC_CLIENT_URL}/api/gallery/${id}`, {

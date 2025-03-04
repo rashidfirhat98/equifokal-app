@@ -22,9 +22,11 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
-  profilePic    String?  
-  bio           String?  
+  profilePic    String?
+  bio           String?
   images        Image[]
+  galleries     Gallery[]
+  articles      Article[]
 }
 
 model Account {
@@ -46,37 +48,40 @@ model Account {
 }
 
 model Image {
-  id          Int           @id @default(autoincrement())
-  userId      String        
-  user        User          @relation(fields: [userId], references: [id])
-  url         String
-  fileName    String
-  createdAt   DateTime      @default(now())     
-  metadata    Metadata?     @relation("ImageMetadata")
-  galleries   GalleryImage[]
+  id        Int            @id @default(autoincrement())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id])
+  url       String
+  fileName  String
+  createdAt DateTime       @default(now())
+  metadata  Metadata?      @relation("ImageMetadata")
+  galleries GalleryImage[]
 }
 
 model Metadata {
-  id            Int     @id @default(autoincrement())
-  imageId       Int     @unique
-  image         Image   @relation("ImageMetadata", fields: [imageId], references: [id], onDelete: Cascade) 
-  model         String?
-  aperture      Float?
-  focalLength   Float?
-  exposureTime  Float?
-  iso           Int?
-  flash         String?
-  height        Int?
-  width         Int?
+  id           Int     @id @default(autoincrement())
+  imageId      Int     @unique
+  image        Image   @relation("ImageMetadata", fields: [imageId], references: [id], onDelete: Cascade)
+  model        String?
+  aperture     Float?
+  focalLength  Float?
+  exposureTime Float?
+  iso          Int?
+  flash        String?
+  height       Int?
+  width        Int?
 }
 
 model Gallery {
-  id          Int           @id @default(autoincrement()) 
-  title       String       
-  description String?       // Optional description
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id          Int              @id @default(autoincrement())
+  title       String
+  description String?
   images      GalleryImage[]
+  articles    ArticleGallery[]
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 }
 
 model GalleryImage {
@@ -86,4 +91,25 @@ model GalleryImage {
   image     Image   @relation(fields: [imageId], references: [id], onDelete: Cascade)
 
   @@id([galleryId, imageId]) // Composite primary key
+}
+
+model Article {
+  id        Int              @id @default(autoincrement())
+  title     String
+  content   String
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  galleries ArticleGallery[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model ArticleGallery {
+  id        Int     @id @default(autoincrement())
+  articleId Int
+  galleryId Int
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  gallery   Gallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, galleryId])
 }
