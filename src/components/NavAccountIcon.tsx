@@ -69,7 +69,11 @@ export default function NavAccountIcon() {
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
-                <DropdownMenuItem>Create an article</DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link className="flex-1" href="/create/article">
+                    Create an article
+                  </Link>
+                </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>
