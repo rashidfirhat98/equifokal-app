@@ -1,16 +1,23 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 
 export async function POST(req: Request) {
     try {
-        const { title, content, coverImage, tags } = await req.json();
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const { title, content, coverImageId } = await req.json();
 
         const newArticle = await prisma.article.create({
             data: {
                 title,
                 content,
-                coverImage,
-                tags: tags ? { set: tags } : undefined,
+                user: { connect: { id: session.user.id } },
+                coverImageId: coverImageId || undefined,
             },
         });
 

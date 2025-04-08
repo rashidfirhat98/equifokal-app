@@ -56,6 +56,7 @@ model Image {
   createdAt DateTime       @default(now())
   metadata  Metadata?      @relation("ImageMetadata")
   galleries GalleryImage[]
+  Article   Article[]      @relation("ImageCover")
 }
 
 model Metadata {
@@ -94,14 +95,16 @@ model GalleryImage {
 }
 
 model Article {
-  id        Int              @id @default(autoincrement())
-  title     String
-  content   String
-  userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  galleries ArticleGallery[]
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  id           Int              @id @default(autoincrement())
+  title        String
+  content      String
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  galleries    ArticleGallery[]
+  coverImageId Int?
+  coverImage   Image?           @relation("ImageCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 }
 
 model ArticleGallery {
