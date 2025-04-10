@@ -38,7 +38,7 @@ async function uploadFileToS3(buffer: Buffer, fileName: string) {
     console.log("File uploaded successfully", response);
     const fileUrl = `https://${env.NEXT_AWS_S3_BUCKET_NAME}.s3.${env.NEXT_AWS_S3_REGION}.amazonaws.com/${fileName}`;
 
-    return fileUrl; // ✅ Return the file's URL
+    return fileUrl;
   } catch (error) {
     console.error("Error uploading file to S3:", error);
     throw error;

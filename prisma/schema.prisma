@@ -54,6 +54,7 @@ model Image {
   url       String
   fileName  String
   createdAt DateTime       @default(now())
+  portfolio Boolean        @default(false)
   metadata  Metadata?      @relation("ImageMetadata")
   galleries GalleryImage[]
   Article   Article[]      @relation("ImageCover")

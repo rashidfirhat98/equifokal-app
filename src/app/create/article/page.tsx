@@ -11,16 +11,19 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "next/image";
+import { getGalleries } from "@/app/dashboard/actions";
+import { GalleriesResults } from "@/models/Gallery";
 
 // Validation Schema
 const articleSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   content: z.string().min(20, "Content must be at least 20 characters"),
-  coverImage: z.string().optional(),
-  tags: z.array(z.string()).optional(),
+  coverImageId: z.number().optional(),
+  tags: z.array(z.string()).optional(),// TODO: change to gallery 
 });
 
 type ArticleFormData = z.infer<typeof articleSchema>;
+const galleriesRes: GalleriesResults | undefined = await getGalleries({});
 
 export default function CreateArticlePage() {
   const [coverImage, setCoverImage] = useState<string | null>(null);
@@ -94,7 +97,6 @@ export default function CreateArticlePage() {
 
   return (
     <div className="max-w-3xl mx-auto py-6">
-      {/* Cover Image Upload */}
       <div className="relative w-full h-56 bg-gray-200 flex items-center justify-center rounded-lg overflow-hidden">
         {coverImage ? (
           <Image src={coverImage} alt="Cover" className="w-full h-full object-cover" width={500} height={300} />
@@ -106,17 +108,15 @@ export default function CreateArticlePage() {
         )}
       </div>
 
-      {/* Title Input */}
       <Input {...register("title")} placeholder="Enter article title..." className="w-full text-3xl border-none focus:ring-0 mt-4" />
       {errors.title && <p className="text-red-500 text-sm">{errors.title.message}</p>}
 
-      {/* TipTap Editor */}
       <div className="border border-gray-300 rounded-lg p-3 mt-4">
         <EditorContent editor={editor} className="min-h-[200px]" />
       </div>
       {errors.content && <p className="text-red-500 text-sm">{errors.content.message}</p>}
 
-      {/* Tags Selection (ShadCN Select) */}
+      
       <Select onValueChange={(value) => setValue("tags", [value])}>
         <SelectTrigger className="mt-4">
           <SelectValue placeholder="Select a tag" />
