@@ -3,13 +3,12 @@ import GalleryForm from "./GalleryForm";
 import GalleryList from "./GalleryList";
 import Portfolio from "./Portfolio";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import UploadForm from "./UploadForm";
-import { getGalleries, getUserImages } from "@/app/dashboard/actions";
+import { getUserGalleries, getUserImages } from "@/app/dashboard/actions";
 import { ImagesResults } from "@/models/Images";
 
 export default async function DashboardTabs() {
     const photosRes: ImagesResults | undefined = await getUserImages();
-    const galleriesRes: GalleriesResults | undefined = await getGalleries({});
+    const galleriesRes: GalleriesResults | undefined = await getUserGalleries({});
     
   return (
     <Tabs orientation="vertical" defaultValue="portfolio" className="w-full">

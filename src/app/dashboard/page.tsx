@@ -4,14 +4,6 @@ import Image from "next/image";
 import { unauthorized } from "next/navigation";
 import profilePic from "@/assets/images/EQFKL_logo.jpg";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import UploadForm from "@/components/UploadForm";
-import Portfolio from "@/components/Portfolio";
-import GalleryForm from "@/components/GalleryForm";
-import { ImagesResults } from "@/models/Images";
-import { getGalleries, getUserImages } from "./actions";
-import GalleryList from "@/components/GalleryList";
-import { GalleriesResults } from "@/models/Gallery";
 import DashboardTabs from "@/components/DashboardTabs";
 
 const getCurrentUser = async () => {

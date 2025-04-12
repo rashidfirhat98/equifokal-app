@@ -9,7 +9,7 @@ const BasicGallerySchema = z.object({
   total_results: z.number(),
 });
 
-const GallerySchema = z.object({
+export const GallerySchema = z.object({
   id: z.number(),
   title: z.string(),
   description: z.string().optional(),
@@ -22,6 +22,12 @@ export const GalleriesSchemaWithImages = BasicGallerySchema.extend({
   galleries: z.array(GallerySchema),
 });
 
+export const GalleriesSchemaWithImagesInfinite = z.object({
+  galleries: z.array(GallerySchema),
+  nextCursor: z.number().nullable(),
+});
+
 // Type inference
 export type Gallery = z.infer<typeof GallerySchema>;
 export type GalleriesResults = z.infer<typeof GalleriesSchemaWithImages>;
+export type GalleriesResultsInfinite = z.infer<typeof GalleriesSchemaWithImagesInfinite>

@@ -191,7 +191,7 @@ export async function createGallery(data: z.infer<typeof gallerySchema>) {
   }
 }
 
-export async function getGalleries({
+export async function getUserGalleries({
   page = 1,
   per_page = 10,
 }: {
@@ -199,6 +199,11 @@ export async function getGalleries({
   per_page?: number;
 }): Promise<z.infer<typeof GalleriesSchemaWithImages>> {
   const offset = (page - 1) * per_page;
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return { galleries: [], page, per_page, total_results: 0 };
+  }
 
   // Fetch total gallery count for pagination
   const total_results = await prisma.gallery.count();
@@ -207,6 +212,7 @@ export async function getGalleries({
   const galleries = await prisma.gallery.findMany({
     skip: offset,
     take: per_page,
+    where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
     include: {
       images: {

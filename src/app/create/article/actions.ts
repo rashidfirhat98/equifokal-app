@@ -6,80 +6,58 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import * as z from "zod";
-import { GalleriesSchemaWithImages } from "@/models/Gallery";
+import { GalleriesSchemaWithImagesInfinite } from "@/models/Gallery";
 
 export async function getGalleries({
-	page = 1,
-	per_page = 10,
+	cursor,
+	limit = 10,
 }: {
-	page?: number;
-	per_page?: number;
-}): Promise<z.infer<typeof GalleriesSchemaWithImages>> {
-	const offset = (page - 1) * per_page;
-
-	// Fetch total gallery count for pagination
-	const total_results = await prisma.gallery.count();
-
-	// Fetch galleries with pagination
-	//TODO filter by user
+	cursor?: number;
+	limit?: number;
+}): Promise<{
+	galleries: z.infer<typeof GalleriesSchemaWithImagesInfinite>["galleries"];
+	nextCursor: number | null;
+}> {
 	const galleries = await prisma.gallery.findMany({
-		skip: offset,
-		take: per_page,
+		take: limit + 1, // Fetch one extra to check if there's a next page
+		...(cursor && {
+			skip: 1,
+			cursor: { id: cursor },
+		}),
 		orderBy: { createdAt: "desc" },
 		include: {
 			images: {
 				include: {
-					image: {
-						include: {
-							metadata: true,
-						},
-					},
+					image: true, // No metadata needed
 				},
 			},
 		},
 	});
 
-	const formattedGalleries = galleries.map((gallery) => ({
+	const hasNextPage = galleries.length > limit;
+	const trimmed = hasNextPage ? galleries.slice(0, -1) : galleries;
+
+	const formattedGalleries = trimmed.map((gallery) => ({
 		id: gallery.id,
 		title: gallery.title,
 		description: gallery.description || undefined,
-		images: gallery.images.map((galleryImage) => ({
-			id: galleryImage.image.id,
-			url: galleryImage.image.url,
-			width: galleryImage.image.metadata?.width ?? 0,
-			height: galleryImage.image.metadata?.height ?? 0,
-			alt: galleryImage.image.fileName,
-			src: { large: galleryImage.image.url },
-			blurredDataUrl: undefined,
-			metadata: galleryImage.image.metadata
-				? {
-					model: galleryImage.image.metadata.model || undefined,
-					aperture: galleryImage.image.metadata.aperture || undefined,
-					focalLength: galleryImage.image.metadata.focalLength || undefined,
-					exposureTime: galleryImage.image.metadata.exposureTime || undefined,
-					iso: galleryImage.image.metadata.iso || undefined,
-					flash: galleryImage.image.metadata.flash || undefined,
-					height: galleryImage.image.metadata.height || undefined,
-					width: galleryImage.image.metadata.width || undefined,
-				}
-				: undefined,
-		})),
 		createdAt: gallery.createdAt.toISOString(),
 		updatedAt: gallery.updatedAt.toISOString(),
+		images: gallery.images.map((gi) => ({
+			id: gi.image.id,
+			url: gi.image.url,
+			alt: gi.image.fileName,
+			width: 0,
+			height: 0,
+			src: { large: gi.image.url },
+			blurredDataUrl: undefined,
+		})),
 	}));
 
 	return {
-		page,
-		per_page,
-		total_results,
-		prev_page:
-			page > 1
-				? `/api/galleries?page=${page - 1}&per_page=${per_page}`
-				: undefined,
-		next_page:
-			page * per_page < total_results
-				? `/api/galleries?page=${page + 1}&per_page=${per_page}`
-				: undefined,
 		galleries: formattedGalleries,
+		nextCursor: hasNextPage
+			? trimmed[trimmed.length - 1].id
+			: null,
 	};
 }
