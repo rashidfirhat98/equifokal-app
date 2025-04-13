@@ -13,6 +13,7 @@ import Image from "next/image";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -46,7 +47,7 @@ export default function ArticleForm({galleries} : Props ) {
   const router = useRouter();
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+  const [selectedFile, setSelectedFiles] = useState<FileList | null>(null);
   const [photoDetails, setPhotoDetails] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState({
@@ -57,7 +58,12 @@ export default function ArticleForm({galleries} : Props ) {
   const formSchema = z.object({
     title: z.string().min(3, "Title is required and must be at least 3 characters."),
     content: z.string().min(50, "Content is required and must be at least 50 characters."),
-    coverImage: AcceptedImageTypeSchema,
+    coverImage: z
+    .custom<File>((val) => {
+      return typeof File !== "undefined" && val instanceof File;
+    }, {
+      message: "Cover image is required and must be a valid file."
+    }),
     galleryId: z.array(z.number()).optional(),
   });
 
@@ -111,86 +117,93 @@ export default function ArticleForm({galleries} : Props ) {
   }, [watch, editor, coverImage]);
 
   // Handle Cover Image Upload
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setCoverImage(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
+  // const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = event.target.files?.[0];
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       setCoverImage(reader.result as string)
+  //       console.log(reader.result)
+  //     }
+  //     reader.readAsDataURL(file);
+      
+  //   }
+  // };
   //TODO: handle cover image upload
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      setSelectedFiles(files);
-      setValue("coverImageId", files, { shouldValidate: true });
-      setAlert({ status: "", message: "" });
-
-      // Extract metadata from all images concurrently
-      const metadataPromises = Array.from(files).map(
-        (file) =>
-          new Promise((resolve) => {
-            exifr
-              .parse(file)
-              .then((metadata) => {
-                metadata = metadata || {}; // Ensure metadata is always an object
-
-                const img = new Image();
-                img.src = URL.createObjectURL(file);
-
-                img.onload = () => {
-                  resolve({
-                    file,
-                    exifMetadata: {
-                      height: metadata.ImageHeight ?? img.height,
-                      width: metadata.ImageWidth ?? img.width,
-                      model: metadata.Model ?? null,
-                      aperture: metadata.FNumber ?? null,
-                      focalLength: metadata.FocalLength ?? null,
-                      exposureTime: metadata.ExposureTime ?? null,
-                      iso: metadata.ISO ?? null,
-                      flash: metadata.Flash ?? null,
-                    },
-                  });
-                };
-              })
-              .catch(() => {
-                // If EXIF fails, fallback to image dimensions only
-                const img = new Image();
-                img.src = URL.createObjectURL(file);
-
-                img.onload = () => {
-                  resolve({
-                    file,
-                    exifMetadata: {
-                      height: img.height,
-                      width: img.width,
-                      model: null,
-                      aperture: null,
-                      focalLength: null,
-                      exposureTime: null,
-                      iso: null,
-                      flash: null,
-                    },
-                  });
-                };
-              });
-          })
-      );
-
-      // Wait for all metadata to be processed
-      const allMetadata = await Promise.all(metadataPromises);
-      console.log(allMetadata);
-
-      setPhotoDetails(allMetadata);
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    console.log(file);
+    
+    try {
+      // Extract EXIF metadata
+      let metadata = await exifr.parse(file);
+      metadata = metadata || {};
+  
+      const img = new window.Image();
+      img.src = URL.createObjectURL(file);
+  
+      img.onload = () => {
+        const exifMetadata = {
+          height: metadata.ImageHeight ?? img.height,
+          width: metadata.ImageWidth ?? img.width,
+          model: metadata.Model ?? null,
+          aperture: metadata.FNumber ?? null,
+          focalLength: metadata.FocalLength ?? null,
+          exposureTime: metadata.ExposureTime ?? null,
+          iso: metadata.ISO ?? null,
+          flash: metadata.Flash ?? null,
+        };
+  
+        const photoDetail = {
+          file,
+          exifMetadata,
+        };
+  
+        setPhotoDetails([photoDetail]);
+        setCoverImage(img.src);
+        setValue("coverImage",  file , { shouldValidate: true });
+        console.log(photoDetails)
+        console.log(coverImage);
+      };
+    } catch (error) {
+      // Fallback: if EXIF fails, just get dimensions
+      const img = new window.Image();
+      img.src = URL.createObjectURL(file);
+  
+      img.onload = () => {
+        const exifMetadata = {
+          height: img.height,
+          width: img.width,
+          model: null,
+          aperture: null,
+          focalLength: null,
+          exposureTime: null,
+          iso: null,
+          flash: null,
+        };
+  
+        const photoDetail = {
+          file,
+          exifMetadata,
+        };
+  
+        setPhotoDetails([photoDetail]);
+        setCoverImage(img.src);
+        setValue("coverImage",  file, { shouldValidate: true });
+        console.log(photoDetails)
+        console.log(coverImage);
+      };
     }
+    
+    
   };
 
   // Submit
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setSaving(true);
     try {
+      console.log("HEREEEE", coverImage)
       const response = await fetch("/api/articles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -212,32 +225,26 @@ export default function ArticleForm({galleries} : Props ) {
     <Form {...form}>
         <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl mx-auto py-6 space-y-4">
         <FormField
-        control={form.control}
-        name="coverImageId"
-        render={() => (
-            <div className="relative w-full h-56 bg-gray-200 flex items-center justify-center rounded-lg overflow-hidden">
-            {coverImage ? (
-                <Image
-                src={coverImage}
-                alt="Cover"
-                className="w-full h-full object-cover"
-                width={500}
-                height={300}
+                  control={form.control}
+                  name="coverImage"
+                  render={({ field: { value, onChange, ...fieldProps } }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input
+                          className="outline-dashed border-none outline-gray-300 w-full min-h-56 shadow-none"
+                          id="current"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          {...fieldProps}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Drag or click on the box to upload photos
+                      </FormDescription>
+                    </FormItem>
+                  )}
                 />
-            ) : (
-                <label className="cursor-pointer text-gray-600">
-                Upload Cover Image
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                />
-                </label>
-            )}
-            </div>
-        )}
-        />
 
         <FormField
         control={form.control}
