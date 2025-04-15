@@ -37,19 +37,21 @@ import { cn } from "@/lib/utils";
 import { GallerySchema } from "@/models/Gallery";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as exifr from "exifr";
-import { AcceptedImageTypeSchema } from "@/models/ImageUploadSchema";
+import { AcceptedCoverImageSchema } from "@/models/ImageUploadSchema";
+import CreateArticlePage from "@/app/create/article/page";
+import { uploadImage } from "@/app/create/actions";
+
 
 type Props = {
   galleries?: z.infer<typeof GallerySchema>[];
 };
 
-export default function ArticleForm({galleries} : Props ) {
+export default function ArticleForm({ galleries }: Props) {
   const router = useRouter();
-  const [coverImage, setCoverImage] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [coverImage, setCoverImage] = useState<z.infer<typeof AcceptedCoverImageSchema> | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFiles] = useState<FileList | null>(null);
   const [photoDetails, setPhotoDetails] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState({
     status: "",
     message: "",
@@ -58,12 +60,7 @@ export default function ArticleForm({galleries} : Props ) {
   const formSchema = z.object({
     title: z.string().min(3, "Title is required and must be at least 3 characters."),
     content: z.string().min(50, "Content is required and must be at least 50 characters."),
-    coverImage: z
-    .custom<File>((val) => {
-      return typeof File !== "undefined" && val instanceof File;
-    }, {
-      message: "Cover image is required and must be a valid file."
-    }),
+    coverImage: AcceptedCoverImageSchema,
     galleryId: z.array(z.number()).optional(),
   });
 
@@ -109,6 +106,7 @@ export default function ArticleForm({galleries} : Props ) {
           title: watch("title"),
           content: editor?.getHTML(),
           coverImage,
+          galleryId: watch("galleryId")
         })
       );
     }, 5000);
@@ -126,7 +124,7 @@ export default function ArticleForm({galleries} : Props ) {
   //       console.log(reader.result)
   //     }
   //     reader.readAsDataURL(file);
-      
+
   //   }
   // };
   //TODO: handle cover image upload
@@ -134,15 +132,15 @@ export default function ArticleForm({galleries} : Props ) {
     const file = event.target.files?.[0];
     if (!file) return;
     console.log(file);
-    
+
     try {
       // Extract EXIF metadata
       let metadata = await exifr.parse(file);
       metadata = metadata || {};
-  
+
       const img = new window.Image();
-      img.src = URL.createObjectURL(file);
-  
+      img.src = URL.createObjectURL(file) as string;
+
       img.onload = () => {
         const exifMetadata = {
           height: metadata.ImageHeight ?? img.height,
@@ -154,23 +152,23 @@ export default function ArticleForm({galleries} : Props ) {
           iso: metadata.ISO ?? null,
           flash: metadata.Flash ?? null,
         };
-  
+
         const photoDetail = {
           file,
           exifMetadata,
         };
-  
+
         setPhotoDetails([photoDetail]);
-        setCoverImage(img.src);
-        setValue("coverImage",  file , { shouldValidate: true });
-        console.log(photoDetails)
+        setCoverImage(photoDetail);
+        setValue("coverImage", photoDetail, { shouldValidate: true });
+        console.log(photoDetail)
         console.log(coverImage);
       };
     } catch (error) {
       // Fallback: if EXIF fails, just get dimensions
       const img = new window.Image();
       img.src = URL.createObjectURL(file);
-  
+
       img.onload = () => {
         const exifMetadata = {
           height: img.height,
@@ -182,179 +180,196 @@ export default function ArticleForm({galleries} : Props ) {
           iso: null,
           flash: null,
         };
-  
+
         const photoDetail = {
           file,
           exifMetadata,
         };
-  
+
         setPhotoDetails([photoDetail]);
-        setCoverImage(img.src);
-        setValue("coverImage",  file, { shouldValidate: true });
+        setCoverImage(photoDetail);
+        setValue("coverImage", photoDetail, { shouldValidate: true });
         console.log(photoDetails)
         console.log(coverImage);
       };
     }
-    
-    
+
+
   };
 
   // Submit
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    setSaving(true);
+    setIsLoading(true);
     try {
+      console.log("data", data);
+
       console.log("HEREEEE", coverImage)
-      const response = await fetch("/api/articles", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, coverImage }),
-      });
+      let formData = new FormData()
 
-      if (!response.ok) throw new Error("Failed to create article");
+      if (data.coverImage) {
 
+        formData.append("files[0]", data.coverImage.file); // Append each file
+
+        formData.append(
+          `metadata[0]`,
+          JSON.stringify(data.coverImage.exifMetadata)
+        );
+      }
+
+      console.log(formData)
+      const imageRes = await uploadImage(formData)
+      // const response = await createArticle()
+      // const response = await fetch("/api/articles", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ ...data, coverImage }),
+      // });
+
+      // if (!response.ok) throw new Error("Failed to create article");
+      // setAlert({ status: response.status, message: response.message });
       localStorage.removeItem("draftArticle");
-      router.push("/articles");
+      router.push("/");
     } catch (error) {
       console.error("Error:", error);
     } finally {
-      setSaving(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <Form {...form}>
-        <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl mx-auto py-6 space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl mx-auto py-6 space-y-4">
         <FormField
-                  control={form.control}
-                  name="coverImage"
-                  render={({ field: { value, onChange, ...fieldProps } }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          className="outline-dashed border-none outline-gray-300 w-full min-h-56 shadow-none"
-                          id="current"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          {...fieldProps}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Drag or click on the box to upload photos
-                      </FormDescription>
-                    </FormItem>
-                  )}
+          control={form.control}
+          name="coverImage"
+          render={({ field: { value, onChange, ...fieldProps } }) => (
+            <FormItem>
+              <FormControl>
+                <Input
+                  className="outline-dashed border-none outline-gray-300 w-full min-h-56 shadow-none"
+                  id="current"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  {...fieldProps}
                 />
+              </FormControl>
+              <FormDescription>
+                Drag or click on the box to upload photos
+              </FormDescription>
+            </FormItem>
+          )}
+        />
 
         <FormField
-        control={form.control}
-        name="title"
-        render={({ field }) => (
+          control={form.control}
+          name="title"
+          render={({ field }) => (
             <Input
-            {...field}
-            placeholder="Enter article title..."
-            className="w-full text-3xl border-none focus:ring-0"
+              {...field}
+              placeholder="Enter article title..."
+              className="w-full text-3xl border-none focus:ring-0"
             />
-        )}
+          )}
         />
         {errors.title && <p className="text-red-500 text-sm">{errors.title.message}</p>}
 
         <FormField
-        control={form.control}
-        name="content"
-        render={() => (
+          control={form.control}
+          name="content"
+          render={() => (
             <div className="border border-gray-300 rounded-lg p-3">
-            <EditorContent editor={editor} className="min-h-[200px]" />
+              <EditorContent editor={editor} className="min-h-[200px]" />
             </div>
-        )}
+          )}
         />
         {errors.content && <p className="text-red-500 text-sm">{errors.content.message}</p>}
 
         {galleries && (
-            <FormField
-              control={form.control}
-              name="galleryId"
-              render={({ field }) => {
-                return (
-                  <FormItem>
-                    <FormLabel>Select Galleries</FormLabel>
-                    <FormControl>
-                      <Popover open={open} onOpenChange={setOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={open}
-                            className="w-full justify-between items-center gap-3 px-3 py-2 h-auto min-h-[56px]"
-                          >
-                            {field.value && field.value.length > 0 ? (
-                              <span className="text-sm">
-                                {field.value.length} {field.value.length === 1 ? 'gallery' : 'galleries'} selected
-                              </span>
-                            ) : (
-                              <span className="text-gray-500">Select galleries...</span>
-                            )}
-                            <ChevronsUpDown className="ml-auto opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
+          <FormField
+            control={form.control}
+            name="galleryId"
+            render={({ field }) => {
+              return (
+                <FormItem>
+                  <FormLabel>Select Galleries</FormLabel>
+                  <FormControl>
+                    <Popover open={open} onOpenChange={setOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={open}
+                          className="w-full justify-between items-center gap-3 px-3 py-2 h-auto min-h-[56px]"
+                        >
+                          {field.value && field.value.length > 0 ? (
+                            <span className="text-sm">
+                              {field.value.length} {field.value.length === 1 ? 'gallery' : 'galleries'} selected
+                            </span>
+                          ) : (
+                            <span className="text-gray-500">Select galleries...</span>
+                          )}
+                          <ChevronsUpDown className="ml-auto opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
 
-                        <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] max-h-[300px]">
-                          <Command>
-                            <CommandInput placeholder="Search galleries..." className="h-9" />
-                            <CommandList>
-                              <CommandEmpty>No galleries found.</CommandEmpty>
-                              <CommandGroup className="max-h-60 overflow-y-auto">
-                                {galleries.map((gallery) => {
-                                  const isSelected = field.value?.includes(gallery.id);
-                                  return (
-                                    <CommandItem
-                                      key={gallery.id}
-                                      onSelect={() => {
-                                        const newValue = isSelected
-                                          ? (field.value || []).filter((gid: number) => gid !== gallery.id)
-                                          : [...(field.value || []), gallery.id];
-                                        field.onChange(newValue);
-                                      }}
-                                      className="flex flex-col items-start gap-2 p-2"
-                                    >
-                                      <div className="flex items-center justify-between w-full">
-                                        <span className="text-sm font-medium">{gallery.title}</span>
-                                        <Check className={cn("ml-auto", isSelected ? "opacity-100" : "opacity-0")} />
-                                      </div>
-                                      <div className="flex gap-2 flex-wrap">
-                                        {gallery.images.map((image) => (
-                                          <Image
-                                            key={image.id}
-                                            src={image.url}
-                                            alt={image.alt}
-                                            width={48}
-                                            height={48}
-                                            className="rounded-md object-cover"
-                                          />
-                                        ))}
-                                      </div>
-                                    </CommandItem>
-                                  );
-                                })}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
-          )}
+                      <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] max-h-[300px]">
+                        <Command>
+                          <CommandInput placeholder="Search galleries..." className="h-9" />
+                          <CommandList>
+                            <CommandEmpty>No galleries found.</CommandEmpty>
+                            <CommandGroup className="max-h-60 overflow-y-auto">
+                              {galleries.map((gallery) => {
+                                const isSelected = field.value?.includes(gallery.id);
+                                return (
+                                  <CommandItem
+                                    key={gallery.id}
+                                    onSelect={() => {
+                                      const newValue = isSelected
+                                        ? (field.value || []).filter((gid: number) => gid !== gallery.id)
+                                        : [...(field.value || []), gallery.id];
+                                      field.onChange(newValue);
+                                    }}
+                                    className="flex flex-col items-start gap-2 p-2"
+                                  >
+                                    <div className="flex items-center justify-between w-full">
+                                      <span className="text-sm font-medium">{gallery.title}</span>
+                                      <Check className={cn("ml-auto", isSelected ? "opacity-100" : "opacity-0")} />
+                                    </div>
+                                    <div className="flex gap-2 flex-wrap">
+                                      {gallery.images.map((image) => (
+                                        <Image
+                                          key={image.id}
+                                          src={image.url}
+                                          alt={image.alt}
+                                          width={48}
+                                          height={48}
+                                          className="rounded-md object-cover"
+                                        />
+                                      ))}
+                                    </div>
+                                  </CommandItem>
+                                );
+                              })}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
+          />
+        )}
 
         <div className="flex justify-end">
-        <Button type="submit" disabled={saving}>
-            {saving ? "Publishing..." : "Publish"}
-        </Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Publishing..." : "Publish"}
+          </Button>
         </div>
-        </form>
+      </form>
     </Form>
   )
 }

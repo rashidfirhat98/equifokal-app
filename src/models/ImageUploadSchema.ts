@@ -23,4 +23,20 @@ export const AcceptedImageTypeSchema = z.object({
     ),
 });
 
+export const AcceptedCoverImageSchema = z.object({
+  file: z.instanceof(File).refine((file) => acceptedImageTypes.includes(file.type), { message: "invalid image file type" }),
+  exifMetadata: z.object({
+    height: z.number(),
+    width: z.number(),
+    model: z.string().optional().nullable(),
+    aperture: z.number().optional().nullable(),
+    focalLength: z.number().optional().nullable(),
+    exposureTime: z.number().optional().nullable(),
+    iso: z.number().optional().nullable(),
+    flash: z.string().optional().nullable(),
+  })
+
+
+})
+
 export type AcceptedImageUploads = z.infer<typeof AcceptedImageTypeSchema>;
