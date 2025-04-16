@@ -1,3 +1,5 @@
+"use client"
+
 import { z } from "zod";
 
 const acceptedImageTypes = [
@@ -8,7 +10,7 @@ const acceptedImageTypes = [
   "image/gif",
 ];
 
-export const AcceptedImageTypeSchema = z.object({
+export const AcceptedImageTypeSchema = typeof window !== 'undefined' ? z.object({
   img_uploads: z
     .instanceof(FileList)
     .refine((fileList) => fileList.length > 0, {
@@ -21,22 +23,25 @@ export const AcceptedImageTypeSchema = z.object({
         ),
       { message: "Invalid image file type" }
     ),
-});
+}) : z.any();
 
-export const AcceptedCoverImageSchema = z.object({
-  file: z.instanceof(File).refine((file) => acceptedImageTypes.includes(file.type), { message: "invalid image file type" }),
+export const AcceptedCoverImageSchema = typeof window !== 'undefined' ? z.object({
+  file: z
+    .instanceof(File)
+    .refine((file) => acceptedImageTypes.includes(file.type), {
+      message: "Invalid image file type",
+    }),
   exifMetadata: z.object({
     height: z.number(),
     width: z.number(),
-    model: z.string().optional().nullable(),
-    aperture: z.number().optional().nullable(),
-    focalLength: z.number().optional().nullable(),
-    exposureTime: z.number().optional().nullable(),
-    iso: z.number().optional().nullable(),
-    flash: z.string().optional().nullable(),
-  })
-
-
-})
+    model: z.string().nullable(),
+    aperture: z.number().nullable(),
+    focalLength: z.number().nullable(),
+    exposureTime: z.number().nullable(),
+    iso: z.number().nullable(),
+    flash: z.string().nullable(),
+  }),
+}) : z.any();
 
 export type AcceptedImageUploads = z.infer<typeof AcceptedImageTypeSchema>;
+export type AcceptedCoverImageUploads = z.infer<typeof AcceptedCoverImageSchema>;

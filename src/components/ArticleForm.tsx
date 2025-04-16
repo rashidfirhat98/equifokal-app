@@ -37,9 +37,8 @@ import { cn } from "@/lib/utils";
 import { GallerySchema } from "@/models/Gallery";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as exifr from "exifr";
-import { AcceptedCoverImageSchema } from "@/models/ImageUploadSchema";
+import { AcceptedCoverImageSchema, AcceptedCoverImageUploads } from "@/models/ImageUploadSchema";
 import CreateArticlePage from "@/app/create/article/page";
-import { uploadImage } from "@/app/create/actions";
 
 
 type Props = {
@@ -48,7 +47,7 @@ type Props = {
 
 export default function ArticleForm({ galleries }: Props) {
   const router = useRouter();
-  const [coverImage, setCoverImage] = useState<z.infer<typeof AcceptedCoverImageSchema> | null>(null);
+  const [coverImage, setCoverImage] = useState<AcceptedCoverImageUploads | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFiles] = useState<FileList | null>(null);
   const [photoDetails, setPhotoDetails] = useState<any>(null);
@@ -105,7 +104,7 @@ export default function ArticleForm({ galleries }: Props) {
         JSON.stringify({
           title: watch("title"),
           content: editor?.getHTML(),
-          coverImage,
+          coverImage: watch("coverImage"),
           galleryId: watch("galleryId")
         })
       );
@@ -200,32 +199,32 @@ export default function ArticleForm({ galleries }: Props) {
   // Submit
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
+    console.log(data)
     try {
-      console.log("data", data);
-
-      console.log("HEREEEE", coverImage)
       let formData = new FormData()
+      formData.append(`title`, JSON.stringify(data.title))
+      formData.append(`content`, JSON.stringify(data.content))
+
+      if (data.galleryId) {
+        formData.append(`galleryId`, JSON.stringify(data.galleryId))
+      }
 
       if (data.coverImage) {
-
-        formData.append("files[0]", data.coverImage.file); // Append each file
-
+        formData.append("files", data.coverImage.file); // Append each file
         formData.append(
           `metadata[0]`,
           JSON.stringify(data.coverImage.exifMetadata)
         );
       }
 
-      console.log(formData)
-      const imageRes = await uploadImage(formData)
-      // const response = await createArticle()
-      // const response = await fetch("/api/articles", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ ...data, coverImage }),
-      // });
+      const response = await fetch("/api/articles", {
+        method: "POST",
+        body: formData,
+      });
 
-      // if (!response.ok) throw new Error("Failed to create article");
+      console.log(response)
+
+      if (!response.ok) throw new Error("Failed to create article");
       // setAlert({ status: response.status, message: response.message });
       localStorage.removeItem("draftArticle");
       router.push("/");
@@ -238,7 +237,7 @@ export default function ArticleForm({ galleries }: Props) {
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl mx-auto py-6 space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit, (errors) => console.log("Form Errors:", errors))} className="max-w-3xl mx-auto py-6 space-y-4">
         <FormField
           control={form.control}
           name="coverImage"
@@ -260,6 +259,7 @@ export default function ArticleForm({ galleries }: Props) {
             </FormItem>
           )}
         />
+        {errors.coverImage && <p className="text-red-500 text-sm">{"Something wrong with the image"}</p>}
 
         <FormField
           control={form.control}
@@ -370,6 +370,8 @@ export default function ArticleForm({ galleries }: Props) {
           </Button>
         </div>
       </form>
+      <button type="button" onClick={() => console.log(form.getValues())}>Check form values</button>
     </Form>
+
   )
 }

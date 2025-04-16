@@ -121,8 +121,8 @@ export default function UploadForm() {
     let formData = new FormData();
 
     if (data.img_uploads && photoDetails.length) {
-      Array.from(data.img_uploads).forEach((file, index) => {
-        formData.append("files", file); // Append each file
+      Array.from(data.img_uploads as FileList).forEach((file: File, index) => {
+        formData.append("files", file);
 
         // Find matching metadata from photoDetails state
         const matchedMetadata = photoDetails.find(
@@ -215,9 +215,8 @@ export default function UploadForm() {
       {alert.message && (
         <CardFooter>
           <p
-            className={`${
-              alert.status === "success" ? "text-green-500" : "text-red-500"
-            }`}
+            className={`${alert.status === "success" ? "text-green-500" : "text-red-500"
+              }`}
           >
             {alert.message}
           </p>
