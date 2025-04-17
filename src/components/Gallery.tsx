@@ -31,7 +31,7 @@ export default async function Gallery({ topic = "curated", page }: Props) {
   if (!images || images.per_page === 0)
     return <h2 className="m-4 text-2xl font-bold">No Images Found</h2>;
 
-  const photosWithBlur = await addBlurredDataUrls(images);
+  const photosWithBlur = await addBlurredDataUrls(images.photos);
 
   const { prevPage, nextPage } = getPrevNextPages(images);
 

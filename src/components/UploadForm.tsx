@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Input } from "./ui/input";
 import {
   Card,
@@ -24,24 +24,32 @@ import {
   FormDescription,
   FormField,
   FormItem,
+  FormLabel,
 } from "@/components/ui/form";
 import * as exifr from "exifr";
-import { uploadImage } from "@/app/dashboard/actions";
 import {
   AcceptedImageTypeSchema,
-  AcceptedImageUploads,
 } from "@/models/ImageUploadSchema";
 import { Loader2 } from "lucide-react";
+import { Checkbox } from "./ui/checkbox";
+import { z } from "zod";
 
 export default function UploadForm() {
-  const form = useForm<AcceptedImageUploads>({
-    resolver: zodResolver(AcceptedImageTypeSchema),
+
+  const formSchema = z.object({
+    imgUploads: AcceptedImageTypeSchema,
+    isPortfolio: z.boolean().default(false).optional(),
+  })
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      img_uploads: undefined,
+      imgUploads: undefined,
+      isPortfolio: false
     },
   });
 
-  const { setValue } = form;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { reset, setValue } = form;
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [photoDetails, setPhotoDetails] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +62,7 @@ export default function UploadForm() {
     const files = e.target.files;
     if (files) {
       setSelectedFiles(files);
-      setValue("img_uploads", files, { shouldValidate: true });
+      setValue("imgUploads", files, { shouldValidate: true });
       setAlert({ status: "", message: "" });
 
       // Extract metadata from all images concurrently
@@ -117,11 +125,11 @@ export default function UploadForm() {
     }
   };
 
-  async function onSubmit(data: AcceptedImageUploads) {
+  async function onSubmit(data: z.infer<typeof formSchema>) {
     let formData = new FormData();
 
-    if (data.img_uploads && photoDetails.length) {
-      Array.from(data.img_uploads as FileList).forEach((file: File, index) => {
+    if (data.imgUploads && photoDetails.length) {
+      Array.from(data.imgUploads as FileList).forEach((file: File, index) => {
         formData.append("files", file);
 
         // Find matching metadata from photoDetails state
@@ -136,13 +144,28 @@ export default function UploadForm() {
           );
         }
       });
+
+      formData.append("isPortfolio", JSON.stringify(data.isPortfolio))
     }
 
     try {
       setIsLoading(true);
-      const response = await uploadImage(formData);
+      console.log()
+      const response = await fetch("api/upload", {
+        method: "POST",
+        body: formData
+      })
 
-      setAlert({ status: response.status, message: response.message });
+      if (!response.ok) throw new Error("Failed to create article");
+      const result = await response.json();
+      console.log(result)
+      setAlert({ status: result.status, message: result.message });
+      reset();
+      setPhotoDetails([]);
+      setSelectedFiles(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     } catch (error) {
       console.log(error);
       setAlert({ status: "error", message: "Network error. Please try again" });
@@ -171,16 +194,20 @@ export default function UploadForm() {
           <CollapsibleContent className="space-y-1">
             <Form {...form}>
               <form
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={form.handleSubmit(onSubmit, (errors) => console.log("Form Errors:", errors))}
                 className="space-y-3"
               >
                 <FormField
                   control={form.control}
-                  name="img_uploads"
-                  render={({ field: { value, onChange, ...fieldProps } }) => (
+                  name="imgUploads"
+                  render={({ field: { value, onChange, ref: rhfRef, ...fieldProps } }) => (
                     <FormItem>
                       <FormControl>
                         <Input
+                          ref={(el) => {
+                            rhfRef(el);
+                            fileInputRef.current = el;
+                          }}
                           className="outline-dashed border-none outline-gray-300 w-full min-h-56 shadow-none"
                           id="current"
                           type="file"
@@ -196,6 +223,28 @@ export default function UploadForm() {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="isPortfolio"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="text-left space-y-1 leading-none">
+                        <FormLabel>
+                          Add to portfolio
+                        </FormLabel>
+                        <FormDescription>
+                          Photos will be included in your portfolio and can be seen by others.
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
                 <div className="flex flex-row justify-end w-full">
                   <Button type="submit" disabled={isLoading}>
                     {isLoading ? (
@@ -208,6 +257,8 @@ export default function UploadForm() {
                   </Button>
                 </div>
               </form>
+              <button type="button" onClick={() => console.log(form.getValues())}>Check form values</button>
+
             </Form>
           </CollapsibleContent>
         </Collapsible>

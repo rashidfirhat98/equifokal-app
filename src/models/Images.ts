@@ -38,6 +38,13 @@ export const ImagesSchemaWithPhotos = BasicImageSchema.extend({
   photos: z.array(PhotoSchema),
 });
 
+export const InfiniteImagesSchemaWithPhotos = z.object({
+  photos: z.array(PhotoSchema),
+  nextCursor: z.string().nullable()
+});
+
 export type Photo = z.infer<typeof PhotoSchema>;
 
 export type ImagesResults = z.infer<typeof ImagesSchemaWithPhotos>;
+
+export type ImagesInfiniteResults = z.infer<typeof InfiniteImagesSchemaWithPhotos>

@@ -10,9 +10,8 @@ const acceptedImageTypes = [
   "image/gif",
 ];
 
-export const AcceptedImageTypeSchema = typeof window !== 'undefined' ? z.object({
-  img_uploads: z
-    .instanceof(FileList)
+export const AcceptedImageTypeSchema = typeof window !== 'undefined' ?
+  z.instanceof(FileList)
     .refine((fileList) => fileList.length > 0, {
       message: "At least one image is required",
     })
@@ -22,8 +21,8 @@ export const AcceptedImageTypeSchema = typeof window !== 'undefined' ? z.object(
           acceptedImageTypes.includes(file.type)
         ),
       { message: "Invalid image file type" }
-    ),
-}) : z.any();
+    )
+  : z.any();
 
 export const AcceptedCoverImageSchema = typeof window !== 'undefined' ? z.object({
   file: z

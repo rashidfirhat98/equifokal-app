@@ -2,7 +2,7 @@
 
 import { authOptions } from "@/lib/authOptions";
 import prisma from "@/lib/prisma";
-import { ImagesResults } from "@/models/Images";
+import { ImagesResults, Photo } from "@/models/Images";
 import { getServerSession } from "next-auth";
 
 export async function getUserImages(
@@ -31,7 +31,7 @@ export async function getUserImages(
     page,
     per_page,
     total_results,
-    photos: images.map((image) => ({
+    photos: images.map((image: any) => ({
       id: image.id,
       url: `/photo/${image.id}`,
       height: image.metadata?.height || 2000,
