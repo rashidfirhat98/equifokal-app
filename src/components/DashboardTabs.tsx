@@ -5,33 +5,38 @@ import Portfolio from "./Portfolio";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { getUserGalleries, getUserImages } from "@/app/dashboard/actions";
 import { ImagesResults } from "@/models/Images";
+import ArticleList from "./ArticleList";
+import { ArticlesResultsInfinite } from "@/models/Article";
 
 export default async function DashboardTabs() {
-    const photosRes: ImagesResults | undefined = await getUserImages();
-    const galleriesRes: GalleriesResults | undefined = await getUserGalleries({});
-    
+  const photosRes: ImagesResults | undefined = await getUserImages();
+  const galleriesRes: GalleriesResults | undefined = await getUserGalleries({});
+
   return (
     <Tabs orientation="vertical" defaultValue="portfolio" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
-          <TabsTrigger value="gallery">Gallery</TabsTrigger>
-          <TabsTrigger value="article">Article</TabsTrigger>
-          <TabsTrigger value="followers">Followers</TabsTrigger>
-          <TabsTrigger value="following">Following</TabsTrigger>
-        </TabsList>
-        <TabsContent value="portfolio">
-          <Portfolio />
-        </TabsContent>
-        <TabsContent value="gallery">
-          {galleriesRes && galleriesRes.galleries.length > 0 ? (
-            <GalleryList galleries={galleriesRes} />
-          ) : (
-            <GalleryForm photos={photosRes} />
-          )}
-        </TabsContent>
-        <TabsContent value="followers">
-          <div>Insert Follower list here</div>
-        </TabsContent>
-      </Tabs>   
+      <TabsList className="grid w-full grid-cols-5">
+        <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+        <TabsTrigger value="gallery">Gallery</TabsTrigger>
+        <TabsTrigger value="article">Article</TabsTrigger>
+        <TabsTrigger value="followers">Followers</TabsTrigger>
+        <TabsTrigger value="following">Following</TabsTrigger>
+      </TabsList>
+      <TabsContent value="portfolio">
+        <Portfolio />
+      </TabsContent>
+      <TabsContent value="gallery">
+        {galleriesRes && galleriesRes.galleries.length > 0 ? (
+          <GalleryList galleries={galleriesRes} />
+        ) : (
+          <GalleryForm photos={photosRes} />
+        )}
+      </TabsContent>
+      <TabsContent value="article">
+        <ArticleList />
+      </TabsContent>
+      <TabsContent value="followers">
+        <div>Insert Follower list here</div>
+      </TabsContent>
+    </Tabs>
   )
 }

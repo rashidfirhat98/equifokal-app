@@ -10,14 +10,6 @@ import { ImagesResults } from "@/models/Images";
 import * as z from "zod";
 import { GalleriesSchemaWithImages } from "@/models/Gallery";
 
-const s3Client = new S3Client({
-  region: env.NEXT_AWS_S3_REGION,
-  credentials: {
-    accessKeyId: env.NEXT_AWS_S3_ACCESS_KEY_ID,
-    secretAccessKey: env.NEXT_AWS_S3_SECRET_ACCESS_KEY,
-  },
-});
-
 const gallerySchema = z.object({
   title: z.string().min(3),
   description: z.string().optional(),

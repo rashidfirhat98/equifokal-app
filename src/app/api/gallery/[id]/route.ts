@@ -1,6 +1,5 @@
 import { NextResponse, userAgent } from "next/server";
 import prisma from "@/lib/prisma";
-import { User } from "lucide-react";
 
 export async function GET(
   req: Request,
@@ -42,16 +41,16 @@ export async function GET(
         blurredDataUrl: undefined,
         metadata: galleryImage.image.metadata
           ? {
-              model: galleryImage.image.metadata.model || undefined,
-              aperture: galleryImage.image.metadata.aperture || undefined,
-              focalLength: galleryImage.image.metadata.focalLength || undefined,
-              exposureTime:
-                galleryImage.image.metadata.exposureTime || undefined,
-              iso: galleryImage.image.metadata.iso || undefined,
-              flash: galleryImage.image.metadata.flash || undefined,
-              height: galleryImage.image.metadata.height || undefined,
-              width: galleryImage.image.metadata.width || undefined,
-            }
+            model: galleryImage.image.metadata.model || undefined,
+            aperture: galleryImage.image.metadata.aperture || undefined,
+            focalLength: galleryImage.image.metadata.focalLength || undefined,
+            exposureTime:
+              galleryImage.image.metadata.exposureTime || undefined,
+            iso: galleryImage.image.metadata.iso || undefined,
+            flash: galleryImage.image.metadata.flash || undefined,
+            height: galleryImage.image.metadata.height || undefined,
+            width: galleryImage.image.metadata.width || undefined,
+          }
           : undefined,
       })),
       createdAt: gallery.createdAt.toISOString(),

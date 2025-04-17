@@ -24,8 +24,6 @@ export default function Portfolio({ topic = "curated", page }: Props) {
   const hasFetched = useRef(false);
 
   const fetchMoreImages = async () => {
-    // if (loading || !nextCursor) return;
-
     setLoading(true);
     try {
       const res = await fetch(`/api/portfolio?cursor=${nextCursor ?? ""}&limit=10`);
