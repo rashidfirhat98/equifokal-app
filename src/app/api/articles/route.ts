@@ -66,6 +66,8 @@ export async function GET(req: Request) {
     ? trimmedArticles[trimmedArticles.length - 1].id
     : null;
 
+  // const createdAt = new Date(article.createdAt.toISOString());
+
   return NextResponse.json({
     articles: trimmedArticles.map((article) => ({
       id: article.id,
@@ -74,8 +76,8 @@ export async function GET(req: Request) {
       description: article.description,
       createdBy: article.user.name,
       //profilePic
-      createdAt: article.createdAt.toISOString(),
-      updatedAt: article.updatedAt.toISOString(),
+      createdAt: new Date(article.createdAt).toLocaleString(),
+      updatedAt: new Date(article.updatedAt).toLocaleString(),
       coverImage: article.coverImage
         ? {
             id: article.coverImage.id,

@@ -5,6 +5,7 @@ import { unauthorized } from "next/navigation";
 import profilePic from "@/assets/images/EQFKL_logo.jpg";
 import { Button } from "@/components/ui/button";
 import DashboardTabs from "@/components/DashboardTabs";
+import Link from "next/link";
 
 const getCurrentUser = async () => {
   try {
@@ -45,7 +46,9 @@ export default async function DashboardPage() {
               <h1 className="text-l sm:text-xl text-center font-semibold">
                 User Name
               </h1>
-              <Button variant="outline">Edit Profile</Button>
+              <Link href={"/profile/edit"}>
+                <Button variant="outline">Edit Profile</Button>
+              </Link>
             </div>
             <div className="flex flex-row gap-4">
               <div className="flex flex-col items-center">

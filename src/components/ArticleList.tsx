@@ -62,13 +62,18 @@ export default function ArticleList() {
         {articles &&
           articles.map((article: any) => (
             <Link key={article.id} href={`/article/${article.id}`}>
-              <div className="my-3 p-6 grid grid-cols-3 border-b-2">
-                <div className="flex flex-col col-span-2 p-6">
-                  <h1 className="heading-3">{article.title}</h1>
-                  <p className="muted">{article.description}</p>
-                  <p className="large"> By {article.createdBy}</p>
+              <div className="my-3 p-6 grid grid-cols-12 border-b-2">
+                <div className="flex justify-between flex-col col-span-8 p-6">
+                  <div>
+                    <h1 className="heading-5">{article.title}</h1>
+                    <p className="lead">{article.description}</p>
+                  </div>
+                  <div>
+                    <p className="large"> By {article.createdBy}</p>
+                    <p className="muted">{article.createdAt}</p>
+                  </div>
                 </div>
-                <div className="p-6 ml-6">
+                <div className="col-span-3 py-6 ml-6">
                   {article.coverImage && (
                     <Image
                       width={article.coverImage.width}
@@ -78,6 +83,11 @@ export default function ArticleList() {
                     />
                   )}
                 </div>
+                {/* <div className="col-span-1 flex flex-col justify-center items-end  py-6 ml-6">
+                  <p className="muted">Publish</p>
+                  <p className="muted">Edit</p>
+                  <p className="muted">Delete</p>
+                </div> */}
               </div>
             </Link>
           ))}

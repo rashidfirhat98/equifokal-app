@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { getUserGalleries, getUserImages } from "@/app/dashboard/actions";
 import { ImagesResults } from "@/models/Images";
 import ArticleList from "./ArticleList";
-import { ArticlesResultsInfinite } from "@/models/Article";
 
 export default async function DashboardTabs() {
   const photosRes: ImagesResults | undefined = await getUserImages();
@@ -38,5 +37,5 @@ export default async function DashboardTabs() {
         <div>Insert Follower list here</div>
       </TabsContent>
     </Tabs>
-  )
+  );
 }
