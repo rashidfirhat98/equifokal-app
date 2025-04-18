@@ -1,5 +1,4 @@
-"use client"
-
+"use client";
 
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -32,14 +31,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GallerySchema } from "@/models/Gallery";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as exifr from "exifr";
-import { AcceptedCoverImageSchema, AcceptedCoverImageUploads } from "@/models/ImageUploadSchema";
-import CreateArticlePage from "@/app/create/article/page";
-
+import {
+  AcceptedCoverImageSchema,
+  AcceptedCoverImageUploads,
+} from "@/models/ImageUploadSchema";
+import { Textarea } from "./ui/textarea";
 
 type Props = {
   galleries?: z.infer<typeof GallerySchema>[];
@@ -47,7 +48,8 @@ type Props = {
 
 export default function ArticleForm({ galleries }: Props) {
   const router = useRouter();
-  const [coverImage, setCoverImage] = useState<AcceptedCoverImageUploads | null>(null);
+  const [coverImage, setCoverImage] =
+    useState<AcceptedCoverImageUploads | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFiles] = useState<FileList | null>(null);
   const [photoDetails, setPhotoDetails] = useState<any>(null);
@@ -57,8 +59,16 @@ export default function ArticleForm({ galleries }: Props) {
   });
 
   const formSchema = z.object({
-    title: z.string().min(3, "Title is required and must be at least 3 characters."),
-    content: z.string().min(50, "Content is required and must be at least 50 characters."),
+    title: z
+      .string()
+      .min(3, "Title is required and must be at least 3 characters."),
+    content: z
+      .string()
+      .min(50, "Content is required and must be at least 50 characters."),
+    description: z
+      .string()
+      .min(30, "Description is required and must be at least 30 characters.")
+      .max(140, "Description must be below 140 characters."),
     coverImage: AcceptedCoverImageSchema,
     galleryId: z.array(z.number()).optional(),
   });
@@ -68,12 +78,19 @@ export default function ArticleForm({ galleries }: Props) {
     defaultValues: {
       title: "",
       content: "",
+      description: "",
       coverImage: undefined,
       galleryId: [],
     },
   });
 
-  const { handleSubmit, setValue, watch, formState: { errors } } = form;
+  const {
+    reset,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = form;
 
   // TipTap Editor
   const editor = useEditor({
@@ -104,8 +121,9 @@ export default function ArticleForm({ galleries }: Props) {
         JSON.stringify({
           title: watch("title"),
           content: editor?.getHTML(),
+          description: watch("description"),
           coverImage: watch("coverImage"),
-          galleryId: watch("galleryId")
+          galleryId: watch("galleryId"),
         })
       );
     }, 5000);
@@ -126,14 +144,14 @@ export default function ArticleForm({ galleries }: Props) {
 
   //   }
   // };
-  //TODO: handle cover image upload
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
+
     if (!file) return;
-    console.log(file);
 
     try {
-      // Extract EXIF metadata
       let metadata = await exifr.parse(file);
       metadata = metadata || {};
 
@@ -160,8 +178,6 @@ export default function ArticleForm({ galleries }: Props) {
         setPhotoDetails([photoDetail]);
         setCoverImage(photoDetail);
         setValue("coverImage", photoDetail, { shouldValidate: true });
-        console.log(photoDetail)
-        console.log(coverImage);
       };
     } catch (error) {
       // Fallback: if EXIF fails, just get dimensions
@@ -188,25 +204,22 @@ export default function ArticleForm({ galleries }: Props) {
         setPhotoDetails([photoDetail]);
         setCoverImage(photoDetail);
         setValue("coverImage", photoDetail, { shouldValidate: true });
-        console.log(photoDetails)
-        console.log(coverImage);
       };
     }
-
-
   };
 
   // Submit
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
-    console.log(data)
+
     try {
-      let formData = new FormData()
-      formData.append(`title`, JSON.stringify(data.title))
-      formData.append(`content`, JSON.stringify(data.content))
+      let formData = new FormData();
+      formData.append(`title`, data.title);
+      formData.append(`content`, data.content);
+      formData.append(`description`, data.description);
 
       if (data.galleryId) {
-        formData.append(`galleryId`, JSON.stringify(data.galleryId))
+        formData.append(`galleryId`, JSON.stringify(data.galleryId));
       }
 
       if (data.coverImage) {
@@ -222,11 +235,13 @@ export default function ArticleForm({ galleries }: Props) {
         body: formData,
       });
 
-      console.log(response)
+      console.log(response);
 
       if (!response.ok) throw new Error("Failed to create article");
       // setAlert({ status: response.status, message: response.message });
       localStorage.removeItem("draftArticle");
+      reset();
+      editor?.commands.setContent("");
       router.push("/");
     } catch (error) {
       console.error("Error:", error);
@@ -237,7 +252,10 @@ export default function ArticleForm({ galleries }: Props) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit, (errors) => console.log("Form Errors:", errors))} className="max-w-3xl mx-auto py-6 space-y-4">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="max-w-3xl mx-auto py-6 space-y-4"
+      >
         <FormField
           control={form.control}
           name="coverImage"
@@ -259,7 +277,11 @@ export default function ArticleForm({ galleries }: Props) {
             </FormItem>
           )}
         />
-        {errors.coverImage && <p className="text-red-500 text-sm">{"Something wrong with the image"}</p>}
+        {errors.coverImage && (
+          <p className="text-red-500 text-sm">
+            {"Something wrong with the image"}
+          </p>
+        )}
 
         <FormField
           control={form.control}
@@ -272,7 +294,22 @@ export default function ArticleForm({ galleries }: Props) {
             />
           )}
         />
-        {errors.title && <p className="text-red-500 text-sm">{errors.title.message}</p>}
+        {errors.title && (
+          <p className="text-red-500 text-sm">{errors.title.message}</p>
+        )}
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Textarea placeholder="Description" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
@@ -283,7 +320,9 @@ export default function ArticleForm({ galleries }: Props) {
             </div>
           )}
         />
-        {errors.content && <p className="text-red-500 text-sm">{errors.content.message}</p>}
+        {errors.content && (
+          <p className="text-red-500 text-sm">{errors.content.message}</p>
+        )}
 
         {galleries && (
           <FormField
@@ -304,37 +343,62 @@ export default function ArticleForm({ galleries }: Props) {
                         >
                           {field.value && field.value.length > 0 ? (
                             <span className="text-sm">
-                              {field.value.length} {field.value.length === 1 ? 'gallery' : 'galleries'} selected
+                              {field.value.length}{" "}
+                              {field.value.length === 1
+                                ? "gallery"
+                                : "galleries"}{" "}
+                              selected
                             </span>
                           ) : (
-                            <span className="text-gray-500">Select galleries...</span>
+                            <span className="text-gray-500">
+                              Select galleries...
+                            </span>
                           )}
                           <ChevronsUpDown className="ml-auto opacity-50" />
                         </Button>
                       </PopoverTrigger>
 
-                      <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] max-h-[300px]">
+                      <PopoverContent
+                        align="start"
+                        className="w-[var(--radix-popover-trigger-width)] max-h-[300px]"
+                      >
                         <Command>
-                          <CommandInput placeholder="Search galleries..." className="h-9" />
+                          <CommandInput
+                            placeholder="Search galleries..."
+                            className="h-9"
+                          />
                           <CommandList>
                             <CommandEmpty>No galleries found.</CommandEmpty>
                             <CommandGroup className="max-h-60 overflow-y-auto">
                               {galleries.map((gallery) => {
-                                const isSelected = field.value?.includes(gallery.id);
+                                const isSelected = field.value?.includes(
+                                  gallery.id
+                                );
                                 return (
                                   <CommandItem
                                     key={gallery.id}
                                     onSelect={() => {
                                       const newValue = isSelected
-                                        ? (field.value || []).filter((gid: number) => gid !== gallery.id)
+                                        ? (field.value || []).filter(
+                                            (gid: number) => gid !== gallery.id
+                                          )
                                         : [...(field.value || []), gallery.id];
                                       field.onChange(newValue);
                                     }}
                                     className="flex flex-col items-start gap-2 p-2"
                                   >
                                     <div className="flex items-center justify-between w-full">
-                                      <span className="text-sm font-medium">{gallery.title}</span>
-                                      <Check className={cn("ml-auto", isSelected ? "opacity-100" : "opacity-0")} />
+                                      <span className="text-sm font-medium">
+                                        {gallery.title}
+                                      </span>
+                                      <Check
+                                        className={cn(
+                                          "ml-auto",
+                                          isSelected
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
                                     </div>
                                     <div className="flex gap-2 flex-wrap">
                                       {gallery.images.map((image) => (
@@ -366,12 +430,19 @@ export default function ArticleForm({ galleries }: Props) {
 
         <div className="flex justify-end">
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Publishing..." : "Publish"}
+            {isLoading ? (
+              <>
+                <Loader2 className="animate-spin" /> Publishing
+              </>
+            ) : (
+              "Publish"
+            )}
           </Button>
         </div>
       </form>
-      <button type="button" onClick={() => console.log(form.getValues())}>Check form values</button>
+      <button type="button" onClick={() => console.log(form.getValues())}>
+        Check form values
+      </button>
     </Form>
-
-  )
+  );
 }

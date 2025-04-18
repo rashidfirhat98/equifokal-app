@@ -3,8 +3,6 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { uploadImage } from "@/lib/uploadImage";
-import { Article, ArticlesResultsInfinite } from "@/models/Article";
-
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
@@ -32,9 +30,10 @@ export async function GET(req: Request) {
     include: {
       coverImage: {
         include: {
-          metadata: true
-        }
+          metadata: true,
+        },
       },
+      user: true,
       galleries: {
         include: {
           gallery: {
@@ -43,15 +42,15 @@ export async function GET(req: Request) {
                 include: {
                   image: {
                     include: {
-                      metadata: true
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                      metadata: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
     take: limit + 1,
@@ -63,31 +62,42 @@ export async function GET(req: Request) {
 
   const hasNextPage = articles.length > limit;
   const trimmedArticles = hasNextPage ? articles.slice(0, -1) : articles;
-  const nextCursor = hasNextPage ? trimmedArticles[trimmedArticles.length - 1].id : null;
+  const nextCursor = hasNextPage
+    ? trimmedArticles[trimmedArticles.length - 1].id
+    : null;
 
   return NextResponse.json({
     articles: trimmedArticles.map((article) => ({
       id: article.id,
       title: article.title,
       content: article.content,
+      description: article.description,
+      createdBy: article.user.name,
+      //profilePic
       createdAt: article.createdAt.toISOString(),
       updatedAt: article.updatedAt.toISOString(),
-      coverImage: article.coverImage ? {
-        id: article.coverImage.id,
-        width: article.coverImage.metadata?.width || 0,
-        height: article.coverImage.metadata?.height || 0,
-        url: article.coverImage.url,
-        src: { large: article.coverImage.url },
-        alt: article.coverImage.fileName,
-        metadata: article.coverImage.metadata ? {
-          model: article.coverImage.metadata.model || undefined,
-          aperture: article.coverImage.metadata.aperture || undefined,
-          focalLength: article.coverImage.metadata.focalLength || undefined,
-          exposureTime: article.coverImage.metadata.exposureTime || undefined,
-          iso: article.coverImage.metadata.iso || undefined,
-          flash: article.coverImage.metadata.flash || undefined
-        } : undefined
-      } : undefined,
+      coverImage: article.coverImage
+        ? {
+            id: article.coverImage.id,
+            width: article.coverImage.metadata?.width || 0,
+            height: article.coverImage.metadata?.height || 0,
+            url: article.coverImage.url,
+            src: { large: article.coverImage.url },
+            alt: article.coverImage.fileName,
+            metadata: article.coverImage.metadata
+              ? {
+                  model: article.coverImage.metadata.model || undefined,
+                  aperture: article.coverImage.metadata.aperture || undefined,
+                  focalLength:
+                    article.coverImage.metadata.focalLength || undefined,
+                  exposureTime:
+                    article.coverImage.metadata.exposureTime || undefined,
+                  iso: article.coverImage.metadata.iso || undefined,
+                  flash: article.coverImage.metadata.flash || undefined,
+                }
+              : undefined,
+          }
+        : undefined,
       // galleries: article.galleries?.map(({ gallery }) => ({
       //   id: gallery.id,
       //   title: gallery.title,
@@ -125,20 +135,14 @@ export async function POST(req: Request) {
 
   const title = formData.get("title")?.toString() || "";
   const content = formData.get("content")?.toString() || "";
-
+  const description = formData.get("description")?.toString() || "";
   const galleryIdRaw = formData.get("galleryId")?.toString() || "[]";
   const galleryIds = JSON.parse(galleryIdRaw) as number[];
-
+  const files = formData.getAll("files");
   let coverImageId: number | undefined;
 
-  // Upload image if provided
-  const files = formData.getAll("files");
-
-  console.log(files)
   if (files.length > 0) {
     const uploadResult = await uploadImage(formData);
-
-    console.log("uploadResult", uploadResult)
 
     if (uploadResult.status === "success" && uploadResult.images?.length) {
       coverImageId = uploadResult.images[0].id;
@@ -146,15 +150,14 @@ export async function POST(req: Request) {
   }
 
   try {
-
-    // Create article
     const article = await prisma.article.create({
       data: {
         title,
         content,
+        description,
         user: { connect: { id: session.user.id } },
         ...(coverImageId && {
-          coverImage: { connect: { id: coverImageId } }
+          coverImage: { connect: { id: coverImageId } },
         }),
       },
     });
@@ -171,7 +174,7 @@ export async function POST(req: Request) {
     }
     return NextResponse.json(article, { status: 201 });
   } catch (error) {
-    console.error(error)
+    console.error(error);
     return NextResponse.json({ error }, { status: 500 });
   }
 }

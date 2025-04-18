@@ -27,24 +27,21 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import * as exifr from "exifr";
-import {
-  AcceptedImageTypeSchema,
-} from "@/models/ImageUploadSchema";
+import { AcceptedImageTypeSchema } from "@/models/ImageUploadSchema";
 import { Loader2 } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 import { z } from "zod";
 
 export default function UploadForm() {
-
   const formSchema = z.object({
     imgUploads: AcceptedImageTypeSchema,
     isPortfolio: z.boolean().default(false).optional(),
-  })
+  });
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       imgUploads: undefined,
-      isPortfolio: false
+      isPortfolio: false,
     },
   });
 
@@ -145,20 +142,20 @@ export default function UploadForm() {
         }
       });
 
-      formData.append("isPortfolio", JSON.stringify(data.isPortfolio))
+      formData.append("isPortfolio", JSON.stringify(data.isPortfolio));
     }
 
     try {
       setIsLoading(true);
-      console.log()
+
       const response = await fetch("api/upload", {
         method: "POST",
-        body: formData
-      })
+        body: formData,
+      });
 
       if (!response.ok) throw new Error("Failed to create article");
       const result = await response.json();
-      console.log(result)
+      console.log(result);
       setAlert({ status: result.status, message: result.message });
       reset();
       setPhotoDetails([]);
@@ -194,13 +191,17 @@ export default function UploadForm() {
           <CollapsibleContent className="space-y-1">
             <Form {...form}>
               <form
-                onSubmit={form.handleSubmit(onSubmit, (errors) => console.log("Form Errors:", errors))}
+                onSubmit={form.handleSubmit(onSubmit, (errors) =>
+                  console.log("Form Errors:", errors)
+                )}
                 className="space-y-3"
               >
                 <FormField
                   control={form.control}
                   name="imgUploads"
-                  render={({ field: { value, onChange, ref: rhfRef, ...fieldProps } }) => (
+                  render={({
+                    field: { value, onChange, ref: rhfRef, ...fieldProps },
+                  }) => (
                     <FormItem>
                       <FormControl>
                         <Input
@@ -235,11 +236,10 @@ export default function UploadForm() {
                         />
                       </FormControl>
                       <div className="text-left space-y-1 leading-none">
-                        <FormLabel>
-                          Add to portfolio
-                        </FormLabel>
+                        <FormLabel>Add to portfolio</FormLabel>
                         <FormDescription>
-                          Photos will be included in your portfolio and can be seen by others.
+                          Photos will be included in your portfolio and can be
+                          seen by others.
                         </FormDescription>
                       </div>
                     </FormItem>
@@ -257,8 +257,12 @@ export default function UploadForm() {
                   </Button>
                 </div>
               </form>
-              <button type="button" onClick={() => console.log(form.getValues())}>Check form values</button>
-
+              <button
+                type="button"
+                onClick={() => console.log(form.getValues())}
+              >
+                Check form values
+              </button>
             </Form>
           </CollapsibleContent>
         </Collapsible>
@@ -266,8 +270,9 @@ export default function UploadForm() {
       {alert.message && (
         <CardFooter>
           <p
-            className={`${alert.status === "success" ? "text-green-500" : "text-red-500"
-              }`}
+            className={`${
+              alert.status === "success" ? "text-green-500" : "text-red-500"
+            }`}
           >
             {alert.message}
           </p>

@@ -1,5 +1,5 @@
 import { getPlaiceholder } from "plaiceholder";
-import type { Photo, ImagesResults, ImagesInfiniteResults } from "@/models/Images";
+import type { Photo } from "@/models/Images";
 
 async function getBase64(imageUrl: string) {
   try {
@@ -23,9 +23,7 @@ export default async function addBlurredDataUrls(
   images: Photo[]
 ): Promise<Photo[]> {
   // Make all requests at once instead of awaiting each one - avoiding a waterfall
-  const base64Promises = images.map((photo) =>
-    getBase64(photo.src.large)
-  );
+  const base64Promises = images.map((photo) => getBase64(photo.src.large));
 
   // Resolve all requests in order
   const base64Results = await Promise.all(base64Promises);

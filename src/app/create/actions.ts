@@ -1,12 +1,6 @@
-import env from "@/lib/env";
-import { revalidatePath } from "next/cache";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import prisma from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
 import * as z from "zod";
 import { GalleriesSchemaWithImagesInfinite } from "@/models/Gallery";
-
 
 export async function getGalleries({
   cursor,
@@ -56,8 +50,6 @@ export async function getGalleries({
 
   return {
     galleries: formattedGalleries,
-    nextCursor: hasNextPage
-      ? trimmed[trimmed.length - 1].id
-      : null,
+    nextCursor: hasNextPage ? trimmed[trimmed.length - 1].id : null,
   };
 }

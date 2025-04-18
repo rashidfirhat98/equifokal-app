@@ -1,22 +1,11 @@
-"use client"
+"use client";
 
 import { useEffect, useRef, useState } from "react";
-import fetchImages from "@/lib/fetchImages";
-import type { ImagesResults, Photo } from "@/models/Images";
+import type { Photo } from "@/models/Images";
 import ImgContainer from "./ImgContainer";
-import addBlurredDataUrls from "@/lib/getBase64";
-import getPrevNextPages from "@/lib/getPrevNextPages";
-import Footer from "./Footer";
-import { getUserImages } from "@/app/portfolio/actions";
 import { Loader2 } from "lucide-react";
 
-type Props = {
-  topic?: string | undefined;
-  page?: string | undefined;
-};
-
-export default function Portfolio({ topic = "curated", page }: Props) {
-
+export default function Portfolio() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -26,7 +15,9 @@ export default function Portfolio({ topic = "curated", page }: Props) {
   const fetchMoreImages = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/portfolio?cursor=${nextCursor ?? ""}&limit=10`);
+      const res = await fetch(
+        `/api/portfolio?cursor=${nextCursor ?? ""}&limit=10`
+      );
       const data = await res.json();
 
       setPhotos((prev) => [...prev, ...data.photos]);
@@ -73,7 +64,9 @@ export default function Portfolio({ topic = "curated", page }: Props) {
         ))}
       </section>
       <div ref={loaderRef} className="loader">
-        {loading && <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />}
+        {loading && (
+          <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
+        )}
       </div>
     </>
   );
