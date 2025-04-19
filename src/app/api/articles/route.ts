@@ -164,7 +164,6 @@ export async function POST(req: Request) {
       },
     });
 
-    // Link to galleries
     if (galleryIds.length > 0) {
       await prisma.articleGallery.createMany({
         data: galleryIds.map((galleryId) => ({

@@ -1,27 +1,11 @@
-import { authOptions } from "@/lib/authOptions";
-import { getServerSession } from "next-auth";
 import Image from "next/image";
 import { unauthorized } from "next/navigation";
 import profilePic from "@/assets/images/EQFKL_logo.jpg";
 import { Button } from "@/components/ui/button";
 import DashboardTabs from "@/components/DashboardTabs";
 import Link from "next/link";
+import { getCurrentUser } from "./actions";
 
-const getCurrentUser = async () => {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) return;
-    const currentUser = await prisma.user.findUnique({
-      where: { email: session?.user.email || undefined },
-    });
-    if (!currentUser) return;
-
-    return currentUser;
-  } catch (error) {
-    console.log(error);
-    return;
-  }
-};
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 
@@ -44,7 +28,7 @@ export default async function DashboardPage() {
           <div className="col-span-3 h-full flex flex-col items-start pl-4 border-l-2 border-gray-100 ">
             <div className="flex sm:flex-row items-center gap-4 mb-4">
               <h1 className="text-l sm:text-xl text-center font-semibold">
-                User Name
+                {user.name}
               </h1>
               <Link href={"/profile/edit"}>
                 <Button variant="outline">Edit Profile</Button>
@@ -71,10 +55,7 @@ export default async function DashboardPage() {
               </div>
             </div>
             <div>
-              <p>
-                Insert bio here - just your friendly neighborhood photographer
-                and traveller in town
-              </p>
+              <p>{user.bio}</p>
             </div>
           </div>
         </div>

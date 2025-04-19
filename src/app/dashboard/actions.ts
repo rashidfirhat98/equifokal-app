@@ -146,15 +146,15 @@ export async function getUserGalleries({
       blurredDataUrl: undefined,
       metadata: galleryImage.image.metadata
         ? {
-          model: galleryImage.image.metadata.model || undefined,
-          aperture: galleryImage.image.metadata.aperture || undefined,
-          focalLength: galleryImage.image.metadata.focalLength || undefined,
-          exposureTime: galleryImage.image.metadata.exposureTime || undefined,
-          iso: galleryImage.image.metadata.iso || undefined,
-          flash: galleryImage.image.metadata.flash || undefined,
-          height: galleryImage.image.metadata.height || undefined,
-          width: galleryImage.image.metadata.width || undefined,
-        }
+            model: galleryImage.image.metadata.model || undefined,
+            aperture: galleryImage.image.metadata.aperture || undefined,
+            focalLength: galleryImage.image.metadata.focalLength || undefined,
+            exposureTime: galleryImage.image.metadata.exposureTime || undefined,
+            iso: galleryImage.image.metadata.iso || undefined,
+            flash: galleryImage.image.metadata.flash || undefined,
+            height: galleryImage.image.metadata.height || undefined,
+            width: galleryImage.image.metadata.width || undefined,
+          }
         : undefined,
     })),
     createdAt: gallery.createdAt.toISOString(),
@@ -175,4 +175,20 @@ export async function getUserGalleries({
         : undefined,
     galleries: formattedGalleries,
   };
+}
+
+export async function getCurrentUser() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) return;
+    const currentUser = await prisma.user.findUnique({
+      where: { email: session?.user.email || undefined },
+    });
+    if (!currentUser) return;
+
+    return currentUser;
+  } catch (error) {
+    console.log(error);
+    return;
+  }
 }

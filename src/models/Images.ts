@@ -8,19 +8,21 @@ const BasicImageSchema = z.object({
   total_results: z.number(),
 });
 
-export const PhotoSchema = z.object({
+export const BasicPhotoSchema = z.object({
   id: z.number(),
   width: z.number(),
   height: z.number(),
   url: z.string(),
-  photographer: z.string().optional(),
-  photographer_url: z.string().optional(),
-  photographer_id: z.number().optional(),
-  avg_color: z.string().optional(),
+  alt: z.string(),
   src: z.object({
     large: z.string(),
   }),
-  alt: z.string(),
+});
+
+export const PhotoSchema = BasicPhotoSchema.extend({
+  photographer: z.string().optional(),
+  photographer_url: z.string().optional(),
+  photographer_id: z.number().optional(),
   blurredDataUrl: z.string().optional(),
   metadata: z
     .object({
@@ -40,11 +42,13 @@ export const ImagesSchemaWithPhotos = BasicImageSchema.extend({
 
 export const InfiniteImagesSchemaWithPhotos = z.object({
   photos: z.array(PhotoSchema),
-  nextCursor: z.string().nullable()
+  nextCursor: z.string().nullable(),
 });
 
 export type Photo = z.infer<typeof PhotoSchema>;
 
 export type ImagesResults = z.infer<typeof ImagesSchemaWithPhotos>;
 
-export type ImagesInfiniteResults = z.infer<typeof InfiniteImagesSchemaWithPhotos>
+export type ImagesInfiniteResults = z.infer<
+  typeof InfiniteImagesSchemaWithPhotos
+>;

@@ -2,13 +2,60 @@
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { signIn } from "next-auth/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "./ui/form";
+import { Input } from "./ui/input";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Textarea } from "./ui/textarea";
+import Image from "next/image";
+import profilePic from "@/assets/images/EQFKL_logo.jpg";
+import { Button } from "./ui/button";
 
-export default function ProfileEditForm() {
+type Props = {
+  userDetails: {
+    name: string;
+    id: string;
+    email: string;
+    emailVerified: Date | null;
+    password: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    profilePic: string | null;
+    bio: string | null;
+  };
+};
+
+export default function ProfileEditForm({ userDetails }: Props) {
   //TODO: Call user details API
   //TODO: Change to edit profile form
+
+  const formSchema = z.object({
+    name: z.string(),
+    email: z.string(),
+    bio: z.string().optional(),
+    // profilePic: BasicPhotoSchema,
+  });
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: userDetails?.name || "",
+      email: userDetails?.email || "",
+      bio: userDetails?.bio || "",
+
+      // profilePic: undefined,
+    },
+  });
   const router = useRouter();
   const [loginData, setLoginData] = useState({
     email: "",
@@ -19,15 +66,18 @@ export default function ProfileEditForm() {
     message: "",
   });
 
-  const onChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-    setLoginData({
-      ...loginData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  // const onChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+  //   setLoginData({
+  //     ...loginData,
+  //     [e.target.name]: e.target.value,
+  //   });
+  // };
 
-  const onSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    const formData = new FormData();
+
+    formData.append("name", data.name);
+    //TODO: Add profilePic flag
 
     try {
       const res = await signIn("credentials", {
@@ -61,85 +111,73 @@ export default function ProfileEditForm() {
       )}
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          {/* <img
-            alt="Your Company"
-            src="https://tailwindui.com/plus/img/logos/mark.svg?color=teal&shade=600"
-            className="mx-auto h-10 w-auto"
-          /> */}
           <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
             Edit Profile
           </h2>
         </div>
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form onSubmit={onSubmit} className="space-y-6">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm/6 font-medium text-gray-900"
-              >
-                Email address
-              </label>
-              <div className="mt-2">
-                <input
-                  onChange={onChange}
-                  value={loginData.email}
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  autoComplete="email"
-                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="col-span-1 flex flex-col items-center justify-center">
+                <Image
+                  width={100}
+                  height={100}
+                  alt="profile-pic"
+                  src={profilePic}
+                  className="rounded-full mb-6"
                 />
+                <Button variant="outline">Change Photo</Button>
               </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="password"
-                  className="block text-sm/6 font-medium text-gray-900"
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="bio"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bio</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div>
+                <Button
+                  type="submit"
+                  className="flex w-full justify-center rounded-md px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
-                  Password
-                </label>
-                {/* <div className="text-sm">
-                  <a
-                    href="#"
-                    className="font-semibold text-teal-600 hover:text-teal-500"
-                  >
-                    Forgot password?
-                  </a>
-                </div> */}
+                  Save Profile
+                </Button>
               </div>
-              <div className="mt-2">
-                <input
-                  onChange={onChange}
-                  value={loginData.password}
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-500 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
-                />
-              </div>
-            </div>
-            <div>
-              <button
-                type="submit"
-                className="flex w-full justify-center rounded-md bg-teal-500 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-teal-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
-              >
-                Sign in
-              </button>
-            </div>
-          </form>
-          <p className="mt-10 text-center text-sm/6 text-gray-500">
-            Not a member?{" "}
-            <Link
-              href="/register"
-              className="font-semibold text-teal-600 hover:text-teal-500"
-            >
-              Register Now
-            </Link>
-          </p>
+            </form>
+          </Form>
         </div>
       </div>
     </React.Fragment>
