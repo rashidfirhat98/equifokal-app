@@ -9,6 +9,8 @@ import { getCurrentUser } from "./actions";
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 
+  const profilePicURL = user?.profilePic || profilePic;
+
   if (!user) {
     unauthorized();
   }
@@ -21,8 +23,8 @@ export default async function DashboardPage() {
               width={100}
               height={100}
               alt="profile-pic"
-              src={profilePic}
-              className="rounded-full"
+              src={profilePicURL}
+              className="rounded-full aspect-square object-cover"
             />
           </div>
           <div className="col-span-3 h-full flex flex-col items-start pl-4 border-l-2 border-gray-100 ">

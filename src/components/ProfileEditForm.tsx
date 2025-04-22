@@ -1,9 +1,9 @@
 "use client";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { signIn } from "next-auth/react";
+import * as exifr from "exifr";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Form,
   FormControl,
@@ -20,6 +20,8 @@ import { Textarea } from "./ui/textarea";
 import Image from "next/image";
 import profilePic from "@/assets/images/EQFKL_logo.jpg";
 import { Button } from "./ui/button";
+import { AcceptedCoverImageSchema } from "@/models/ImageUploadSchema";
+import { Checkbox } from "./ui/checkbox";
 
 type Props = {
   userDetails: {
@@ -38,12 +40,14 @@ type Props = {
 export default function ProfileEditForm({ userDetails }: Props) {
   //TODO: Call user details API
   //TODO: Change to edit profile form
+  const profilePicURL = userDetails.profilePic || profilePic;
 
   const formSchema = z.object({
     name: z.string(),
     email: z.string(),
     bio: z.string().optional(),
-    // profilePic: BasicPhotoSchema,
+    profilePic: AcceptedCoverImageSchema.optional(),
+    isProfilePic: z.boolean().default(true),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -52,45 +56,116 @@ export default function ProfileEditForm({ userDetails }: Props) {
       name: userDetails?.name || "",
       email: userDetails?.email || "",
       bio: userDetails?.bio || "",
-
-      // profilePic: undefined,
+      profilePic: undefined,
+      isProfilePic: true,
     },
   });
+
+  const { setValue } = form;
   const router = useRouter();
-  const [loginData, setLoginData] = useState({
-    email: "",
-    password: "",
-  });
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(
+    userDetails?.profilePic ?? null
+  );
   const [alert, setAlert] = useState({
     status: "",
     message: "",
   });
 
-  // const onChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-  //   setLoginData({
-  //     ...loginData,
-  //     [e.target.name]: e.target.value,
-  //   });
-  // };
+  const handleOnchange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    const formData = new FormData();
-
-    formData.append("name", data.name);
-    //TODO: Add profilePic flag
+    if (!file) return;
 
     try {
-      const res = await signIn("credentials", {
-        ...loginData,
-        redirect: false,
-      });
-      setAlert({ status: "success", message: "Logged in successfully" });
-      setLoginData({ email: "", password: "" });
+      let metadata = await exifr.parse(file);
+      metadata = metadata || {};
 
-      if (res?.error) {
-        setAlert({ status: "error", message: "Invalid email or password" });
-        return;
-      }
+      const img = new window.Image();
+      img.src = URL.createObjectURL(file) as string;
+
+      setPreviewUrl(URL.createObjectURL(file));
+
+      img.onload = () => {
+        const exifMetadata = {
+          height: metadata.ImageHeight ?? img.height,
+          width: metadata.ImageWidth ?? img.width,
+          model: metadata.Model ?? null,
+          aperture: metadata.FNumber ?? null,
+          focalLength: metadata.FocalLength ?? null,
+          exposureTime: metadata.ExposureTime ?? null,
+          iso: metadata.ISO ?? null,
+          flash: metadata.Flash ?? null,
+        };
+
+        const photoDetail = {
+          file,
+          exifMetadata,
+        };
+
+        setValue("profilePic", photoDetail, { shouldValidate: true });
+      };
+    } catch (error) {
+      // Fallback: if EXIF fails, just get dimensions
+      const img = new window.Image();
+      img.src = URL.createObjectURL(file);
+
+      img.onload = () => {
+        const exifMetadata = {
+          height: img.height,
+          width: img.width,
+          model: null,
+          aperture: null,
+          focalLength: null,
+          exposureTime: null,
+          iso: null,
+          flash: null,
+        };
+
+        const photoDetail = {
+          file,
+          exifMetadata,
+        };
+
+        setValue("profilePic", photoDetail, { shouldValidate: true });
+      };
+    }
+  };
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    let formData = new FormData();
+
+    formData.append("name", data.name);
+    formData.append("email", data.email);
+    if (data.bio) {
+      formData.append("bio", data.bio);
+    }
+
+    if (data.profilePic) {
+      formData.append("files", data.profilePic.file); // Append each file
+      formData.append(
+        `metadata[0]`,
+        JSON.stringify(data.profilePic.exifMetadata)
+      );
+    }
+
+    formData.append("isProfilePic", JSON.stringify(data.isProfilePic));
+
+    try {
+      const res = await fetch("/api/user/edit", {
+        method: "POST",
+        body: formData,
+      });
+
+      console.log(res);
+
+      setAlert({ status: "success", message: "Profile edited" });
+
+      if (!res.ok) throw new Error("Failed to create article");
+      // if (res?.error) {
+      //   setAlert({ status: "error", message: "Invalid email or password" });
+      //   return;
+      // }
 
       router.push("/dashboard");
       router.refresh();
@@ -100,7 +175,7 @@ export default function ProfileEditForm({ userDetails }: Props) {
     }
   };
   return (
-    <React.Fragment>
+    <>
       {alert.message && (
         <Alert
           variant={`${alert.status === "success" ? "default" : "destructive"}`}
@@ -117,16 +192,38 @@ export default function ProfileEditForm({ userDetails }: Props) {
         </div>
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(onSubmit, (errors) =>
+                console.log("Form Errors:", errors)
+              )}
+              className="space-y-6"
+            >
               <div className="col-span-1 flex flex-col items-center justify-center">
-                <Image
-                  width={100}
-                  height={100}
-                  alt="profile-pic"
-                  src={profilePic}
-                  className="rounded-full mb-6"
-                />
-                <Button variant="outline">Change Photo</Button>
+                <div className="col-span-1 flex flex-col items-center justify-center">
+                  <Image
+                    width={100}
+                    height={100}
+                    alt="profile-pic"
+                    src={previewUrl || profilePicURL}
+                    className="rounded-full mb-6 aspect-square object-cover"
+                  />
+
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    className="hidden"
+                    onChange={handleOnchange}
+                  />
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Change Photo
+                  </Button>
+                </div>
               </div>
               <FormField
                 control={form.control}
@@ -167,6 +264,20 @@ export default function ProfileEditForm({ userDetails }: Props) {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="isProfilePic"
+                render={({ field }) => (
+                  <FormItem className="hidden">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
               <div>
                 <Button
@@ -176,10 +287,16 @@ export default function ProfileEditForm({ userDetails }: Props) {
                   Save Profile
                 </Button>
               </div>
+              <button
+                type="button"
+                onClick={() => console.log(form.getValues())}
+              >
+                Check form values
+              </button>
             </form>
           </Form>
         </div>
       </div>
-    </React.Fragment>
+    </>
   );
 }

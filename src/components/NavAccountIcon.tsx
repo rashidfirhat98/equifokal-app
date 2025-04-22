@@ -19,7 +19,22 @@ import {
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 
-export default function NavAccountIcon() {
+type Props = {
+  user: {
+    name: string;
+    id: string;
+    email: string;
+    emailVerified: Date | null;
+    password: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    profilePic: string | null;
+    bio: string | null;
+  };
+};
+
+export default function NavAccountIcon({ user }: Props) {
+  const profilePicUrl = user.profilePic || profilePic;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="cursor-pointer" asChild>
@@ -27,8 +42,8 @@ export default function NavAccountIcon() {
           width={40}
           height={40}
           alt="profile-pic"
-          src={profilePic}
-          className="rounded-full"
+          src={profilePicUrl}
+          className="rounded-full aspect-square object-cover"
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
@@ -40,7 +55,7 @@ export default function NavAccountIcon() {
               Dashboard
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem >
+          <DropdownMenuItem>
             <Link className="flex-1" href="/upload">
               Upload Photos
             </Link>

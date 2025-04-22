@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     const uploadResult = await uploadImage(formData);
 
     if (uploadResult.status === "success" && uploadResult.images?.length) {
-      profilePicURL = uploadResult.images[0].src.large;
+      profilePicURL = uploadResult.images[0].url;
     }
   }
 

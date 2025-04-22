@@ -257,6 +257,7 @@ export default function UploadForm() {
                   </Button>
                 </div>
               </form>
+              {/* Remove later */}
               <button
                 type="button"
                 onClick={() => console.log(form.getValues())}

@@ -51,8 +51,6 @@ export default function ArticleForm({ galleries }: Props) {
   const [coverImage, setCoverImage] =
     useState<AcceptedCoverImageUploads | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedFile, setSelectedFiles] = useState<FileList | null>(null);
-  const [photoDetails, setPhotoDetails] = useState<any>(null);
   const [alert, setAlert] = useState({
     status: "",
     message: "",
@@ -175,7 +173,6 @@ export default function ArticleForm({ galleries }: Props) {
           exifMetadata,
         };
 
-        setPhotoDetails([photoDetail]);
         setCoverImage(photoDetail);
         setValue("coverImage", photoDetail, { shouldValidate: true });
       };
@@ -201,7 +198,6 @@ export default function ArticleForm({ galleries }: Props) {
           exifMetadata,
         };
 
-        setPhotoDetails([photoDetail]);
         setCoverImage(photoDetail);
         setValue("coverImage", photoDetail, { shouldValidate: true });
       };
@@ -234,8 +230,6 @@ export default function ArticleForm({ galleries }: Props) {
         method: "POST",
         body: formData,
       });
-
-      console.log(response);
 
       if (!response.ok) throw new Error("Failed to create article");
       // setAlert({ status: response.status, message: response.message });
