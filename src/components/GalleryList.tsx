@@ -8,13 +8,13 @@ type Props = {
 
 export default async function GalleryList({ galleries }: Props) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 px-2 my-3">
+    <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 px-2 my-3">
       {galleries &&
         galleries.galleries.map((gallery) => (
           <Link key={gallery.id} href={`/gallery/${gallery.id}`}>
             <GalleryCard key={gallery.id} gallery={gallery} />
           </Link>
         ))}
-    </div>
+    </section>
   );
 }

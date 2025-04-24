@@ -65,7 +65,7 @@ export default function ArticleList() {
               <div className="my-3 p-6 grid grid-cols-12 border-b-2">
                 <div className="flex justify-between flex-col col-span-8 p-6">
                   <div>
-                    <h1 className="heading-5">{article.title}</h1>
+                    <h1 className="heading-2">{article.title}</h1>
                     <p className="lead">{article.description}</p>
                   </div>
                   <div>

@@ -32,7 +32,7 @@ import { Loader2 } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 import { z } from "zod";
 
-export default function UploadForm() {
+export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
   const formSchema = z.object({
     imgUploads: AcceptedImageTypeSchema,
     isPortfolio: z.boolean().default(false).optional(),
@@ -173,11 +173,13 @@ export default function UploadForm() {
   return (
     <Card className="mx-3 flex flex-col items-center text-center">
       <CardHeader className="items-center pt-8">
-        <CardTitle>Photo Bucket</CardTitle>
+        {/* <CardTitle>Photo Bucket</CardTitle> */}
         <CardDescription>
-          You don't have any photos in the bucket. Click to add more photos. Or
-          how about viewing the creations of other travellers for some
-          inspiration?
+          {photosAmt
+            ? `You have ${photosAmt} photos have uploaded in the bucket.`
+            : "You don't have any photos in the bucket."}{" "}
+          Click to add more photos. Or how about viewing the creations of other
+          travellers for some inspiration?
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2 w-full">

@@ -9,7 +9,13 @@ import {
 } from "@/components/ui/card";
 import { Gallery } from "@/models/Gallery";
 import Image from "next/image";
-import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "./ui/carousel";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "./ui/carousel";
 
 type Props = {
   gallery: Gallery;
@@ -27,23 +33,22 @@ export default function GalleryCard({ gallery }: Props) {
 
       {/* Gallery Images */}
       <CardContent>
-      { gallery.images.length > 0 ? (
-        <div className="grid grid-cols-3 gap-2">
-          {gallery.images.map((image) => (
-            <div key={image.id} className="relative aspect-square w-full">
-              <Image
-                src={image.src.large}
-                alt={image.alt}
-                fill
-                className="rounded-md object-cover"
-              />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-gray-500 text-sm">No images available.</p>
-      )}
-
+        {gallery.images.length > 0 ? (
+          <div className="grid grid-cols-3 gap-2">
+            {gallery.images.map((image) => (
+              <div key={image.id} className="relative aspect-square w-full">
+                <Image
+                  src={image.src.large}
+                  alt={image.alt}
+                  fill
+                  className="rounded-md object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 text-sm">No images available.</p>
+        )}
       </CardContent>
 
       {/* Footer (Optional for Actions) */}
