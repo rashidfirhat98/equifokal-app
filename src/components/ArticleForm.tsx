@@ -100,7 +100,6 @@ export default function ArticleForm({ galleries }: Props) {
   });
 
   const [open, setOpen] = useState(false);
-  // Auto-load from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("draftArticle");
     if (saved) {
@@ -204,7 +203,6 @@ export default function ArticleForm({ galleries }: Props) {
     }
   };
 
-  // Submit
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
 
@@ -248,7 +246,7 @@ export default function ArticleForm({ galleries }: Props) {
     <Form {...form}>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="max-w-3xl mx-auto py-6 space-y-4"
+        className="mx-auto py-6 space-y-4"
       >
         <FormField
           control={form.control}

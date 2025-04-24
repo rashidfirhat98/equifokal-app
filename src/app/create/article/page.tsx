@@ -7,5 +7,10 @@ const galleriesRes = await getUserGalleries();
 const { galleries } = await galleriesRes.json();
 
 export default function CreateArticlePage() {
-  return <ArticleForm galleries={galleries} />;
+  return (
+    <>
+      <h1 className="heading-2 my-8">Create an article</h1>
+      <ArticleForm galleries={galleries} />
+    </>
+  );
 }

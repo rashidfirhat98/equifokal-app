@@ -56,8 +56,8 @@ export default function NavAccountIcon({ user }: Props) {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <Link className="flex-1" href="/upload">
-              Upload Photos
+            <Link className="flex-1" href="/photo-bucket">
+              Photo Bucket
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem>

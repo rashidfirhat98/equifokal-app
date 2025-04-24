@@ -1,7 +1,5 @@
 import Link from "next/link";
 import Search from "./Search";
-
-import { authOptions } from "@/lib/authOptions";
 import SignOutButton from "./SignOutButton";
 import NavAccountIcon from "./NavAccountIcon";
 import { getCurrentUser } from "@/app/dashboard/actions";
