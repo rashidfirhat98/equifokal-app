@@ -1,11 +1,11 @@
 import { GalleriesResultsInfinite } from "@/models/Gallery";
 import ArticleForm from "@/components/ArticleForm";
-import { getGalleries } from "../actions";
+import { getUserGalleries } from "../../gallery/actions";
 
-const galleriesRes: GalleriesResultsInfinite | undefined = await getGalleries(
-  {}
-);
+const galleriesRes = await getUserGalleries();
+
+const { galleries } = await galleriesRes.json();
 
 export default function CreateArticlePage() {
-  return <ArticleForm galleries={galleriesRes?.galleries} />;
+  return <ArticleForm galleries={galleries} />;
 }

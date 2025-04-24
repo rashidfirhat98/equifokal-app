@@ -9,6 +9,7 @@ import { authOptions } from "@/lib/authOptions";
 import { ImagesResults } from "@/models/Images";
 import * as z from "zod";
 import { GalleriesSchemaWithImages } from "@/models/Gallery";
+import { NextResponse } from "next/server";
 
 const gallerySchema = z.object({
   title: z.string().min(3),
@@ -95,86 +96,151 @@ export async function createGallery(data: z.infer<typeof gallerySchema>) {
   }
 }
 
-export async function getUserGalleries({
-  page = 1,
-  per_page = 10,
-}: {
-  page?: number;
-  per_page?: number;
-}): Promise<z.infer<typeof GalleriesSchemaWithImages>> {
-  const offset = (page - 1) * per_page;
+// export async function getUserGalleries({
+//   page = 1,
+//   per_page = 10,
+// }: {
+//   page?: number;
+//   per_page?: number;
+// }): Promise<z.infer<typeof GalleriesSchemaWithImages>> {
+//   const offset = (page - 1) * per_page;
+//   const session = await getServerSession(authOptions);
+
+//   if (!session) {
+//     return { galleries: [], page, per_page, total_results: 0 };
+//   }
+
+//   // Fetch total gallery count for pagination
+//   const total_results = await prisma.gallery.count();
+
+//   // Fetch galleries with pagination
+//   const galleries = await prisma.gallery.findMany({
+//     skip: offset,
+//     take: per_page,
+//     where: { userId: session.user.id },
+//     orderBy: { createdAt: "desc" },
+//     include: {
+//       images: {
+//         include: {
+//           image: {
+//             include: {
+//               metadata: true,
+//             },
+//           },
+//         },
+//       },
+//     },
+//   });
+
+//   // Transform the data to match the Zod schema
+//   const formattedGalleries = galleries.map((gallery) => ({
+//     id: gallery.id,
+//     title: gallery.title,
+//     description: gallery.description || undefined,
+//     images: gallery.images.map((galleryImage) => ({
+//       id: galleryImage.image.id,
+//       url: galleryImage.image.url,
+//       width: galleryImage.image.metadata?.width ?? 0,
+//       height: galleryImage.image.metadata?.height ?? 0,
+//       alt: galleryImage.image.fileName,
+//       src: { large: galleryImage.image.url },
+//       blurredDataUrl: undefined,
+//       metadata: galleryImage.image.metadata
+//         ? {
+//             model: galleryImage.image.metadata.model || undefined,
+//             aperture: galleryImage.image.metadata.aperture || undefined,
+//             focalLength: galleryImage.image.metadata.focalLength || undefined,
+//             exposureTime: galleryImage.image.metadata.exposureTime || undefined,
+//             iso: galleryImage.image.metadata.iso || undefined,
+//             flash: galleryImage.image.metadata.flash || undefined,
+//             height: galleryImage.image.metadata.height || undefined,
+//             width: galleryImage.image.metadata.width || undefined,
+//           }
+//         : undefined,
+//     })),
+//     createdAt: gallery.createdAt.toISOString(),
+//     updatedAt: gallery.updatedAt.toISOString(),
+//   }));
+
+//   return {
+//     page,
+//     per_page,
+//     total_results,
+//     prev_page:
+//       page > 1
+//         ? `/api/galleries?page=${page - 1}&per_page=${per_page}`
+//         : undefined,
+//     next_page:
+//       page * per_page < total_results
+//         ? `/api/galleries?page=${page + 1}&per_page=${per_page}`
+//         : undefined,
+//     galleries: formattedGalleries,
+//   };
+// }
+
+export async function getUserGalleries(
+  limit: number = 10,
+  cursor: string | null = null,
+  userId: string | null = null
+) {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
-    return { galleries: [], page, per_page, total_results: 0 };
-  }
+  const userIdParam = userId ?? session?.user.id;
 
-  // Fetch total gallery count for pagination
-  const total_results = await prisma.gallery.count();
+  if (!userIdParam || !session)
+    return NextResponse.json(
+      { message: "Not authenticated or no user ID provided." },
+      { status: 401 }
+    );
 
-  // Fetch galleries with pagination
-  const galleries = await prisma.gallery.findMany({
-    skip: offset,
-    take: per_page,
+  const totalResults = await prisma.gallery.count({
     where: { userId: session.user.id },
+  });
+
+  const galleries = await prisma.gallery.findMany({
     orderBy: { createdAt: "desc" },
     include: {
       images: {
         include: {
-          image: {
-            include: {
-              metadata: true,
-            },
-          },
+          image: true,
         },
       },
     },
+    where: {
+      userId: userIdParam,
+    },
+    take: limit + 1,
+    ...(cursor && {
+      cursor: { id: parseInt(cursor) },
+      skip: 1,
+    }),
   });
 
-  // Transform the data to match the Zod schema
-  const formattedGalleries = galleries.map((gallery) => ({
+  const hasNextPage = galleries.length > limit;
+  const trimmed = hasNextPage ? galleries.slice(0, -1) : galleries;
+
+  const formattedGalleries = trimmed.map((gallery: any) => ({
     id: gallery.id,
     title: gallery.title,
     description: gallery.description || undefined,
-    images: gallery.images.map((galleryImage) => ({
-      id: galleryImage.image.id,
-      url: galleryImage.image.url,
-      width: galleryImage.image.metadata?.width ?? 0,
-      height: galleryImage.image.metadata?.height ?? 0,
-      alt: galleryImage.image.fileName,
-      src: { large: galleryImage.image.url },
-      blurredDataUrl: undefined,
-      metadata: galleryImage.image.metadata
-        ? {
-            model: galleryImage.image.metadata.model || undefined,
-            aperture: galleryImage.image.metadata.aperture || undefined,
-            focalLength: galleryImage.image.metadata.focalLength || undefined,
-            exposureTime: galleryImage.image.metadata.exposureTime || undefined,
-            iso: galleryImage.image.metadata.iso || undefined,
-            flash: galleryImage.image.metadata.flash || undefined,
-            height: galleryImage.image.metadata.height || undefined,
-            width: galleryImage.image.metadata.width || undefined,
-          }
-        : undefined,
-    })),
     createdAt: gallery.createdAt.toISOString(),
     updatedAt: gallery.updatedAt.toISOString(),
+    images: gallery.images.map((gi: any) => ({
+      id: gi.image.id,
+      url: gi.image.url,
+      alt: gi.image.fileName,
+      width: 0,
+      height: 0,
+      src: { large: gi.image.url },
+      blurredDataUrl: undefined,
+    })),
   }));
 
-  return {
-    page,
-    per_page,
-    total_results,
-    prev_page:
-      page > 1
-        ? `/api/galleries?page=${page - 1}&per_page=${per_page}`
-        : undefined,
-    next_page:
-      page * per_page < total_results
-        ? `/api/galleries?page=${page + 1}&per_page=${per_page}`
-        : undefined,
+  return NextResponse.json({
     galleries: formattedGalleries,
-  };
+    nextCursor: hasNextPage ? trimmed[trimmed.length - 1].id : null,
+    totalResults,
+  });
 }
 
 export async function getCurrentUser() {

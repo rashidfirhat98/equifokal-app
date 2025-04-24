@@ -27,9 +27,15 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "./ui/textarea";
 import { createGallery } from "@/app/dashboard/actions";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "./ui/collapsible";
 
 type Props = {
   photos?: ImagesResults | undefined;
+  galleriesAmt?: number;
 };
 
 const formSchema = z.object({
@@ -38,7 +44,7 @@ const formSchema = z.object({
   photoIds: z.array(z.number()).min(1, "Select at least one image"),
 });
 
-export default function GalleryForm({ photos }: Props) {
+export default function GalleryForm({ photos, galleriesAmt }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({
@@ -51,7 +57,7 @@ export default function GalleryForm({ photos }: Props) {
     defaultValues: {
       title: "",
       description: "",
-      photoIds: [], 
+      photoIds: [],
     },
   });
 
@@ -76,81 +82,95 @@ export default function GalleryForm({ photos }: Props) {
     }
   };
   return (
-    <Card className="mx-3">
-      <CardHeader>
-        <CardTitle>Create a gallery</CardTitle>
+    <Card className="mx-3 flex flex-col items-center">
+      <CardHeader className="text-center pt-8">
+        {/* <CardTitle>Create a gallery</CardTitle> */}
         <CardDescription>
-          Add a photos from your bucket to create a gallery here.
+          {galleriesAmt &&
+            `You have ${galleriesAmt} galleries previously created. `}
+          Add photos from your bucket to create a gallery here.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-2">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className=" space-y-4 ">
-            {/* Title */}
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Gallery Title" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Description */}
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Gallery Description (optional)"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Multi-Select Image Picker */}
-            {photos && (
-              <FormField
-                control={form.control}
-                name="photoIds"
-                render={({ field }) => {
-                  console.log("photoIds value:", field.value); // Debug log
-
-                  return (
+      <CardContent className="space-y-2 w-full">
+        <Collapsible className="space-y-10">
+          <div className="flex flex-row justify-center items-center gap-4">
+            <CollapsibleTrigger asChild>
+              <Button variant="default">Add a new Gallery</Button>
+            </CollapsibleTrigger>
+          </div>
+          <CollapsibleContent className="space-y-1">
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className=" space-y-4 "
+              >
+                {/* Title */}
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Select Images</FormLabel>
+                      <FormLabel>Title</FormLabel>
                       <FormControl>
-                        <MultiSelectInput
-                          selectedPhotos={field.value ?? []} // Ensure it's always an array
-                          setSelectedPhotos={field.onChange}
-                          photos={photos.photos}
+                        <Input placeholder="Gallery Title" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Description */}
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Gallery Description (optional)"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  );
-                }}
-              />
-            )}
+                  )}
+                />
 
-            <div className="w-full flex flex-row justify-end">
-              <Button type="submit" disabled={loading}>
-                {loading ? "Creating..." : "Create Gallery"}
-              </Button>
-            </div>
-          </form>
-        </Form>
+                {/* Multi-Select Image Picker */}
+                {photos && (
+                  <FormField
+                    control={form.control}
+                    name="photoIds"
+                    render={({ field }) => {
+                      console.log("photoIds value:", field.value); // Debug log
+
+                      return (
+                        <FormItem>
+                          <FormLabel>Select Images</FormLabel>
+                          <FormControl>
+                            <MultiSelectInput
+                              selectedPhotos={field.value ?? []} // Ensure it's always an array
+                              setSelectedPhotos={field.onChange}
+                              photos={photos.photos}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
+                  />
+                )}
+
+                <div className="w-full flex flex-row justify-end">
+                  <Button type="submit" disabled={loading}>
+                    {loading ? "Creating..." : "Create Gallery"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CollapsibleContent>
+        </Collapsible>
       </CardContent>
       <CardFooter>
         <p

@@ -86,7 +86,7 @@ const PhotoList = ({ initialPhotos, initialCursor }: Props) => {
   }, [loading]);
 
   return (
-    <div className="grid grid-cols-7 gap-8 my-4">
+    <div className="grid grid-cols-8 gap-8 my-4">
       {photos.map((photo) => (
         <div key={photo.id} className="flex flex-col items-center">
           <Image
@@ -101,7 +101,7 @@ const PhotoList = ({ initialPhotos, initialCursor }: Props) => {
         </div>
       ))}
 
-      <div ref={loaderRef} className="loader">
+      <div ref={loaderRef} className="loader flex items-center justify-center">
         {loading && (
           <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
         )}

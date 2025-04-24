@@ -60,7 +60,12 @@ export default function NavAccountIcon({ user }: Props) {
               Upload Photos
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuSub>
+          <DropdownMenuItem>
+            <Link className="flex-1" href="/gallery">
+              Galleries
+            </Link>
+          </DropdownMenuItem>
+          {/* <DropdownMenuSub>
             <DropdownMenuSubTrigger>
               <Link className="flex-1" href="/gallery">
                 Galleries
@@ -75,7 +80,7 @@ export default function NavAccountIcon({ user }: Props) {
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
-          </DropdownMenuSub>
+          </DropdownMenuSub> */}
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
               <Link className="flex-1" href="/article">

@@ -1,31 +1,46 @@
 import prisma from "@/lib/prisma";
 import * as z from "zod";
 import { GalleriesSchemaWithImagesInfinite } from "@/models/Gallery";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
+import { NextResponse } from "next/server";
 
-export async function getGalleries({
-  cursor,
-  limit = 10,
-}: {
-  cursor?: number;
-  limit?: number;
-}): Promise<{
-  galleries: z.infer<typeof GalleriesSchemaWithImagesInfinite>["galleries"];
-  nextCursor: number | null;
-}> {
+export async function getUserGalleries(
+  limit: number = 10,
+  cursor: string | null = null,
+  userId: string | null = null
+) {
+  const session = await getServerSession(authOptions);
+
+  const userIdParam = userId ?? session?.user.id;
+
+  if (!userIdParam || !session)
+    return NextResponse.json(
+      { message: "Not authenticated or no user ID provided." },
+      { status: 401 }
+    );
+
+  const totalResults = await prisma.gallery.count({
+    where: { userId: session.user.id },
+  });
+
   const galleries = await prisma.gallery.findMany({
-    take: limit + 1, // Fetch one extra to check if there's a next page
-    ...(cursor && {
-      skip: 1,
-      cursor: { id: cursor },
-    }),
     orderBy: { createdAt: "desc" },
     include: {
       images: {
         include: {
-          image: true, // No metadata needed
+          image: true,
         },
       },
     },
+    where: {
+      userId: userIdParam,
+    },
+    take: limit + 1,
+    ...(cursor && {
+      cursor: { id: parseInt(cursor) },
+      skip: 1,
+    }),
   });
 
   const hasNextPage = galleries.length > limit;
@@ -48,8 +63,9 @@ export async function getGalleries({
     })),
   }));
 
-  return {
+  return NextResponse.json({
     galleries: formattedGalleries,
     nextCursor: hasNextPage ? trimmed[trimmed.length - 1].id : null,
-  };
+    totalResults,
+  });
 }
