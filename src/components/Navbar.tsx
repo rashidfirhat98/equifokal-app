@@ -15,7 +15,7 @@ export default async function Navbar() {
           </h1>
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-5">
-          <Search />
+          {/* <Search /> */}
           <div className="flex flex-row gap-5 items-center">
             {user ? (
               // <div className="col-span-1 flex items-center justify-center">

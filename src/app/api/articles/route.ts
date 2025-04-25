@@ -75,7 +75,7 @@ export async function GET(req: Request) {
       content: article.content,
       description: article.description,
       createdBy: article.user.name,
-      //profilePic
+      profilePic: article.user.profilePic,
       createdAt: new Date(article.createdAt).toLocaleString(),
       updatedAt: new Date(article.updatedAt).toLocaleString(),
       coverImage: article.coverImage

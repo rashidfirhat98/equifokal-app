@@ -6,11 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { getUserGalleries, getUserImages } from "@/app/dashboard/actions";
 import { ImagesResults } from "@/models/Images";
 import ArticleList from "./ArticleList";
+import { getUserArticles } from "@/app/article/actions";
 
 export default async function DashboardTabs() {
   const photosRes: ImagesResults | undefined = await getUserImages();
   const galleriesRes = await getUserGalleries();
-  const { galleries, totalResults, nextCursor } = await galleriesRes.json();
+  const articlesRes = await getUserArticles();
+  const { galleries, nextCursor } = await galleriesRes.json();
+  const articlesBody = await articlesRes.json();
   return (
     <Tabs orientation="vertical" defaultValue="portfolio" className="w-full">
       <TabsList className="grid w-full grid-cols-5">
@@ -34,7 +37,14 @@ export default async function DashboardTabs() {
         )}
       </TabsContent>
       <TabsContent value="article">
-        <ArticleList />
+        {articlesBody.articles.length && articlesBody.articles.length > 0 ? (
+          <ArticleList
+            initialArticles={articlesBody.articles}
+            initialCursor={articlesBody.nextCursor}
+          />
+        ) : (
+          <div className="text-center">No articles found</div>
+        )}
       </TabsContent>
       <TabsContent value="followers">
         <div>Insert Follower list here</div>

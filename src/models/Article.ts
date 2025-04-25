@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { PhotoSchema } from "./Images";
 import { GallerySchema } from "./Gallery";
+import { create } from "domain";
 
 const BasicArticleSchema = z.object({
   page: z.number(),
@@ -15,8 +16,10 @@ export const ArticleSchema = z.object({
   title: z.string(),
   content: z.string(),
   description: z.string(),
+  profilePic: z.string(),
   coverImage: PhotoSchema.optional(),
   galleries: z.array(GallerySchema).optional(),
+  createdBy: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

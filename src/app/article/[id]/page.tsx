@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getArticleById } from "../actions";
+import ArticleSection from "@/components/ArticleSection";
 
 export default async function ArticleByIdPage({
   params,
@@ -16,9 +17,9 @@ export default async function ArticleByIdPage({
   const { article } = await res.json();
   console.log(article);
 
-  return (
-    <div>
-      <h1 className="heading-1">{article.title}</h1>
-    </div>
-  );
+  if (!article) {
+    return <div>Article not found</div>;
+  }
+
+  return <ArticleSection article={article} />;
 }

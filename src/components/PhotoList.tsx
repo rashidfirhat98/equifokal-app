@@ -19,7 +19,7 @@ const PhotoList = ({ initialPhotos, initialCursor }: Props) => {
   const didMountRef = useRef(false);
   const isFetchingRef = useRef(false);
   const lastCursorRef = useRef<string | null>(null);
-  const nextCursorRef = useRef<string | null>(initialCursor); // NEW
+  const nextCursorRef = useRef<string | null>(initialCursor);
 
   const fetchMoreImages = async () => {
     if (
@@ -49,7 +49,6 @@ const PhotoList = ({ initialPhotos, initialCursor }: Props) => {
     }
   };
 
-  // Update the ref whenever the state changes
   useEffect(() => {
     nextCursorRef.current = nextCursor;
   }, [nextCursor]);
