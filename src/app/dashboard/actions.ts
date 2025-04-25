@@ -10,6 +10,7 @@ import { ImagesResults } from "@/models/Images";
 import * as z from "zod";
 import { GalleriesSchemaWithImages } from "@/models/Gallery";
 import { NextResponse } from "next/server";
+import { Gallery, Image } from "@prisma/client";
 
 const gallerySchema = z.object({
   title: z.string().min(3),
@@ -219,13 +220,13 @@ export async function getUserGalleries(
   const hasNextPage = galleries.length > limit;
   const trimmed = hasNextPage ? galleries.slice(0, -1) : galleries;
 
-  const formattedGalleries = trimmed.map((gallery: any) => ({
+  const formattedGalleries = trimmed.map((gallery) => ({
     id: gallery.id,
     title: gallery.title,
     description: gallery.description || undefined,
     createdAt: gallery.createdAt.toISOString(),
     updatedAt: gallery.updatedAt.toISOString(),
-    images: gallery.images.map((gi: any) => ({
+    images: gallery.images.map((gi) => ({
       id: gi.image.id,
       url: gi.image.url,
       alt: gi.image.fileName,

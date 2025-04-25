@@ -133,7 +133,7 @@ export default function ProfileEditForm({ userDetails }: Props) {
   };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    let formData = new FormData();
+    const formData = new FormData();
 
     formData.append("name", data.name);
     formData.append("email", data.email);

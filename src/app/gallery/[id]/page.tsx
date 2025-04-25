@@ -41,7 +41,7 @@ interface Gallery {
 export default async function GalleryPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
 

@@ -4,7 +4,7 @@ import { Article } from "@/models/Article";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
 
 type Props = {
@@ -18,10 +18,11 @@ export default function ArticleList({ initialArticles, initialCursor }: Props) {
   const [loading, setLoading] = useState(false);
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const isFetchingRef = useRef(false);
+  const didMountRef = useRef(false);
   const lastCursorRef = useRef<string | null>(null);
-  const hasFetched = useRef(false);
+  const nextCursorRef = useRef<string | null>(initialCursor);
 
-  const fetchMoreArticles = async () => {
+  const fetchMoreArticles = useCallback(async () => {
     if (
       isFetchingRef.current ||
       !nextCursor ||
@@ -45,39 +46,46 @@ export default function ArticleList({ initialArticles, initialCursor }: Props) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [nextCursor]);
 
   useEffect(() => {
-    if (!hasFetched.current && !articles.length) {
-      hasFetched.current = true;
-      fetchMoreArticles();
-    }
-  }, [articles.length]);
+    nextCursorRef.current = nextCursor;
+  }, [nextCursor]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const observer = new IntersectionObserver(
       (entries) => {
+        console.log("Observer sees cursor:", nextCursor);
         const first = entries[0];
-        if (first.isIntersecting && nextCursor && !loading) {
+        if (
+          didMountRef.current &&
+          first.isIntersecting &&
+          nextCursorRef.current &&
+          !loading &&
+          nextCursorRef.current !== lastCursorRef.current
+        ) {
           fetchMoreArticles();
         }
+        console.log("Observer unobserved cursor:", nextCursor);
       },
       { threshold: 1 }
     );
 
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
-    }
+    const currentLoader = loaderRef.current;
+    if (currentLoader) observer.observe(currentLoader);
+
+    didMountRef.current = true;
 
     return () => {
-      if (loaderRef.current) observer.unobserve(loaderRef.current);
+      if (currentLoader) observer.unobserve(currentLoader);
     };
-  }, [nextCursor, loading]);
+  }, [nextCursor, loading, fetchMoreArticles]);
   return (
     <>
       <section className="px-2 my-3">
         {articles &&
-          articles.map((article: any) => (
+          articles.map((article) => (
             <Link key={article.id} href={`/article/${article.id}`}>
               <div className="my-3 p-6 grid grid-cols-12 border-b-2">
                 <div className="flex justify-between flex-col col-span-8 p-6">
@@ -119,12 +127,12 @@ export default function ArticleList({ initialArticles, initialCursor }: Props) {
               </div>
             </Link>
           ))}
+        <div ref={loaderRef} className="loader my-6">
+          {loading && (
+            <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
+          )}
+        </div>
       </section>
-      <div ref={loaderRef} className="loader my-6">
-        {loading && (
-          <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
-        )}
-      </div>
     </>
   );
 }

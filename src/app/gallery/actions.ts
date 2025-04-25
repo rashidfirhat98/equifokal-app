@@ -46,13 +46,13 @@ export async function getUserGalleries(
   const hasNextPage = galleries.length > limit;
   const trimmed = hasNextPage ? galleries.slice(0, -1) : galleries;
 
-  const formattedGalleries = trimmed.map((gallery: any) => ({
+  const formattedGalleries = trimmed.map((gallery) => ({
     id: gallery.id,
     title: gallery.title,
     description: gallery.description || undefined,
     createdAt: gallery.createdAt.toISOString(),
     updatedAt: gallery.updatedAt.toISOString(),
-    images: gallery.images.map((gi: any) => ({
+    images: gallery.images.map((gi) => ({
       id: gi.image.id,
       url: gi.image.url,
       alt: gi.image.fileName,

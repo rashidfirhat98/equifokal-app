@@ -42,7 +42,7 @@ export async function GET(req: Request) {
     : null;
 
   const photosWithBlur = await addBlurredDataUrls(
-    trimmedImages.map((image: any) => ({
+    trimmedImages.map((image) => ({
       id: image.id,
       url: `/photo/${image.id}`,
       height: image.metadata?.height || 2000,

@@ -3,7 +3,7 @@
 import { GalleriesResults, Gallery } from "@/models/Gallery";
 import GalleryCard from "./GalleryCard";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 type Props = {
@@ -18,14 +18,13 @@ export default function GalleryList({
   const [galleries, setGalleries] = useState<Gallery[]>(initialGalleries || []);
   const [nextCursor, setNextCursor] = useState<string | null>(initialCursor);
   const [loading, setLoading] = useState(false);
-
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const didMountRef = useRef(false);
   const isFetchingRef = useRef(false);
   const lastCursorRef = useRef<string | null>(null);
   const nextCursorRef = useRef<string | null>(initialCursor);
 
-  const fetchMoreImages = async () => {
+  const fetchMoreImages = useCallback(async () => {
     if (
       isFetchingRef.current ||
       !nextCursor ||
@@ -53,7 +52,7 @@ export default function GalleryList({
       setLoading(false);
       isFetchingRef.current = false;
     }
-  };
+  }, [nextCursor]);
 
   // Update the ref whenever the state changes
   useEffect(() => {
@@ -79,17 +78,15 @@ export default function GalleryList({
       { threshold: 1 }
     );
 
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
-    }
+    const currentLoader = loaderRef.current;
+    if (currentLoader) observer.observe(currentLoader);
 
-    // Avoid first hydration trigger
     didMountRef.current = true;
 
     return () => {
-      if (loaderRef.current) observer.unobserve(loaderRef.current);
+      if (currentLoader) observer.unobserve(currentLoader);
     };
-  }, [loading]);
+  }, [loading, fetchMoreImages]);
   return (
     <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 px-2 my-3">
       {galleries &&

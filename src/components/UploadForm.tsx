@@ -32,6 +32,20 @@ import { Loader2 } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 import { z } from "zod";
 
+type PhotoDetails = {
+  file: File;
+  exifMetadata: {
+    height: number | null;
+    width: number | null;
+    model: string | null;
+    aperture: number | null;
+    focalLength: number | null;
+    exposureTime: number | null;
+    iso: number | null;
+    flash: string | null;
+  };
+};
+
 export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
   const formSchema = z.object({
     imgUploads: AcceptedImageTypeSchema,
@@ -48,7 +62,7 @@ export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { reset, setValue } = form;
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
-  const [photoDetails, setPhotoDetails] = useState<any>(null);
+  const [photoDetails, setPhotoDetails] = useState<PhotoDetails[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState({
     status: "",
@@ -63,7 +77,7 @@ export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
       setAlert({ status: "", message: "" });
 
       // Extract metadata from all images concurrently
-      const metadataPromises = Array.from(files).map(
+      const metadataPromises: Promise<PhotoDetails>[] = Array.from(files).map(
         (file) =>
           new Promise((resolve) => {
             exifr
@@ -115,7 +129,7 @@ export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
       );
 
       // Wait for all metadata to be processed
-      const allMetadata = await Promise.all(metadataPromises);
+      const allMetadata: PhotoDetails[] = await Promise.all(metadataPromises);
       console.log(allMetadata);
 
       setPhotoDetails(allMetadata);
@@ -123,15 +137,15 @@ export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
   };
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
-    let formData = new FormData();
+    const formData = new FormData();
 
-    if (data.imgUploads && photoDetails.length) {
+    if (data.imgUploads && photoDetails?.length) {
       Array.from(data.imgUploads as FileList).forEach((file: File, index) => {
         formData.append("files", file);
 
         // Find matching metadata from photoDetails state
         const matchedMetadata = photoDetails.find(
-          (detail: any) => detail.file.name === file.name
+          (detail: PhotoDetails) => detail.file.name === file.name
         );
 
         if (matchedMetadata?.exifMetadata) {

@@ -1,3 +1,4 @@
+import { Image, Metadata } from "@prisma/client";
 import { z } from "zod";
 
 const BasicImageSchema = z.object({

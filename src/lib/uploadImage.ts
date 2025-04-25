@@ -4,6 +4,12 @@ import { authOptions } from "@/lib/authOptions";
 import env from "@/lib/env";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
+type UploadImageResponse = {
+  id: number;
+  url: string;
+  fileName: string;
+}[];
+
 const s3Client = new S3Client({
   region: env.NEXT_AWS_S3_REGION,
   credentials: {
@@ -56,7 +62,7 @@ export async function uploadImage(formData: FormData) {
 
     console.log("Extracted Metadata:", metadataList);
 
-    const uploadedImages: any[] = [];
+    const uploadedImages: UploadImageResponse = [];
 
     for (let index = 0; index < files.length; index++) {
       const file = files[index] as File;

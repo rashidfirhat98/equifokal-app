@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Photo } from "@/models/Images";
 import ImgContainer from "./ImgContainer";
 import { Loader2 } from "lucide-react";
@@ -12,7 +12,7 @@ export default function Portfolio() {
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const hasFetched = useRef(false);
 
-  const fetchMoreImages = async () => {
+  const fetchMoreImages = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(
@@ -27,14 +27,14 @@ export default function Portfolio() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [nextCursor]);
 
   useEffect(() => {
     if (!hasFetched.current && !photos.length) {
       hasFetched.current = true;
       fetchMoreImages();
     }
-  }, [photos.length]);
+  }, [photos.length, fetchMoreImages]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -47,14 +47,13 @@ export default function Portfolio() {
       { threshold: 1 }
     );
 
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
-    }
+    const currentLoader = loaderRef.current;
+    if (currentLoader) observer.observe(currentLoader);
 
     return () => {
-      if (loaderRef.current) observer.unobserve(loaderRef.current);
+      if (currentLoader) observer.unobserve(currentLoader);
     };
-  }, [nextCursor, loading]);
+  }, [nextCursor, loading, fetchMoreImages]);
 
   return (
     <>

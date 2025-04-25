@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/authOptions";
 import addBlurredDataUrls from "@/lib/getBase64";
+import { Photo } from "@/models/Images";
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
@@ -42,8 +43,8 @@ export async function GET(req: Request) {
     ? trimmedImages[trimmedImages.length - 1].id
     : null;
 
-  const photosWithBlur = await addBlurredDataUrls(
-    trimmedImages.map((image: any) => ({
+  const photosWithBlur: Photo[] = await addBlurredDataUrls(
+    trimmedImages.map((image) => ({
       id: image.id,
       url: `/photo/${image.id}`,
       height: image.metadata?.height || 2000,

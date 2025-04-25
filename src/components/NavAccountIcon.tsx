@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 type Props = {
   user: {
@@ -35,6 +36,13 @@ type Props = {
 
 export default function NavAccountIcon({ user }: Props) {
   const profilePicUrl = user.profilePic || profilePic;
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: "/" }); // You can directly specify the callback URL here
+    router.push("/"); // Redirect to the homepage after sign-out
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="cursor-pointer" asChild>
@@ -104,7 +112,7 @@ export default function NavAccountIcon({ user }: Props) {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut()}>Log out</DropdownMenuItem>
+        <DropdownMenuItem onClick={handleSignOut}>Log out</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

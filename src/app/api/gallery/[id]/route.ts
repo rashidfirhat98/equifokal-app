@@ -1,11 +1,10 @@
-import { NextResponse, userAgent } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const { id } = await params;
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const id = url.pathname.split("/").pop();
+
   try {
     const gallery = await prisma.gallery.findUnique({
       where: { id: Number(id) },
@@ -41,16 +40,16 @@ export async function GET(
         blurredDataUrl: undefined,
         metadata: galleryImage.image.metadata
           ? {
-            model: galleryImage.image.metadata.model || undefined,
-            aperture: galleryImage.image.metadata.aperture || undefined,
-            focalLength: galleryImage.image.metadata.focalLength || undefined,
-            exposureTime:
-              galleryImage.image.metadata.exposureTime || undefined,
-            iso: galleryImage.image.metadata.iso || undefined,
-            flash: galleryImage.image.metadata.flash || undefined,
-            height: galleryImage.image.metadata.height || undefined,
-            width: galleryImage.image.metadata.width || undefined,
-          }
+              model: galleryImage.image.metadata.model || undefined,
+              aperture: galleryImage.image.metadata.aperture || undefined,
+              focalLength: galleryImage.image.metadata.focalLength || undefined,
+              exposureTime:
+                galleryImage.image.metadata.exposureTime || undefined,
+              iso: galleryImage.image.metadata.iso || undefined,
+              flash: galleryImage.image.metadata.flash || undefined,
+              height: galleryImage.image.metadata.height || undefined,
+              width: galleryImage.image.metadata.width || undefined,
+            }
           : undefined,
       })),
       createdAt: gallery.createdAt.toISOString(),

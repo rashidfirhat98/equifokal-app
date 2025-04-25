@@ -207,7 +207,7 @@ export default function ArticleForm({ galleries }: Props) {
     setIsLoading(true);
 
     try {
-      let formData = new FormData();
+      const formData = new FormData();
       formData.append(`title`, data.title);
       formData.append(`content`, data.content);
       formData.append(`description`, data.description);

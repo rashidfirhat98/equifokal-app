@@ -5,9 +5,9 @@ import ArticleSection from "@/components/ArticleSection";
 export default async function ArticleByIdPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = (await params) as { id: string };
+  const { id } = await params;
 
   const res = await getArticleById(id);
 

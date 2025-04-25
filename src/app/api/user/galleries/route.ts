@@ -3,6 +3,11 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/authOptions";
 import addBlurredDataUrls from "@/lib/getBase64";
+import { Gallery, Image } from "@prisma/client";
+
+type GalleryWithImages = Gallery & {
+  images: Image[];
+};
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
@@ -46,13 +51,13 @@ export async function GET(req: Request) {
   const hasNextPage = galleries.length > limit;
   const trimmed = hasNextPage ? galleries.slice(0, -1) : galleries;
 
-  const formattedGalleries = trimmed.map((gallery: any) => ({
+  const formattedGalleries = trimmed.map((gallery) => ({
     id: gallery.id,
     title: gallery.title,
     description: gallery.description || undefined,
     createdAt: gallery.createdAt.toISOString(),
     updatedAt: gallery.updatedAt.toISOString(),
-    images: gallery.images.map((gi: any) => ({
+    images: gallery.images.map((gi) => ({
       id: gi.image.id,
       url: gi.image.url,
       alt: gi.image.fileName,

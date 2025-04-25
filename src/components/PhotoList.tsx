@@ -3,7 +3,7 @@
 import { Photo } from "@/models/Images";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 
 type Props = {
   initialPhotos: Photo[];
@@ -21,7 +21,7 @@ const PhotoList = ({ initialPhotos, initialCursor }: Props) => {
   const lastCursorRef = useRef<string | null>(null);
   const nextCursorRef = useRef<string | null>(initialCursor);
 
-  const fetchMoreImages = async () => {
+  const fetchMoreImages = useCallback(async () => {
     if (
       isFetchingRef.current ||
       !nextCursor ||
@@ -47,7 +47,7 @@ const PhotoList = ({ initialPhotos, initialCursor }: Props) => {
       setLoading(false);
       isFetchingRef.current = false;
     }
-  };
+  }, [nextCursor]);
 
   useEffect(() => {
     nextCursorRef.current = nextCursor;
@@ -72,17 +72,15 @@ const PhotoList = ({ initialPhotos, initialCursor }: Props) => {
       { threshold: 1 }
     );
 
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
-    }
+    const currentLoader = loaderRef.current;
+    if (currentLoader) observer.observe(currentLoader);
 
-    // Avoid first hydration trigger
     didMountRef.current = true;
 
     return () => {
-      if (loaderRef.current) observer.unobserve(loaderRef.current);
+      if (currentLoader) observer.unobserve(currentLoader);
     };
-  }, [loading]);
+  }, [loading, fetchMoreImages]);
 
   return (
     <div className="grid grid-cols-8 gap-8 my-4">
