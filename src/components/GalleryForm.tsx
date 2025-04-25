@@ -82,7 +82,7 @@ export default function GalleryForm({ photos, galleriesAmt }: Props) {
     }
   };
   return (
-    <Card className="mx-3 flex flex-col items-center">
+    <Card className="mx-2 flex flex-col items-center">
       <CardHeader className="text-center pt-8">
         {/* <CardTitle>Create a gallery</CardTitle> */}
         <CardDescription>
@@ -95,7 +95,7 @@ export default function GalleryForm({ photos, galleriesAmt }: Props) {
         <Collapsible className="space-y-10">
           <div className="flex flex-row justify-center items-center gap-4">
             <CollapsibleTrigger asChild>
-              <Button variant="default">Add a new Gallery</Button>
+              <Button>Add a new Gallery</Button>
             </CollapsibleTrigger>
           </div>
           <CollapsibleContent className="space-y-1">
@@ -162,8 +162,12 @@ export default function GalleryForm({ photos, galleriesAmt }: Props) {
                   />
                 )}
 
-                <div className="w-full flex flex-row justify-end">
-                  <Button type="submit" disabled={loading}>
+                <div className="w-full flex flex-row justify-end pt-6">
+                  <Button
+                    className="w-full sm:w-auto"
+                    type="submit"
+                    disabled={loading}
+                  >
                     {loading ? "Creating..." : "Create Gallery"}
                   </Button>
                 </div>

@@ -185,7 +185,7 @@ export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
     }
   }
   return (
-    <Card className="mx-3 flex flex-col items-center text-center">
+    <Card className="flex flex-col items-center text-center">
       <CardHeader className="items-center pt-8">
         {/* <CardTitle>Photo Bucket</CardTitle> */}
         <CardDescription>
@@ -261,8 +261,12 @@ export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
                     </FormItem>
                   )}
                 />
-                <div className="flex flex-row justify-end w-full">
-                  <Button type="submit" disabled={isLoading}>
+                <div className="flex sm:justify-end w-full">
+                  <Button
+                    className="w-full sm:w-auto"
+                    type="submit"
+                    disabled={isLoading}
+                  >
                     {isLoading ? (
                       <>
                         <Loader2 className="animate-spin" /> Uploading
@@ -273,13 +277,6 @@ export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
                   </Button>
                 </div>
               </form>
-              {/* Remove later */}
-              <button
-                type="button"
-                onClick={() => console.log(form.getValues())}
-              >
-                Check form values
-              </button>
             </Form>
           </CollapsibleContent>
         </Collapsible>

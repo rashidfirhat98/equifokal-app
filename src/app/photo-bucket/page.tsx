@@ -19,14 +19,14 @@ export default async function UploadPage() {
     return <UploadForm photosAmt={totalResults} />;
   } else {
     return (
-      <>
+      <section className="px-2 py-3">
         <h1 className="heading-2 my-8">Photo Bucket</h1>
         <UploadForm photosAmt={totalResults} />
-        <section className="px-2 my-3">
+        <div>
           <h2 className="heading-5 mt-10">Your Photos</h2>
           <PhotoList initialPhotos={photos} initialCursor={nextCursor} />
-        </section>
-      </>
+        </div>
+      </section>
     );
   }
 }

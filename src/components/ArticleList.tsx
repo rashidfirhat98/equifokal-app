@@ -83,47 +83,55 @@ export default function ArticleList({ initialArticles, initialCursor }: Props) {
   }, [nextCursor, loading, fetchMoreArticles]);
   return (
     <>
-      <section className="px-2 my-3">
+      <section className="px-2 mt-3 pb-3">
         {articles &&
           articles.map((article) => (
             <Link key={article.id} href={`/article/${article.id}`}>
-              <div className="my-3 p-6 grid grid-cols-12 border-b-2">
-                <div className="flex justify-between flex-col col-span-8 p-6">
-                  <div>
-                    <h1 className="heading-2">{article.title}</h1>
-                    <p className="lead">{article.description}</p>
-                  </div>
-                  <div className="flex pt-6 items-center gap-4">
-                    <Image
-                      src={article.profilePic}
-                      alt={article.profilePic}
-                      loading="lazy"
-                      width={50}
-                      height={50}
-                      className="aspect-square object-cover rounded-full"
-                    />
+              <div className="my-3 p-3 md:p-6 border-b-2 ">
+                <div className="grid grid-cols-12 ">
+                  <div className="flex justify-between flex-col col-span-8  ">
                     <div>
-                      <p className="large"> By {article.createdBy}</p>
-                      <p className="muted">{article.createdAt}</p>
+                      <h1 className="heading-4 font-bold md:heading-2">
+                        {article.title}
+                      </h1>
+                      <p className="muted md:lead">{article.description}</p>
                     </div>
-                    {/* <Button variant={"outline"}>Follow</Button> */}
                   </div>
-                </div>
-                <div className="col-span-3 py-6 ml-6">
-                  {article.coverImage && (
-                    <Image
-                      width={article.coverImage.width}
-                      height={article.coverImage.height}
-                      alt={article.coverImage.alt}
-                      src={article.coverImage.src.large}
-                    />
-                  )}
-                </div>
-                {/* <div className="col-span-1 flex flex-col justify-center items-end  py-6 ml-6">
+                  <div className="col-span-4 ml-4 md:mx-6">
+                    {article.coverImage && (
+                      <Image
+                        width={article.coverImage.width}
+                        height={article.coverImage.height}
+                        alt={article.coverImage.alt}
+                        src={article.coverImage.src.large}
+                      />
+                    )}
+                  </div>
+                  {/* <div className="col-span-1 flex flex-col justify-center items-end  py-6 ml-6">
                   <p className="muted">Publish</p>
                   <p className="muted">Edit</p>
                   <p className="muted">Delete</p>
                 </div> */}
+                </div>
+                <div className="flex pt-3 items-center gap-4">
+                  <Image
+                    src={article.profilePic}
+                    alt={article.profilePic}
+                    loading="lazy"
+                    width={40}
+                    height={40}
+                    className="aspect-square object-cover rounded-full"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold md:text-lg">
+                      By {article.createdBy}
+                    </p>
+                    <p className="text-xs text-muted-foreground md:text-sm">
+                      {article.createdAt}
+                    </p>
+                  </div>
+                  {/* <Button variant={"outline"}>Follow</Button> */}
+                </div>
               </div>
             </Link>
           ))}

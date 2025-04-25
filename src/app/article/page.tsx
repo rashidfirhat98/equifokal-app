@@ -17,11 +17,11 @@ export default async function ArticleListPage() {
   }
   return (
     <>
-      <h1 className="heading-2 my-8">Articles</h1>
-      <section className="px-2 py-3">
+      <section className="mx-2 pt-3">
+        <h1 className="heading-2 my-8">Articles</h1>
         <h2 className="heading-5 mt-10">Your Articles</h2>
-        <ArticleList initialArticles={articles} initialCursor={nextCursor} />
       </section>
+      <ArticleList initialArticles={articles} initialCursor={nextCursor} />
     </>
   );
 }

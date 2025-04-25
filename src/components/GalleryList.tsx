@@ -88,7 +88,7 @@ export default function GalleryList({
     };
   }, [loading, fetchMoreImages]);
   return (
-    <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 px-2 my-3">
+    <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-2 my-3">
       {galleries &&
         galleries.map((gallery) => (
           <Link key={gallery.id} href={`/gallery/${gallery.id}`}>

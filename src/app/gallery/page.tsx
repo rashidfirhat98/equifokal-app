@@ -14,17 +14,13 @@ export default async function CreateGalleryPage() {
     return <GalleryForm photos={photos} galleriesAmt={totalResults} />;
   } else {
     return (
-      <>
-        <h1 className="heading-2 my-8">Galleries</h1>
+      <section>
+        <h1 className="heading-2 px-2 my-8">Galleries</h1>
         <GalleryForm photos={photos} galleriesAmt={totalResults} />
-        <section className="px-2 my-3">
-          <h2 className="heading-5 mt-10">Your Galleries</h2>
-          <GalleryList
-            initialGalleries={galleries}
-            initialCursor={nextCursor}
-          />
-        </section>
-      </>
+
+        <h2 className="heading-5 px-2 mt-10">Your Galleries</h2>
+        <GalleryList initialGalleries={galleries} initialCursor={nextCursor} />
+      </section>
     );
   }
 }

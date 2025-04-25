@@ -83,7 +83,7 @@ const PhotoList = ({ initialPhotos, initialCursor }: Props) => {
   }, [loading, fetchMoreImages]);
 
   return (
-    <div className="grid grid-cols-8 gap-8 my-4">
+    <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-8 gap-8 my-4">
       {photos.map((photo) => (
         <div key={photo.id} className="flex flex-col items-center">
           <Image

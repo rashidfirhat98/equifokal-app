@@ -420,8 +420,12 @@ export default function ArticleForm({ galleries }: Props) {
           />
         )}
 
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isLoading}>
+        <div className="w-full sm:flex sm:justify-end">
+          <Button
+            className="w-full sm:w-auto"
+            type="submit"
+            disabled={isLoading}
+          >
             {isLoading ? (
               <>
                 <Loader2 className="animate-spin" /> Publishing
@@ -432,9 +436,6 @@ export default function ArticleForm({ galleries }: Props) {
           </Button>
         </div>
       </form>
-      <button type="button" onClick={() => console.log(form.getValues())}>
-        Check form values
-      </button>
     </Form>
   );
 }
