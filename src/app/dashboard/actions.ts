@@ -11,6 +11,7 @@ import * as z from "zod";
 import { GalleriesSchemaWithImages } from "@/models/Gallery";
 import { NextResponse } from "next/server";
 import { Gallery, Image } from "@prisma/client";
+import { getUserById } from "@/lib/getUserById";
 
 const gallerySchema = z.object({
   title: z.string().min(3),
@@ -247,15 +248,14 @@ export async function getUserGalleries(
 export async function getCurrentUser() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) return;
-    const currentUser = await prisma.user.findUnique({
-      where: { email: session?.user.email || undefined },
-    });
-    if (!currentUser) return;
+    if (!session) throw new Error("Session not found");
+    if (!session?.user.id) throw new Error("User id not found");
+
+    const currentUser = getUserById(session.user.id);
 
     return currentUser;
   } catch (error) {
-    console.log(error);
-    return;
+    console.error("Error fetching user:", error);
+    throw new Error("User not found");
   }
 }

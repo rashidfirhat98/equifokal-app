@@ -27,6 +27,8 @@ model User {
   images        Image[]
   galleries     Gallery[]
   articles      Article[]
+  followers     Follow[] @relation("UserFollowers")
+  following     Follow[] @relation("UserFollowing")
 }
 
 model Account {
@@ -118,4 +120,15 @@ model ArticleGallery {
   gallery   Gallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
 
   @@unique([articleId, galleryId])
+}
+
+model Follow {
+  id           String   @id @default(uuid())
+  followerId   String
+  followingId  String
+  follower     User     @relation("UserFollowing", fields: [followerId], references: [id])
+  following    User     @relation("UserFollowers", fields: [followingId], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@unique([followerId, followingId]) // Prevents duplicate follows
 }
