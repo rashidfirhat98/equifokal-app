@@ -2,116 +2,27 @@
 
 import { authOptions } from "@/lib/authOptions";
 import prisma from "@/lib/prisma";
+import { getArticlePostDetails } from "@/lib/services/articles";
+
 import { getServerSession } from "next-auth";
-import { NextResponse } from "next/server";
 
-export const getArticleById = async (id: string) => {
-  const articleId = parseInt(id);
-  const session = await getServerSession(authOptions);
-  if (isNaN(articleId)) {
-    return NextResponse.json(
-      { message: "Invalid articleById ID." },
-      { status: 400 }
-    );
+export const fetchArticlePost = async (id: string) => {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      throw new Error("Unauthorized");
+    }
+
+    const articleId = parseInt(id);
+    if (isNaN(articleId)) {
+      throw new Error("Invalid articleById ID.");
+    }
+
+    return getArticlePostDetails(articleId);
+  } catch (error) {
+    console.error("Error fetching article post:", error);
+    throw new Error("Failed to fetch article post.");
   }
-
-  if (!session?.user?.id) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  const articleById = await prisma.article.findUnique({
-    where: { id: articleId },
-    include: {
-      coverImage: {
-        include: {
-          metadata: true,
-        },
-      },
-      user: true,
-      galleries: {
-        include: {
-          gallery: {
-            include: {
-              images: {
-                include: {
-                  image: {
-                    include: {
-                      metadata: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!articleById) {
-    return NextResponse.json(
-      { message: "Article not found." },
-      { status: 404 }
-    );
-  }
-
-  return NextResponse.json({
-    article: {
-      id: articleById.id,
-      title: articleById.title,
-      content: articleById.content,
-      description: articleById.description,
-      createdBy: articleById.user.name,
-      profilePic: articleById.user.profilePic,
-      createdAt: new Date(articleById.createdAt).toLocaleString(),
-      updatedAt: new Date(articleById.updatedAt).toLocaleString(),
-      coverImage: articleById.coverImage
-        ? {
-            id: articleById.coverImage.id,
-            width: articleById.coverImage.metadata?.width || 0,
-            height: articleById.coverImage.metadata?.height || 0,
-            url: articleById.coverImage.url,
-            src: { large: articleById.coverImage.url },
-            alt: articleById.coverImage.fileName,
-            metadata: articleById.coverImage.metadata
-              ? {
-                  model: articleById.coverImage.metadata.model || undefined,
-                  aperture:
-                    articleById.coverImage.metadata.aperture || undefined,
-                  focalLength:
-                    articleById.coverImage.metadata.focalLength || undefined,
-                  exposureTime:
-                    articleById.coverImage.metadata.exposureTime || undefined,
-                  iso: articleById.coverImage.metadata.iso || undefined,
-                  flash: articleById.coverImage.metadata.flash || undefined,
-                }
-              : undefined,
-          }
-        : undefined,
-      // galleries: articleById.galleries?.map(({ gallery }) => ({
-      //   id: gallery.id,
-      //   title: gallery.title,
-      //   createdAt: gallery.createdAt.toISOString(),
-      //   updatedAt: gallery.updatedAt.toISOString(),
-      //   images: gallery.images?.map(({ image }) => ({
-      //     id: image.id,
-      //     width: image.metadata?.width || 0,
-      //     height: image.metadata?.height || 0,
-      //     url: image.url,
-      //     src: { large: image.url },
-      //     alt: image.fileName,
-      //     // metadata: image.metadata ? {
-      //     //   model: image.metadata.model || undefined,
-      //     //   aperture: image.metadata.aperture || undefined,
-      //     //   focalLength: image.metadata.focalLength || undefined,
-      //     //   exposureTime: image.metadata.exposureTime || undefined,
-      //     //   iso: image.metadata.iso || undefined,
-      //     //   flash: image.metadata.flash || undefined
-      //     // } : undefined
-      //   })) || []
-      // })) || []
-    },
-  });
 };
 
 export const getUserArticles = async (
@@ -123,13 +34,10 @@ export const getUserArticles = async (
   const userIdParam = userId ?? session?.user.id;
 
   if (!userIdParam || !session)
-    return NextResponse.json(
-      { message: "Not authenticated or no user ID provided." },
-      { status: 401 }
-    );
+    throw new Error("Not authenticated or no user ID provided.");
 
   if (!session?.user?.id) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    throw new Error("Unauthorized");
   }
 
   const articles = await prisma.article.findMany({
@@ -175,7 +83,7 @@ export const getUserArticles = async (
 
   // const createdAt = new Date(article.createdAt.toISOString());
 
-  return NextResponse.json({
+  return {
     articles: trimmedArticles.map((article) => ({
       id: article.id,
       title: article.title,
@@ -231,5 +139,5 @@ export const getUserArticles = async (
       // })) || []
     })),
     nextCursor,
-  });
+  };
 };

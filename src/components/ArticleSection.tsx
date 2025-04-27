@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Article } from "@/models/Article";
+import ProfilePictureIcon from "./ProfilePictureIcon";
 
 type Props = {
   article: Article;
@@ -16,13 +17,10 @@ export default function ArticleSection({ article }: Props) {
             <p className="lead">{article.description}</p>
           </div>
           <div className="flex pt-6 items-center gap-4">
-            <Image
-              src={article.profilePic}
-              alt={article.profilePic}
-              loading="lazy"
+            <ProfilePictureIcon
+              profilePicURL={article.profilePic}
               width={50}
               height={50}
-              className="aspect-square object-cover rounded-full"
             />
             <div>
               <p className="large"> By {article.createdBy}</p>

@@ -6,21 +6,22 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
+import ProfilePictureIcon from "./ProfilePictureIcon";
 
 type Props = {
   initialArticles: Article[];
-  initialCursor: string | null;
+  initialCursor: number | null;
 };
 
 export default function ArticleList({ initialArticles, initialCursor }: Props) {
   const [articles, setArticles] = useState<Article[]>(initialArticles);
-  const [nextCursor, setNextCursor] = useState<string | null>(initialCursor);
+  const [nextCursor, setNextCursor] = useState<number | null>(initialCursor);
   const [loading, setLoading] = useState(false);
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const isFetchingRef = useRef(false);
   const didMountRef = useRef(false);
-  const lastCursorRef = useRef<string | null>(null);
-  const nextCursorRef = useRef<string | null>(initialCursor);
+  const lastCursorRef = useRef<number | null>(null);
+  const nextCursorRef = useRef<number | null>(initialCursor);
 
   const fetchMoreArticles = useCallback(async () => {
     if (
@@ -114,13 +115,10 @@ export default function ArticleList({ initialArticles, initialCursor }: Props) {
                 </div> */}
                 </div>
                 <div className="flex pt-3 items-center gap-4">
-                  <Image
-                    src={article.profilePic}
-                    alt={article.profilePic}
-                    loading="lazy"
+                  <ProfilePictureIcon
+                    profilePicURL={article.profilePic}
                     width={40}
                     height={40}
-                    className="aspect-square object-cover rounded-full"
                   />
                   <div>
                     <p className="text-sm font-semibold md:text-lg">

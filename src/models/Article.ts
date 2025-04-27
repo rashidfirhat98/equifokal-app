@@ -16,7 +16,7 @@ export const ArticleSchema = z.object({
   title: z.string(),
   content: z.string(),
   description: z.string(),
-  profilePic: z.string(),
+  profilePic: z.string().nullable(),
   coverImage: PhotoSchema.optional(),
   galleries: z.array(GallerySchema).optional(),
   createdBy: z.string(),

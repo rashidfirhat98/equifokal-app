@@ -11,7 +11,7 @@ export default async function ArticleListPage() {
   }
 
   const res = await getUserArticles();
-  const { articles, nextCursor } = await res.json();
+  const { articles, nextCursor } = res;
   if (!articles?.length) {
     return <div>No articles found</div>;
   }
