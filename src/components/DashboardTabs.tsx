@@ -6,14 +6,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { getUserGalleries, getUserImages } from "@/app/dashboard/actions";
 import { ImagesResults } from "@/models/Images";
 import ArticleList from "./ArticleList";
-import { getUserArticles } from "@/app/article/actions";
+import { fetchUserArticleList } from "@/app/server-actions/articles";
 
 export default async function DashboardTabs() {
   const photosRes: ImagesResults | undefined = await getUserImages();
   const galleriesRes = await getUserGalleries();
-  const articlesRes = await getUserArticles();
+  const articlesRes = await fetchUserArticleList();
+
+  console.log("Articles", articlesRes);
   const { galleries, nextCursor } = await galleriesRes.json();
-  const articlesBody = await articlesRes.json();
   return (
     <Tabs orientation="vertical" defaultValue="portfolio" className="w-full">
       <TabsList className="grid w-full grid-cols-5">
@@ -37,10 +38,10 @@ export default async function DashboardTabs() {
         )}
       </TabsContent>
       <TabsContent value="article">
-        {articlesBody.articles.length && articlesBody.articles.length > 0 ? (
+        {articlesRes.articles.length && articlesRes.articles.length > 0 ? (
           <ArticleList
-            initialArticles={articlesBody.articles}
-            initialCursor={articlesBody.nextCursor}
+            initialArticles={articlesRes.articles}
+            initialCursor={articlesRes.nextCursor}
           />
         ) : (
           <div className="text-center">No articles found</div>

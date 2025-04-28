@@ -1,12 +1,15 @@
 import FollowButton from "@/components/FollowButton";
-import { getCurrentUser, getProfileUser } from "./actions";
+import { getProfileUser } from "./actions";
+import { getCurrentUser } from "@/app/server-actions/user";
 
 type Props = {
-  params: { userId: string };
+  params: Promise<{ userId: string }>;
 };
 
 export default async function OtherUserProfilePage({ params }: Props) {
-  const user = await getProfileUser(params.userId);
+  const { userId } = await params;
+
+  const user = await getProfileUser(userId);
   const currentUser = await getCurrentUser();
 
   if (!user) {
@@ -19,7 +22,7 @@ export default async function OtherUserProfilePage({ params }: Props) {
 
   return (
     <section className="profile-page">
-      <h1>{user.name}'s Profile</h1>
+      <h1>{user.name} Profile</h1>
       {/* show follow/unfollow button if not viewing own profile */}
       {currentUser?.id !== user.id && (
         <FollowButton

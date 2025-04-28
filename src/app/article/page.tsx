@@ -1,8 +1,8 @@
 import ArticleList from "@/components/ArticleList";
 import React from "react";
-import { getCurrentUser } from "../dashboard/actions";
 import { unauthorized } from "next/navigation";
-import { getUserArticles } from "./actions";
+import { fetchUserArticleList } from "../server-actions/articles";
+import { getCurrentUser } from "../server-actions/user";
 
 export default async function ArticleListPage() {
   const user = getCurrentUser();
@@ -10,7 +10,7 @@ export default async function ArticleListPage() {
     return unauthorized();
   }
 
-  const res = await getUserArticles();
+  const res = await fetchUserArticleList();
   const { articles, nextCursor } = res;
   if (!articles?.length) {
     return <div>No articles found</div>;

@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
 
 type Props = {
   initialGalleries: Gallery[] | undefined;
-  initialCursor: string | null;
+  initialCursor: number | null;
 };
 
 export default function GalleryList({
@@ -16,13 +16,13 @@ export default function GalleryList({
   initialCursor,
 }: Props) {
   const [galleries, setGalleries] = useState<Gallery[]>(initialGalleries || []);
-  const [nextCursor, setNextCursor] = useState<string | null>(initialCursor);
+  const [nextCursor, setNextCursor] = useState<number | null>(initialCursor);
   const [loading, setLoading] = useState(false);
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const didMountRef = useRef(false);
   const isFetchingRef = useRef(false);
-  const lastCursorRef = useRef<string | null>(null);
-  const nextCursorRef = useRef<string | null>(initialCursor);
+  const lastCursorRef = useRef<number | null>(null);
+  const nextCursorRef = useRef<number | null>(initialCursor);
 
   const fetchMoreImages = useCallback(async () => {
     if (

@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/app/dashboard/actions";
+import { getCurrentUser } from "@/app/server-actions/user";
 import ProfileEditForm from "@/components/ProfileEditForm";
 import { unauthorized } from "next/navigation";
 

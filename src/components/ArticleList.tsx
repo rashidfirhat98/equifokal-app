@@ -86,53 +86,58 @@ export default function ArticleList({ initialArticles, initialCursor }: Props) {
     <>
       <section className="px-2 mt-3 pb-3">
         {articles &&
-          articles.map((article) => (
-            <Link key={article.id} href={`/article/${article.id}`}>
-              <div className="my-3 p-3 md:p-6 border-b-2 ">
-                <div className="grid grid-cols-12 ">
-                  <div className="flex justify-between flex-col col-span-8  ">
-                    <div>
-                      <h1 className="heading-4 font-bold md:heading-2">
-                        {article.title}
-                      </h1>
-                      <p className="muted md:lead">{article.description}</p>
-                    </div>
-                  </div>
-                  <div className="col-span-4 ml-4 md:mx-6">
-                    {article.coverImage && (
-                      <Image
-                        width={article.coverImage.width}
-                        height={article.coverImage.height}
-                        alt={article.coverImage.alt}
-                        src={article.coverImage.src.large}
-                      />
-                    )}
-                  </div>
-                  {/* <div className="col-span-1 flex flex-col justify-center items-end  py-6 ml-6">
+          articles.map(
+            (article) => (
+              console.log("Image found:", article.coverImage),
+              (
+                <Link key={article.id} href={`/article/${article.id}`}>
+                  <div className="my-3 p-3 md:p-6 border-b-2 ">
+                    <div className="grid grid-cols-12 ">
+                      <div className="flex justify-between flex-col col-span-8  ">
+                        <div>
+                          <h1 className="heading-4 font-bold md:heading-2">
+                            {article.title}
+                          </h1>
+                          <p className="muted md:lead">{article.description}</p>
+                        </div>
+                      </div>
+                      <div className="col-span-4 ml-4 md:mx-6">
+                        {article.coverImage && (
+                          <Image
+                            width={article.coverImage.width}
+                            height={article.coverImage.height}
+                            alt={article.coverImage.alt}
+                            src={article.coverImage.url}
+                          />
+                        )}
+                      </div>
+                      {/* <div className="col-span-1 flex flex-col justify-center items-end  py-6 ml-6">
                   <p className="muted">Publish</p>
                   <p className="muted">Edit</p>
                   <p className="muted">Delete</p>
                 </div> */}
-                </div>
-                <div className="flex pt-3 items-center gap-4">
-                  <ProfilePictureIcon
-                    profilePicURL={article.profilePic}
-                    width={40}
-                    height={40}
-                  />
-                  <div>
-                    <p className="text-sm font-semibold md:text-lg">
-                      By {article.createdBy}
-                    </p>
-                    <p className="text-xs text-muted-foreground md:text-sm">
-                      {article.createdAt}
-                    </p>
+                    </div>
+                    <div className="flex pt-3 items-center gap-4">
+                      <ProfilePictureIcon
+                        profilePicURL={article.profilePic}
+                        width={40}
+                        height={40}
+                      />
+                      <div>
+                        <p className="text-sm font-semibold md:text-lg">
+                          By {article.createdBy}
+                        </p>
+                        <p className="text-xs text-muted-foreground md:text-sm">
+                          {article.createdAt}
+                        </p>
+                      </div>
+                      {/* <Button variant={"outline"}>Follow</Button> */}
+                    </div>
                   </div>
-                  {/* <Button variant={"outline"}>Follow</Button> */}
-                </div>
-              </div>
-            </Link>
-          ))}
+                </Link>
+              )
+            )
+          )}
         <div ref={loaderRef} className="loader my-6">
           {loading && (
             <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />

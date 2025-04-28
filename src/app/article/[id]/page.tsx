@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import { fetchArticlePost } from "../actions";
+
 import ArticleSection from "@/components/ArticleSection";
+import { fetchArticlePost } from "@/app/server-actions/articles";
 
 export default async function ArticleByIdPage({
   params,

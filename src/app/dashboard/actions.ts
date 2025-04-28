@@ -244,18 +244,3 @@ export async function getUserGalleries(
     totalResults,
   });
 }
-
-export async function getCurrentUser() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session) throw new Error("Session not found");
-    if (!session?.user.id) throw new Error("User id not found");
-
-    const currentUser = getUserById(session.user.id);
-
-    return currentUser;
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    throw new Error("User not found");
-  }
-}

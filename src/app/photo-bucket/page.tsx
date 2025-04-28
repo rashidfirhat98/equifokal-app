@@ -1,8 +1,8 @@
 import UploadForm from "@/components/UploadForm";
-import { getCurrentUser } from "../dashboard/actions";
 import { unauthorized } from "next/navigation";
 import { getUserImages } from "./actions";
 import PhotoList from "@/components/PhotoList";
+import { getCurrentUser } from "../server-actions/user";
 
 export default async function UploadPage() {
   const user = await getCurrentUser();

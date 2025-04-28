@@ -13,12 +13,12 @@ export default function ProfilePictureIcon({
   width,
   height,
 }: Props) {
-  const defaultProfilePic = "@/assets/images/EQFKL_logo.jpg";
-  const profilePic = profilePicURL || defaultProfilePic;
+  const defaultProfilePic = profilePic;
+  const profilePicIcon = profilePicURL || defaultProfilePic;
   return (
     <Image
-      src={profilePic}
-      alt={profilePic}
+      src={profilePicIcon}
+      alt={"profilePicIcon"}
       loading="lazy"
       width={width}
       height={height}

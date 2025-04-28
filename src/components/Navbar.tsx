@@ -1,11 +1,11 @@
 import Link from "next/link";
-import Search from "./Search";
 import SignOutButton from "./SignOutButton";
 import NavAccountIcon from "./NavAccountIcon";
-import { getCurrentUser } from "@/app/dashboard/actions";
+import { getCurrentUser } from "@/app/server-actions/user";
 
 export default async function Navbar() {
   const user = await getCurrentUser();
+  console.log(user);
   return (
     <header className="bg-black sticky top-0 z-10">
       <nav className="flex flex-col gap-4 sm:flex-row sm:justify-between items-center p-4 font-bold max-w-6xl mx-auto text-white">

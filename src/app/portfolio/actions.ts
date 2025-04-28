@@ -2,7 +2,7 @@
 
 import { authOptions } from "@/lib/authOptions";
 import prisma from "@/lib/prisma";
-import { ImagesResults, Photo } from "@/models/Images";
+import { ImagesResults } from "@/models/Images";
 import { getServerSession } from "next-auth";
 
 export async function getUserImages(
