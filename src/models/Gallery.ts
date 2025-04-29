@@ -28,9 +28,15 @@ export const GalleriesSchemaWithImagesInfinite = z.object({
   totalResults: z.number(),
 });
 
-// Type inference
+export const GalleryFormDataSchema = z.object({
+  title: z.string().min(3),
+  description: z.string().optional(),
+  photoIds: z.array(z.number()).min(1),
+});
+
 export type Gallery = z.infer<typeof GallerySchema>;
 export type GalleriesResults = z.infer<typeof GalleriesSchemaWithImages>;
 export type GalleriesResultsInfinite = z.infer<
   typeof GalleriesSchemaWithImagesInfinite
 >;
+export type GalleryFormData = z.infer<typeof GalleryFormDataSchema>;

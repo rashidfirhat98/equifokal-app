@@ -1,20 +1,22 @@
-import { GalleriesResults, GalleriesResultsInfinite } from "@/models/Gallery";
 import GalleryForm from "./GalleryForm";
 import GalleryList from "./GalleryList";
 import Portfolio from "./Portfolio";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { getUserGalleries, getUserImages } from "@/app/dashboard/actions";
-import { ImagesResults } from "@/models/Images";
 import ArticleList from "./ArticleList";
-import { fetchUserArticleList } from "@/app/server-actions/articles";
+import {
+  fetchUserArticleList,
+  fetchUserGalleriesList,
+  fetchUserImages,
+  fetchUserPortfolioImages,
+} from "@/app/dashboard/actions";
 
 export default async function DashboardTabs() {
-  const photosRes: ImagesResults | undefined = await getUserImages();
-  const galleriesRes = await getUserGalleries();
+  const photosRes = await fetchUserImages();
+  const galleriesRes = await fetchUserGalleriesList();
   const articlesRes = await fetchUserArticleList();
+  const portfolioRes = await fetchUserPortfolioImages();
 
-  console.log("Articles", articlesRes);
-  const { galleries, nextCursor } = await galleriesRes.json();
+  const { galleries, nextCursor } = galleriesRes;
   return (
     <Tabs orientation="vertical" defaultValue="portfolio" className="w-full">
       <TabsList className="grid w-full grid-cols-5">
@@ -25,7 +27,10 @@ export default async function DashboardTabs() {
         <TabsTrigger value="following">Following</TabsTrigger>
       </TabsList>
       <TabsContent value="portfolio">
-        <Portfolio />
+        <Portfolio
+          initialPhotos={portfolioRes.photos}
+          initialCursor={portfolioRes.nextCursor}
+        />
       </TabsContent>
       <TabsContent value="gallery">
         {galleries && galleries.length > 0 ? (

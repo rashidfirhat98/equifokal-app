@@ -1,11 +1,10 @@
 import ArticleList from "@/components/ArticleList";
 import React from "react";
 import { unauthorized } from "next/navigation";
-import { fetchUserArticleList } from "../server-actions/articles";
-import { getCurrentUser } from "../server-actions/user";
+import { fetchCurrentUser, fetchUserArticleList } from "./actions";
 
 export default async function ArticleListPage() {
-  const user = getCurrentUser();
+  const user = fetchCurrentUser();
   if (!user) {
     return unauthorized();
   }

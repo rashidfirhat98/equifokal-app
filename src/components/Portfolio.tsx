@@ -5,9 +5,14 @@ import type { Photo } from "@/models/Images";
 import ImgContainer from "./ImgContainer";
 import { Loader2 } from "lucide-react";
 
-export default function Portfolio() {
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
+type Props = {
+  initialPhotos: Photo[];
+  initialCursor: number | null;
+};
+
+export default function Portfolio({ initialPhotos, initialCursor }: Props) {
+  const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
+  const [nextCursor, setNextCursor] = useState<number | null>(initialCursor);
   const [loading, setLoading] = useState(false);
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const hasFetched = useRef(false);
@@ -28,13 +33,6 @@ export default function Portfolio() {
       setLoading(false);
     }
   }, [nextCursor]);
-
-  useEffect(() => {
-    if (!hasFetched.current && !photos.length) {
-      hasFetched.current = true;
-      fetchMoreImages();
-    }
-  }, [photos.length, fetchMoreImages]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(

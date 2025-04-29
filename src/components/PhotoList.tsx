@@ -7,19 +7,19 @@ import { useRef, useState, useEffect, useCallback } from "react";
 
 type Props = {
   initialPhotos: Photo[];
-  initialCursor: string | null;
+  initialCursor: number | null;
 };
 
 const PhotoList = ({ initialPhotos, initialCursor }: Props) => {
   const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
-  const [nextCursor, setNextCursor] = useState<string | null>(initialCursor);
+  const [nextCursor, setNextCursor] = useState<number | null>(initialCursor);
   const [loading, setLoading] = useState(false);
 
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const didMountRef = useRef(false);
   const isFetchingRef = useRef(false);
-  const lastCursorRef = useRef<string | null>(null);
-  const nextCursorRef = useRef<string | null>(initialCursor);
+  const lastCursorRef = useRef<number | null>(null);
+  const nextCursorRef = useRef<number | null>(initialCursor);
 
   const fetchMoreImages = useCallback(async () => {
     if (

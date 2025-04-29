@@ -1,17 +1,23 @@
 "use server";
 
-import env from "@/lib/env";
-import { revalidatePath } from "next/cache";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { ImagesResults } from "@/models/Images";
 import * as z from "zod";
-import { GalleriesSchemaWithImages } from "@/models/Gallery";
 import { NextResponse } from "next/server";
-import { Gallery, Image } from "@prisma/client";
+
 import { getUserById } from "@/lib/getUserById";
+
+import {
+  getUserImagesWithPagination,
+  getUserPortfolioImages,
+} from "@/lib/services/images";
+import {
+  getUserGalleriesList,
+  getUserGalleriesListWithPagination,
+} from "@/lib/services/galleries";
+import { getArticlesList } from "@/lib/services/articles";
 
 const gallerySchema = z.object({
   title: z.string().min(3),
@@ -180,67 +186,209 @@ export async function createGallery(data: z.infer<typeof gallerySchema>) {
 //   };
 // }
 
-export async function getUserGalleries(
+// export async function getUserGalleries(
+//   limit: number = 10,
+//   cursor: string | null = null,
+//   userId: string | null = null
+// ) {
+//   const session = await getServerSession(authOptions);
+
+//   const userIdParam = userId ?? session?.user.id;
+
+//   if (!userIdParam || !session)
+//     return NextResponse.json(
+//       { message: "Not authenticated or no user ID provided." },
+//       { status: 401 }
+//     );
+
+//   const totalResults = await prisma.gallery.count({
+//     where: { userId: session.user.id },
+//   });
+
+//   const galleries = await prisma.gallery.findMany({
+//     orderBy: { createdAt: "desc" },
+//     include: {
+//       images: {
+//         include: {
+//           image: true,
+//         },
+//       },
+//     },
+//     where: {
+//       userId: userIdParam,
+//     },
+//     take: limit + 1,
+//     ...(cursor && {
+//       cursor: { id: parseInt(cursor) },
+//       skip: 1,
+//     }),
+//   });
+
+//   const hasNextPage = galleries.length > limit;
+//   const trimmed = hasNextPage ? galleries.slice(0, -1) : galleries;
+
+//   const formattedGalleries = trimmed.map((gallery) => ({
+//     id: gallery.id,
+//     title: gallery.title,
+//     description: gallery.description || undefined,
+//     createdAt: gallery.createdAt.toISOString(),
+//     updatedAt: gallery.updatedAt.toISOString(),
+//     images: gallery.images.map((gi) => ({
+//       id: gi.image.id,
+//       url: gi.image.url,
+//       alt: gi.image.fileName,
+//       width: 0,
+//       height: 0,
+//       src: { large: gi.image.url },
+//       blurredDataUrl: undefined,
+//     })),
+//   }));
+
+//   return NextResponse.json({
+//     galleries: formattedGalleries,
+//     nextCursor: hasNextPage ? trimmed[trimmed.length - 1].id : null,
+//     totalResults,
+//   });
+// }
+
+export async function fetchCurrentUser() {
+  try {
+    const session = await getServerSession(authOptions);
+
+    let currentUser = null;
+    if (session?.user.id) {
+      currentUser = await getUserById(session.user.id);
+    }
+    return currentUser;
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    throw new Error("User not found");
+  }
+}
+
+export const fetchUserImages = async (
   limit: number = 10,
-  cursor: string | null = null,
+  cursor: number | null = null,
+  userId: string | null = null
+) => {
+  try {
+    const session = await getServerSession(authOptions);
+
+    const userIdParam = userId ?? session?.user.id;
+
+    if (!userIdParam) {
+      throw new Error("Not authenticated or no user ID provided.");
+    }
+
+    return await getUserPortfolioImages(userIdParam, limit, cursor);
+  } catch (error) {
+    console.error("Error fetching portfolio images:", error);
+    throw new Error("Portfolio images not found");
+  }
+};
+
+export const fetchUserPortfolioImages = async (
+  limit: number = 10,
+  cursor: number | null = null,
+  userId: string | null = null
+) => {
+  try {
+    const session = await getServerSession(authOptions);
+
+    const userIdParam = userId ?? session?.user.id;
+
+    if (!userIdParam) {
+      throw new Error("Not authenticated or no user ID provided.");
+    }
+
+    return await getUserPortfolioImages(userIdParam, limit, cursor);
+  } catch (error) {
+    console.error("Error fetching portfolio images:", error);
+    throw new Error("Portfolio images not found");
+  }
+};
+
+export async function fetchUserImagesWithPage(
+  page: number = 1,
+  per_page: number = 10
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user.id) {
+      throw new Error("Not authenticated");
+    }
+
+    return await getUserImagesWithPagination(page, per_page, session.user.id);
+  } catch (error) {
+    console.error("Error fetching user images:", error);
+    throw new Error("User images not found");
+  }
+}
+
+export async function fetchUserGalleriesList(
+  limit: number = 3,
+  cursor: number | null = null,
   userId: string | null = null
 ) {
-  const session = await getServerSession(authOptions);
+  try {
+    const session = await getServerSession(authOptions);
 
-  const userIdParam = userId ?? session?.user.id;
+    const userIdParam = userId ?? session?.user.id;
 
-  if (!userIdParam || !session)
-    return NextResponse.json(
-      { message: "Not authenticated or no user ID provided." },
-      { status: 401 }
-    );
+    if (!userIdParam || !session?.user.id)
+      throw new Error("Not authenticated or no user ID provided.");
 
-  const totalResults = await prisma.gallery.count({
-    where: { userId: session.user.id },
-  });
-
-  const galleries = await prisma.gallery.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      images: {
-        include: {
-          image: true,
-        },
-      },
-    },
-    where: {
-      userId: userIdParam,
-    },
-    take: limit + 1,
-    ...(cursor && {
-      cursor: { id: parseInt(cursor) },
-      skip: 1,
-    }),
-  });
-
-  const hasNextPage = galleries.length > limit;
-  const trimmed = hasNextPage ? galleries.slice(0, -1) : galleries;
-
-  const formattedGalleries = trimmed.map((gallery) => ({
-    id: gallery.id,
-    title: gallery.title,
-    description: gallery.description || undefined,
-    createdAt: gallery.createdAt.toISOString(),
-    updatedAt: gallery.updatedAt.toISOString(),
-    images: gallery.images.map((gi) => ({
-      id: gi.image.id,
-      url: gi.image.url,
-      alt: gi.image.fileName,
-      width: 0,
-      height: 0,
-      src: { large: gi.image.url },
-      blurredDataUrl: undefined,
-    })),
-  }));
-
-  return NextResponse.json({
-    galleries: formattedGalleries,
-    nextCursor: hasNextPage ? trimmed[trimmed.length - 1].id : null,
-    totalResults,
-  });
+    return await getUserGalleriesList(limit, cursor, userIdParam);
+  } catch (error) {
+    console.error("Error fetching galleries:", error);
+    throw new Error("Galleries not found");
+  }
 }
+
+export async function fetchUserGalleriesListWithPagination(
+  page: number = 1,
+  per_page: number = 10,
+  userId: string | null = null
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    const userIdParam = userId ?? session?.user.id;
+
+    if (!userIdParam || !session?.user.id)
+      throw new Error("Not authenticated or no user ID provided.");
+
+    return await getUserGalleriesListWithPagination(
+      page,
+      per_page,
+      userIdParam
+    );
+  } catch (error) {
+    console.error("Error fetching galleries:", error);
+    throw new Error("Galleries not found");
+  }
+}
+
+export const fetchUserArticleList = async (
+  limit: number = 10,
+  cursor: number | null = null,
+  userId: string | null = null
+) => {
+  try {
+    const session = await getServerSession(authOptions);
+    const userIdParam = userId ?? session?.user.id;
+
+    if (!userIdParam || !session?.user.id)
+      throw new Error("Not authenticated or no user ID provided.");
+
+    if (!session.user.id) {
+      throw new Error("Unauthorized");
+    }
+
+    return await getArticlesList(limit, cursor, userIdParam);
+  } catch (error) {
+    console.error("Error fetching user article list:", error);
+    throw new Error("Failed to fetch user article list.");
+  }
+};

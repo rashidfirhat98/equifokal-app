@@ -11,7 +11,7 @@ import {
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import MultiSelectInput from "./MultiSelectInput";
-import { ImagesResults } from "@/models/Images";
+import { ImagesInfiniteResults, ImagesResults } from "@/models/Images";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -26,15 +26,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "./ui/textarea";
-import { createGallery } from "@/app/dashboard/actions";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "./ui/collapsible";
+import { submitGalleryData } from "@/app/gallery/actions";
 
 type Props = {
-  photos?: ImagesResults | undefined;
+  photos?: ImagesInfiniteResults | ImagesResults;
   galleriesAmt?: number;
 };
 
@@ -66,7 +66,7 @@ export default function GalleryForm({ photos, galleriesAmt }: Props) {
     setAlert({ status: "", message: "" });
 
     try {
-      const response = await createGallery(data);
+      const response = await submitGalleryData(data);
       setAlert({ status: response.status, message: response.message });
       form.reset();
       router.refresh();

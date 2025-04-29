@@ -13,19 +13,19 @@ export default function DashboardUserDetails({ user }: Props) {
   const profilePicURL = user?.profilePic || profilePic;
   return (
     <section className="px-4 py-12">
-      <div className="sm:grid sm:grid-cols-4 gap-4 sm:gap-3 flex flex-col justify-center items-center">
+      <div className="md:grid md:grid-cols-4 gap-4 md:gap-3 flex flex-col justify-center items-center">
         <div className="col-span-1 flex items-center justify-center">
           <Image
-            width={100}
-            height={100}
+            width={90}
+            height={90}
             alt="profile-pic"
             src={profilePicURL}
             className="rounded-full aspect-square object-cover"
           />
         </div>
         <div className="w-full col-span-3 h-full flex flex-col items-center md:items-start md:pl-4 md:border-l-2 border-gray-100 ">
-          <div className="flex flex-col justify-center sm:flex-row items-center gap-4 mb-4">
-            <h1 className="text-l sm:text-xl text-center font-semibold">
+          <div className="flex flex-col justify-center md:flex-row items-center gap-4 mb-4">
+            <h1 className="text-l md:text-xl text-center font-semibold">
               {user.name}
             </h1>
             <Link href={"/profile/edit"}>

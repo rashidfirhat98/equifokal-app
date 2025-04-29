@@ -36,7 +36,7 @@ type Props = {
 };
 
 export default function NavAccountIcon({ user }: Props) {
-  const profilePicUrl = null;
+  const profilePicUrl = user.profilePic;
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -47,10 +47,12 @@ export default function NavAccountIcon({ user }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="cursor-pointer" asChild>
-        <ProfilePictureIcon
-          profilePicURL={profilePicUrl}
-          width={40}
-          height={40}
+        <Image
+          src={profilePicUrl || profilePic}
+          alt={"profilePicIcon"}
+          width={30}
+          height={30}
+          className="aspect-square object-cover rounded-full"
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">

@@ -1,6 +1,5 @@
 import FollowButton from "@/components/FollowButton";
-import { getProfileUser } from "./actions";
-import { getCurrentUser } from "@/app/server-actions/user";
+import { fetchCurrentUser, fetchProfileUser } from "./actions";
 
 type Props = {
   params: Promise<{ userId: string }>;
@@ -9,8 +8,8 @@ type Props = {
 export default async function OtherUserProfilePage({ params }: Props) {
   const { userId } = await params;
 
-  const user = await getProfileUser(userId);
-  const currentUser = await getCurrentUser();
+  const user = await fetchProfileUser(userId);
+  const currentUser = await fetchCurrentUser();
 
   if (!user) {
     return <div>User not found</div>;

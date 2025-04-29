@@ -1,14 +1,12 @@
-import { getUserImages } from "@/app/dashboard/actions";
 import GalleryForm from "@/components/GalleryForm";
-import { ImagesResults } from "@/models/Images";
 import GalleryList from "@/components/GalleryList";
-import { fetchUserGalleriesList } from "../server-actions/galleries";
+import { fetchUserGalleriesList, fetchUserImages } from "./actions";
 
 export default async function CreateGalleryPage() {
-  const photos: ImagesResults | undefined = await getUserImages();
+  const photos = await fetchUserImages();
   const galleriesRes = await fetchUserGalleriesList();
 
-  const { galleries, totalResults, nextCursor } = await galleriesRes;
+  const { galleries, totalResults, nextCursor } = galleriesRes;
 
   if (!galleries?.length) {
     return <GalleryForm photos={photos} galleriesAmt={totalResults} />;

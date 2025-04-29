@@ -19,7 +19,6 @@ export default function ProfilePictureIcon({
     <Image
       src={profilePicIcon}
       alt={"profilePicIcon"}
-      loading="lazy"
       width={width}
       height={height}
       className="aspect-square object-cover rounded-full"

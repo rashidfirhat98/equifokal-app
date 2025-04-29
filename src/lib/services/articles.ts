@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../authOptions";
 import { findArticleById, findArticlesByUserIdAndCursor } from "../db/articles";
+import { NextResponse } from "next/server";
 
 export const getArticlePostDetails = async (articleId: number) => {
   const articleById = await findArticleById(articleId);
