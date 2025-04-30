@@ -1,10 +1,17 @@
+import { InsertUserImages } from "@/models/ImageUploadSchema";
 import prisma from "../prisma";
 
-export const findUserPortfolioImages = async (
-  userId: string,
-  limit: number,
-  cursor: number | null
-) => {
+type FindImagesByUserIdCursor = {
+  userId: string;
+  limit: number;
+  cursor: number | null;
+};
+
+export const findUserPortfolioImages = async ({
+  userId,
+  limit,
+  cursor,
+}: FindImagesByUserIdCursor) => {
   return await prisma.image.findMany({
     where: {
       userId,
@@ -21,11 +28,11 @@ export const findUserPortfolioImages = async (
   });
 };
 
-export const findUserImages = async (
-  userId: string,
-  limit: number,
-  cursor: number | null
-) => {
+export const findUserImages = async ({
+  userId,
+  limit,
+  cursor,
+}: FindImagesByUserIdCursor) => {
   return prisma.image.findMany({
     where: {
       userId: userId,
@@ -58,5 +65,43 @@ export const findUserImagesWithPage = async (
 export const totalImagesByUserId = async (userId: string) => {
   return await prisma.image.count({
     where: { userId },
+  });
+};
+
+export const insertUserImage = async ({
+  userId,
+  fileUrl,
+  fileName,
+  isPortfolio,
+  isProfilePic,
+  metadata,
+}: InsertUserImages) => {
+  return await prisma.image.create({
+    data: {
+      userId: userId,
+      url: fileUrl,
+      fileName: fileName,
+      ...(isPortfolio ? { portfolio: true } : {}),
+      ...(isProfilePic ? { profilePic: true } : {}),
+      metadata: metadata
+        ? {
+            create: {
+              model: metadata.model,
+              aperture: metadata.aperture,
+              focalLength: metadata.focalLength,
+              exposureTime: metadata.exposureTime,
+              iso: metadata.iso,
+              flash: metadata.flash,
+              width: metadata.width,
+              height: metadata.height,
+            },
+          }
+        : undefined,
+    },
+    select: {
+      id: true,
+      url: true,
+      fileName: true,
+    },
   });
 };

@@ -2,7 +2,8 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/authOptions";
-import { uploadImage } from "@/lib/uploadImage";
+import { uploadImages } from "@/lib/uploadImages";
+import { extractUploadData } from "@/lib/extractUploadData";
 
 //TODO:Test this endpoint later
 export async function POST(req: Request) {
@@ -10,6 +11,8 @@ export async function POST(req: Request) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const userId = session.user.id;
 
   const formData = await req.formData();
 
@@ -21,11 +24,25 @@ export async function POST(req: Request) {
   const files = formData.getAll("files");
 
   if (files.length > 0) {
-    const uploadResult = await uploadImage(formData);
+    const { filesWithMetadata, isPortfolio, isProfilePic } =
+      extractUploadData(formData);
+    if (!filesWithMetadata || filesWithMetadata.length === 0) {
+      return NextResponse.json({ error: "No files found" }, { status: 400 });
+    }
+
+    console.log(isPortfolio, isProfilePic);
+
+    const uploadResult = await uploadImages({
+      files: filesWithMetadata,
+      userId,
+      isPortfolio,
+      isProfilePic,
+    });
 
     if (uploadResult.status === "success" && uploadResult.images?.length) {
       profilePicURL = uploadResult.images[0].url;
     }
+    console.log(uploadResult, profilePicURL);
   }
 
   try {

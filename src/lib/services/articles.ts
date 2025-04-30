@@ -1,7 +1,19 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "../authOptions";
-import { findArticleById, findArticlesByUserIdAndCursor } from "../db/articles";
-import { NextResponse } from "next/server";
+import { UploadImageResult } from "@/models/ImageUploadSchema";
+import {
+  findArticleById,
+  findArticlesByUserIdAndCursor,
+  insertArticleGalleryByGalleryIds,
+  insertUserArticle,
+} from "../db/articles";
+
+type CreateArticleInput = {
+  title: string;
+  content: string;
+  description: string;
+  galleryIds: number[];
+  uploadResult: UploadImageResult;
+  userId: string;
+};
 
 export const getArticlePostDetails = async (articleId: number) => {
   const articleById = await findArticleById(articleId);
@@ -147,4 +159,36 @@ export const getArticlesList = async (
     })),
     nextCursor,
   };
+};
+
+export const createArticle = async ({
+  userId,
+  title,
+  content,
+  description,
+  galleryIds,
+  uploadResult,
+}: CreateArticleInput) => {
+  let coverImageId: number | undefined = undefined;
+
+  if (uploadResult.status === "success" && uploadResult.images?.length) {
+    coverImageId = uploadResult.images[0].id;
+  }
+
+  const article = await insertUserArticle({
+    title,
+    content,
+    description,
+    userId,
+    coverImageId,
+  });
+
+  if (galleryIds.length > 0) {
+    await insertArticleGalleryByGalleryIds({
+      articleId: article.id,
+      galleryIds,
+    });
+  }
+
+  return { article };
 };

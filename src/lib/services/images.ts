@@ -12,7 +12,7 @@ export const getUserPortfolioImages = async (
   limit: number,
   cursor: number | null
 ) => {
-  const images = await findUserPortfolioImages(userId, limit, cursor);
+  const images = await findUserPortfolioImages({ userId, limit, cursor });
   if (!images) {
     throw new Error("No images found");
   }
@@ -92,7 +92,7 @@ export const getUserImages = async (
 ) => {
   const totalResults = await totalImagesByUserId(userId);
 
-  const images = await findUserImages(userId, limit, cursor);
+  const images = await findUserImages({ userId, limit, cursor });
 
   if (!images) {
     throw new Error("No images found");
