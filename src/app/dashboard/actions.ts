@@ -15,7 +15,7 @@ import {
   getUserGalleriesListWithPagination,
 } from "@/lib/services/galleries";
 import { getArticlesList } from "@/lib/services/articles";
-import { getUserById } from "@/lib/db/user";
+import { getUserDetails } from "@/lib/services/user";
 
 const gallerySchema = z.object({
   title: z.string().min(3),
@@ -255,8 +255,10 @@ export async function fetchCurrentUser() {
 
     let currentUser = null;
     if (session?.user.id) {
-      currentUser = await getUserById(session.user.id);
+      currentUser = await getUserDetails(session.user.id);
     }
+
+    console.log(currentUser);
     return currentUser;
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -265,9 +267,9 @@ export async function fetchCurrentUser() {
 }
 
 export const fetchUserImages = async (
+  userId: string | null = null,
   limit: number = 10,
-  cursor: number | null = null,
-  userId: string | null = null
+  cursor: number | null = null
 ) => {
   try {
     const session = await getServerSession(authOptions);
@@ -286,9 +288,9 @@ export const fetchUserImages = async (
 };
 
 export const fetchUserPortfolioImages = async (
+  userId: string | null = null,
   limit: number = 10,
-  cursor: number | null = null,
-  userId: string | null = null
+  cursor: number | null = null
 ) => {
   try {
     const session = await getServerSession(authOptions);
@@ -325,9 +327,9 @@ export async function fetchUserImagesWithPage(
 }
 
 export async function fetchUserGalleriesList(
+  userId: string | null = null,
   limit: number = 3,
-  cursor: number | null = null,
-  userId: string | null = null
+  cursor: number | null = null
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -369,9 +371,9 @@ export async function fetchUserGalleriesListWithPagination(
 }
 
 export const fetchUserArticleList = async (
+  userId: string | null = null,
   limit: number = 10,
-  cursor: number | null = null,
-  userId: string | null = null
+  cursor: number | null = null
 ) => {
   try {
     const session = await getServerSession(authOptions);

@@ -10,7 +10,7 @@ export default function FollowButton({
 }: {
   followerId: string;
   followingId: string;
-  isFollowingInitial: boolean;
+  isFollowingInitial?: boolean;
 }) {
   const [isFollowing, setIsFollowing] = useState(isFollowingInitial);
 

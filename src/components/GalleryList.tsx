@@ -1,6 +1,6 @@
 "use client";
 
-import { GalleriesResults, Gallery } from "@/models/Gallery";
+import { Gallery } from "@/models/Gallery";
 import GalleryCard from "./GalleryCard";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -9,11 +9,13 @@ import { Loader2 } from "lucide-react";
 type Props = {
   initialGalleries: Gallery[] | undefined;
   initialCursor: number | null;
+  userId: string;
 };
 
 export default function GalleryList({
   initialGalleries,
   initialCursor,
+  userId,
 }: Props) {
   const [galleries, setGalleries] = useState<Gallery[]>(initialGalleries || []);
   const [nextCursor, setNextCursor] = useState<number | null>(initialCursor);
@@ -37,12 +39,10 @@ export default function GalleryList({
     setLoading(true);
 
     try {
-      console.log("Requesting with cursor:", nextCursor);
       const res = await fetch(
-        `/api/user/galleries?cursor=${nextCursor}&limit=10`
+        `/api/user/galleries?userId=${userId}&cursor=${nextCursor}&limit=10`
       );
       const data = await res.json();
-      console.log("Fetched nextCursor:", data.nextCursor);
 
       setGalleries((prev) => [...prev, ...data.galleries]);
       setNextCursor(data.nextCursor);

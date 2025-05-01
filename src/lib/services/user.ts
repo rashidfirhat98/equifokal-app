@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
-import { insertNewUser, updateUserById } from "../db/user";
+import { findUserById, insertNewUser, updateUserById } from "../db/user";
+import { totalUserFollowers, totalUserFollowings } from "../db/follow";
 
 type EditUserDetailsArg = {
   userId: string;
@@ -54,4 +55,16 @@ export const createNewUser = async ({
   }
 
   return user;
+};
+
+export const getUserDetails = async (userId: string) => {
+  const user = await findUserById(userId);
+
+  const followerCount = await totalUserFollowers(userId);
+  const followingCount = await totalUserFollowings(userId);
+  if (!user) {
+    throw new Error("Error fetching user details");
+  }
+
+  return { ...user, followerCount, followingCount };
 };

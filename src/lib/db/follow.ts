@@ -44,3 +44,19 @@ export const deleteFollowerByFollowId = async ({
     },
   });
 };
+
+export const totalUserFollowers = async (userId: string) => {
+  return prisma.follow.count({
+    where: {
+      followingId: userId,
+    },
+  });
+};
+
+export const totalUserFollowings = async (userId: string) => {
+  return prisma.follow.count({
+    where: {
+      followerId: userId,
+    },
+  });
+};

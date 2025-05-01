@@ -8,9 +8,14 @@ import { Loader2 } from "lucide-react";
 type Props = {
   initialPhotos: Photo[];
   initialCursor: number | null;
+  userId: string;
 };
 
-export default function Portfolio({ initialPhotos, initialCursor }: Props) {
+export default function Portfolio({
+  initialPhotos,
+  initialCursor,
+  userId,
+}: Props) {
   const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
   const [nextCursor, setNextCursor] = useState<number | null>(initialCursor);
   const [loading, setLoading] = useState(false);
@@ -21,7 +26,7 @@ export default function Portfolio({ initialPhotos, initialCursor }: Props) {
     setLoading(true);
     try {
       const res = await fetch(
-        `/api/portfolio?cursor=${nextCursor ?? ""}&limit=10`
+        `/api/portfolio?userId=${userId}&cursor=${nextCursor ?? ""}&limit=10`
       );
       const data = await res.json();
 

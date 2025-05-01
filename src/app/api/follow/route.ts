@@ -70,7 +70,7 @@ export async function DELETE(req: Request) {
     );
   }
   try {
-    const res = await deleteFollowerByFollowId;
+    const res = await deleteFollowerByFollowId({ followerId, followingId });
 
     if (!res) {
       throw new Error("Failed to unfollow");

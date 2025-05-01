@@ -1,11 +1,12 @@
 "use server";
 
 import { authOptions } from "@/lib/authOptions";
-import { getUserById } from "@/lib/getUserById";
+
 import {
   getArticlePostDetails,
   getArticlesList,
 } from "@/lib/services/articles";
+import { getUserDetails } from "@/lib/services/user";
 import { getServerSession } from "next-auth";
 
 export async function fetchCurrentUser() {
@@ -14,7 +15,7 @@ export async function fetchCurrentUser() {
 
     let currentUser = null;
     if (session?.user.id) {
-      currentUser = await getUserById(session.user.id);
+      currentUser = await getUserDetails(session.user.id);
     }
     return currentUser;
   } catch (error) {

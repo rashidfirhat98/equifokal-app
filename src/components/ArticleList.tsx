@@ -11,9 +11,14 @@ import ProfilePictureIcon from "./ProfilePictureIcon";
 type Props = {
   initialArticles: Article[];
   initialCursor: number | null;
+  userId: string;
 };
 
-export default function ArticleList({ initialArticles, initialCursor }: Props) {
+export default function ArticleList({
+  initialArticles,
+  initialCursor,
+  userId,
+}: Props) {
   const [articles, setArticles] = useState<Article[]>(initialArticles);
   const [nextCursor, setNextCursor] = useState<number | null>(initialCursor);
   const [loading, setLoading] = useState(false);
@@ -36,7 +41,7 @@ export default function ArticleList({ initialArticles, initialCursor }: Props) {
     setLoading(true);
     try {
       const res = await fetch(
-        `/api/articles?cursor=${nextCursor ?? ""}&limit=10`
+        `/api/articles?userId=${userId}&cursor=${nextCursor ?? ""}&limit=10`
       );
       const data = await res.json();
       console.log(data);

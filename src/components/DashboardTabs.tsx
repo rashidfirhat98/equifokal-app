@@ -9,12 +9,17 @@ import {
   fetchUserImages,
   fetchUserPortfolioImages,
 } from "@/app/dashboard/actions";
+import { User } from "next-auth";
 
-export default async function DashboardTabs() {
-  const photosRes = await fetchUserImages();
-  const galleriesRes = await fetchUserGalleriesList();
-  const articlesRes = await fetchUserArticleList();
-  const portfolioRes = await fetchUserPortfolioImages();
+type Props = {
+  user: User;
+};
+
+export default async function DashboardTabs({ user }: Props) {
+  const photosRes = await fetchUserImages(user.id);
+  const galleriesRes = await fetchUserGalleriesList(user.id);
+  const articlesRes = await fetchUserArticleList(user.id);
+  const portfolioRes = await fetchUserPortfolioImages(user.id);
 
   const { galleries, nextCursor } = galleriesRes;
   return (
@@ -30,6 +35,7 @@ export default async function DashboardTabs() {
         <Portfolio
           initialPhotos={portfolioRes.photos}
           initialCursor={portfolioRes.nextCursor}
+          userId={user.id}
         />
       </TabsContent>
       <TabsContent value="gallery">
@@ -37,6 +43,7 @@ export default async function DashboardTabs() {
           <GalleryList
             initialGalleries={galleries}
             initialCursor={nextCursor}
+            userId={user.id}
           />
         ) : (
           <GalleryForm photos={photosRes} />
@@ -47,6 +54,7 @@ export default async function DashboardTabs() {
           <ArticleList
             initialArticles={articlesRes.articles}
             initialCursor={articlesRes.nextCursor}
+            userId={user.id}
           />
         ) : (
           <div className="text-center">No articles found</div>

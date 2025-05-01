@@ -1,15 +1,21 @@
 import Image from "next/image";
-
 import profilePic from "@/assets/images/EQFKL_logo.jpg";
 import { Button } from "@/components/ui/button";
-import { User } from "@prisma/client";
 import Link from "next/link";
+import FollowButton from "./FollowButton";
+import { UserDetails } from "@/models/User";
 
 type Props = {
-  user: User;
+  user: UserDetails;
+  currentUser?: UserDetails;
+  isFollowingInitial?: boolean;
 };
 
-export default function DashboardUserDetails({ user }: Props) {
+export default function DashboardUserDetails({
+  user,
+  currentUser,
+  isFollowingInitial,
+}: Props) {
   const profilePicURL = user?.profilePic || profilePic;
   return (
     <section className="px-4 py-12">
@@ -28,9 +34,17 @@ export default function DashboardUserDetails({ user }: Props) {
             <h1 className="text-l md:text-xl text-center font-semibold">
               {user.name}
             </h1>
-            <Link href={"/profile/edit"}>
-              <Button variant="outline">Edit Profile</Button>
-            </Link>
+            {!currentUser ? (
+              <Link href={"/profile/edit"}>
+                <Button variant="outline">Edit Profile</Button>
+              </Link>
+            ) : (
+              <FollowButton
+                followingId={user.id}
+                followerId={currentUser.id}
+                isFollowingInitial={isFollowingInitial}
+              />
+            )}
           </div>
           <div className="grid grid-cols-3 gap-2  ">
             <div className="flex flex-col md:items-start items-center">
@@ -41,13 +55,13 @@ export default function DashboardUserDetails({ user }: Props) {
               <p className="text-xs font-thin muted whitespace-nowrap">
                 FOLLOWERS
               </p>
-              <h4 className="font-semibold">30</h4>
+              <h4 className="font-semibold">{user.followerCount}</h4>
             </div>
             <div className="flex flex-col md:items-start items-center">
               <p className="text-xs font-thin muted whitespace-nowrap">
                 FOLLOWING
               </p>
-              <h4 className="font-semibold">30</h4>
+              <h4 className="font-semibold">{user.followingCount}</h4>
             </div>
           </div>
           <div className="w-full">

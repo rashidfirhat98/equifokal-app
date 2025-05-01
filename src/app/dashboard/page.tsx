@@ -12,7 +12,7 @@ export default async function DashboardPage() {
   return (
     <>
       <DashboardUserDetails user={user} />
-      <DashboardTabs />
+      <DashboardTabs user={user} />
     </>
   );
 }
