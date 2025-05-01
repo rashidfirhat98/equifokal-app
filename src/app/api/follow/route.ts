@@ -1,7 +1,10 @@
 import { authOptions } from "@/lib/authOptions";
 import { getServerSession } from "next-auth";
-import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import {
+  deleteFollowerByFollowId,
+  insertFollowerByFollowId,
+} from "@/lib/db/follow";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -9,38 +12,37 @@ export async function POST(req: Request) {
 
   if (!followingId || !followerId) {
     return NextResponse.json(
-      { message: "Missing followerId or followingid" },
+      { error: "Missing followerId or followingid" },
       { status: 400 }
     );
   }
 
   if (!session?.user?.id) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   if (session.user.id !== followerId) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   if (session.user.id === followingId) {
     return NextResponse.json(
-      { message: "You cannot follow yourself" },
+      { error: "You cannot follow yourself" },
       { status: 400 }
     );
   }
   try {
-    const res = await prisma.follow.create({
-      data: {
-        followerId,
-        followingId,
-      },
-    });
+    const res = await insertFollowerByFollowId({ followerId, followingId });
 
     if (!res) {
       throw new Error("Failed to follow");
     }
 
-    return NextResponse.json("Success", { status: 200 });
+    return NextResponse.json({ message: "User Followed" }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error }, { status: 500 });
+    console.error("Error following user", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
 
@@ -68,19 +70,18 @@ export async function DELETE(req: Request) {
     );
   }
   try {
-    const res = await prisma.follow.deleteMany({
-      where: {
-        followerId,
-        followingId,
-      },
-    });
+    const res = await deleteFollowerByFollowId;
 
     if (!res) {
       throw new Error("Failed to unfollow");
     }
 
-    return NextResponse.json("Success", { status: 200 });
+    return NextResponse.json({ message: "User unfollowed" }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error }, { status: 500 });
+    console.error("Error unfollowing user", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

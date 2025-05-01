@@ -1,34 +1,25 @@
+import { getImageWithMetadataById } from "@/lib/services/images";
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const id = url.pathname.split("/").pop();
+
+  if (!id) {
+    return NextResponse.json({ error: "Image id not found", status: 404 });
+  }
+
+  const imageId = parseInt(id);
+
+  if (isNaN(imageId)) {
+    return NextResponse.json({ error: "Invalid image id" }, { status: 400 });
+  }
+
   try {
-    const photo = await prisma.image.findUnique({
-      where: { id: Number(id) },
-      include: {
-        metadata: true,
-        user: true,
-      },
-    });
-
-    if (!photo) {
-      return NextResponse.json({ error: "Photo not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({
-      id: photo.id,
-      url: photo.url,
-      width: 800, // Set a default width (or use metadata)
-      height: 600, // Set a default height (or use metadata)
-      alt: photo.fileName || "Uploaded Image",
-      src: { large: photo.url },
-      photographer: photo.user.name || "Photographer",
-      photographer_url: `/user/${photo.userId}`,
-      photographer_id: photo.userId,
-    });
+    const photo = await getImageWithMetadataById(imageId);
+    return NextResponse.json(photo, { status: 200 });
   } catch (error) {
+    console.error("Error fetching image", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

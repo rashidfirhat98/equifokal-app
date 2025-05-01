@@ -4,6 +4,7 @@ import { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import env from "@/lib/env";
+import { findUserByEmail } from "./db/user";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -19,9 +20,7 @@ export const authOptions: AuthOptions = {
           throw new Error("Email or password is missing");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
+        const user = await findUserByEmail(credentials.email);
 
         if (!user || !user.password) {
           throw new Error("Invalid email or password");

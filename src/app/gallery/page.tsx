@@ -2,8 +2,6 @@ import GalleryForm from "@/components/GalleryForm";
 import GalleryList from "@/components/GalleryList";
 import { fetchUserGalleriesList, fetchUserImages } from "./actions";
 
-export const dynamic = "force-dynamic";
-
 export default async function CreateGalleryPage() {
   const photos = await fetchUserImages();
   const galleriesRes = await fetchUserGalleriesList();

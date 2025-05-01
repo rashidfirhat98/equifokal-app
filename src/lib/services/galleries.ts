@@ -1,6 +1,7 @@
 import {
   findGalleriesByUserIdAndCursor,
   findGalleriesByUserIdAndPage,
+  findGalleryWithImageMetadataById,
   insertUserGallery,
   totalGalleriesByUserId,
 } from "../db/galleries";
@@ -121,5 +122,42 @@ export const createUserGallery = async (
     gallery,
     status: "success",
     message: "Gallery created successfully",
+  };
+};
+
+export const getGalleryWithImageMetadataById = async (galleryId: number) => {
+  const gallery = await findGalleryWithImageMetadataById(galleryId);
+
+  if (!gallery) {
+    throw new Error("Gallery not found");
+  }
+
+  return {
+    id: gallery.id,
+    title: gallery.title,
+    description: gallery.description || undefined,
+    images: gallery.images.map((galleryImage) => ({
+      id: galleryImage.image.id,
+      url: galleryImage.image.url,
+      width: galleryImage.image.metadata?.width ?? 0,
+      height: galleryImage.image.metadata?.height ?? 0,
+      alt: galleryImage.image.fileName,
+      src: { large: galleryImage.image.url },
+      blurredDataUrl: undefined,
+      metadata: galleryImage.image.metadata
+        ? {
+            model: galleryImage.image.metadata?.model,
+            aperture: galleryImage.image.metadata?.aperture,
+            focalLength: galleryImage.image.metadata?.focalLength,
+            exposureTime: galleryImage.image.metadata?.exposureTime,
+            iso: galleryImage.image.metadata?.iso,
+            flash: galleryImage.image.metadata?.flash,
+            height: galleryImage.image.metadata?.height,
+            width: galleryImage.image.metadata?.width,
+          }
+        : undefined,
+    })),
+    createdAt: gallery.createdAt.toISOString(),
+    updatedAt: gallery.updatedAt.toISOString(),
   };
 };

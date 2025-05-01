@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/authOptions";
 import addBlurredDataUrls from "@/lib/getBase64";
+import { getUserImages } from "@/lib/services/images";
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
@@ -21,41 +22,25 @@ export async function GET(req: Request) {
     );
   }
 
-  const images = await prisma.image.findMany({
-    where: {
-      userId,
-      // isPrivate: false, // future addition
-    },
-    include: { metadata: true },
-    orderBy: [{ createdAt: "desc" }],
-    take: limit + 1,
-    ...(cursor && {
-      cursor: { id: parseInt(cursor) },
-      skip: 1,
-    }),
-  });
+  let parsedCursor = null;
+  if (cursor) {
+    parsedCursor = parseInt(cursor);
+    if (isNaN(parsedCursor)) {
+      return NextResponse.json({
+        error: "Invalid cursor value",
+        status: 400,
+      });
+    }
+  }
 
-  const hasNextPage = images.length > limit;
-  const trimmedImages = hasNextPage ? images.slice(0, -1) : images;
-  const nextCursor = hasNextPage
-    ? trimmedImages[trimmedImages.length - 1].id
-    : null;
-
-  const photosWithBlur = await addBlurredDataUrls(
-    trimmedImages.map((image) => ({
-      id: image.id,
-      url: `/photo/${image.id}`,
-      height: image.metadata?.height || 2000,
-      width: image.metadata?.width || 2000,
-      alt: image.fileName,
-      src: {
-        large: image.url,
-      },
-    }))
+  const { photos, nextCursor } = await getUserImages(
+    userId,
+    limit,
+    parsedCursor
   );
 
   return NextResponse.json({
-    photos: photosWithBlur,
+    photos,
     nextCursor,
   });
 }

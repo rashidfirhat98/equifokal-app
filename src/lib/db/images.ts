@@ -1,4 +1,4 @@
-import { InsertUserImages } from "@/models/ImageUploadSchema";
+import { InsertUserImage } from "@/models/ImageUploadSchema";
 import prisma from "../prisma";
 
 type FindImagesByUserIdCursor = {
@@ -62,6 +62,17 @@ export const findUserImagesWithPage = async (
     },
   });
 };
+
+export const findImageById = async (id: number) => {
+  return await prisma.image.findUnique({
+    where: { id },
+    include: {
+      metadata: true,
+      user: true,
+    },
+  });
+};
+
 export const totalImagesByUserId = async (userId: string) => {
   return await prisma.image.count({
     where: { userId },
@@ -70,17 +81,17 @@ export const totalImagesByUserId = async (userId: string) => {
 
 export const insertUserImage = async ({
   userId,
-  fileUrl,
+  url,
   fileName,
   isPortfolio,
   isProfilePic,
   metadata,
-}: InsertUserImages) => {
+}: InsertUserImage) => {
   return await prisma.image.create({
     data: {
-      userId: userId,
-      url: fileUrl,
-      fileName: fileName,
+      userId,
+      url,
+      fileName,
       ...(isPortfolio ? { portfolio: true } : {}),
       ...(isProfilePic ? { profilePic: true } : {}),
       metadata: metadata

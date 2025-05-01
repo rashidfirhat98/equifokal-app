@@ -5,9 +5,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { ImagesResults } from "@/models/Images";
 import * as z from "zod";
-import { NextResponse } from "next/server";
-
-import { getUserById } from "@/lib/getUserById";
 
 import {
   getUserImagesWithPagination,
@@ -18,6 +15,7 @@ import {
   getUserGalleriesListWithPagination,
 } from "@/lib/services/galleries";
 import { getArticlesList } from "@/lib/services/articles";
+import { getUserById } from "@/lib/db/user";
 
 const gallerySchema = z.object({
   title: z.string().min(3),

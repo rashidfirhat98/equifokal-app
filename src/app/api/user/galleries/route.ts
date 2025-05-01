@@ -1,76 +1,49 @@
-import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/authOptions";
-import addBlurredDataUrls from "@/lib/getBase64";
-import { Gallery, Image } from "@prisma/client";
-
-type GalleryWithImages = Gallery & {
-  images: Image[];
-};
+import { getUserGalleriesList } from "@/lib/services/galleries";
 
 export async function GET(req: Request) {
-  const session = await getServerSession(authOptions);
+  try {
+    const session = await getServerSession(authOptions);
 
-  const { searchParams } = new URL(req.url);
-  const cursor = searchParams.get("cursor");
-  const limit = parseInt(searchParams.get("limit") || "10", 10);
-  const userIdParam = searchParams.get("userId");
+    const { searchParams } = new URL(req.url);
+    const cursor = searchParams.get("cursor");
+    const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const userIdParam = searchParams.get("userId");
 
-  const userId = userIdParam ?? session?.user.id;
+    const userId = userIdParam ?? session?.user.id;
 
-  if (!userId || !session)
-    return NextResponse.json(
-      { message: "Not authenticated or no user ID provided." },
-      { status: 401 }
+    if (!userId || !session)
+      return NextResponse.json(
+        { message: "Not authenticated or no user ID provided." },
+        { status: 401 }
+      );
+
+    let parsedCursor = null;
+    if (cursor) {
+      parsedCursor = parseInt(cursor);
+      if (isNaN(parsedCursor)) {
+        return NextResponse.json({
+          error: "Invalid cursor value",
+          status: 400,
+        });
+      }
+    }
+
+    const { galleries, nextCursor, totalResults } = await getUserGalleriesList(
+      limit,
+      parsedCursor,
+      userId
     );
 
-  const totalResults = await prisma.gallery.count({
-    where: { userId: session.user.id },
-  });
-
-  const galleries = await prisma.gallery.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      images: {
-        include: {
-          image: true,
-        },
-      },
-    },
-    where: {
-      userId,
-    },
-    take: limit + 1,
-    ...(cursor && {
-      cursor: { id: parseInt(cursor) },
-      skip: 1,
-    }),
-  });
-
-  const hasNextPage = galleries.length > limit;
-  const trimmed = hasNextPage ? galleries.slice(0, -1) : galleries;
-
-  const formattedGalleries = trimmed.map((gallery) => ({
-    id: gallery.id,
-    title: gallery.title,
-    description: gallery.description || undefined,
-    createdAt: gallery.createdAt.toISOString(),
-    updatedAt: gallery.updatedAt.toISOString(),
-    images: gallery.images.map((gi) => ({
-      id: gi.image.id,
-      url: gi.image.url,
-      alt: gi.image.fileName,
-      width: 0,
-      height: 0,
-      src: { large: gi.image.url },
-      blurredDataUrl: undefined,
-    })),
-  }));
-
-  return NextResponse.json({
-    galleries: formattedGalleries,
-    nextCursor: hasNextPage ? trimmed[trimmed.length - 1].id : null,
-    totalResults,
-  });
+    return NextResponse.json({
+      galleries,
+      nextCursor,
+      totalResults,
+    });
+  } catch (error) {
+    console.error("Error fetching user galleries", error);
+    NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }

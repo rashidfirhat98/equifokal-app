@@ -1,5 +1,6 @@
 import { Photo } from "@/models/Images";
 import {
+  findImageById,
   findUserImages,
   findUserImagesWithPage,
   findUserPortfolioImages,
@@ -121,5 +122,39 @@ export const getUserImages = async (
     photos: photosWithBlur,
     nextCursor,
     totalResults,
+  };
+};
+
+export const getImageWithMetadataById = async (id: number) => {
+  const photo = await findImageById(id);
+
+  if (!photo) {
+    throw new Error("Photo not found");
+  }
+
+  return {
+    id: photo.id,
+    url: photo.url,
+    height: photo.metadata?.height || 1000,
+    width: photo.metadata?.width || 1000,
+    alt: photo.fileName || "Uploaded Image",
+    src: { large: photo.url },
+    photographer: photo.user.name || "Photographer",
+    photographer_url: `/user/${photo.userId}`,
+    photographer_id: photo.userId,
+    metadata: photo.metadata
+      ? {
+          model: photo.metadata?.model,
+          aperture: photo.metadata?.aperture,
+          focalLength: photo.metadata?.focalLength,
+          exposureTime: photo.metadata?.exposureTime,
+          iso: photo.metadata?.iso,
+          flash: photo.metadata?.flash,
+          height: photo.metadata?.height,
+          width: photo.metadata?.width,
+        }
+      : undefined,
+    createdAt: photo.createdAt.toISOString(),
+    // updatedAt: photo.updatedAt.toISOString(),
   };
 };

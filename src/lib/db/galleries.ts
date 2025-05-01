@@ -56,6 +56,24 @@ export const findGalleriesByUserIdAndPage = async (
   });
 };
 
+export const findGalleryWithImageMetadataById = async (id: number) => {
+  return prisma.gallery.findUnique({
+    where: { id },
+    include: {
+      images: {
+        include: {
+          image: {
+            include: {
+              metadata: true,
+              user: true,
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
 export const insertUserGallery = async (
   userId: string,
   galleryData: GalleryFormData

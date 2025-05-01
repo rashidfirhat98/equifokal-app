@@ -1,11 +1,10 @@
-import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/authOptions";
 import { uploadImages } from "@/lib/uploadImages";
 import { extractUploadData } from "@/lib/extractUploadData";
+import { editUserDetails } from "@/lib/services/user";
 
-//TODO:Test this endpoint later
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -16,7 +15,7 @@ export async function POST(req: Request) {
 
   const formData = await req.formData();
 
-  let profilePicURL: string | undefined;
+  let profilePicURL: string | null = null;
 
   const name = formData.get("name")?.toString() || "";
   const email = formData.get("email")?.toString() || "";
@@ -30,8 +29,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No files found" }, { status: 400 });
     }
 
-    console.log(isPortfolio, isProfilePic);
-
     const uploadResult = await uploadImages({
       files: filesWithMetadata,
       userId,
@@ -42,23 +39,23 @@ export async function POST(req: Request) {
     if (uploadResult.status === "success" && uploadResult.images?.length) {
       profilePicURL = uploadResult.images[0].url;
     }
-    console.log(uploadResult, profilePicURL);
   }
 
   try {
-    const updatedUser = await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        name,
-        email,
-        bio,
-        profilePic: profilePicURL,
-      },
+    const updatedUser = await editUserDetails({
+      userId: session.user.id,
+      name,
+      email,
+      bio,
+      profilePicURL,
     });
 
     return NextResponse.json(updatedUser, { status: 201 });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error }, { status: 500 });
+    console.error("Error updating user:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

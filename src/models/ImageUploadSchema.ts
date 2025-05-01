@@ -92,3 +92,11 @@ export type UploadImageResult = {
   message: string;
   images?: UploadedImage[];
 };
+export type InsertUserImage = {
+  userId: string;
+  url: string;
+  fileName: string;
+  isPortfolio?: boolean;
+  isProfilePic?: boolean;
+  metadata?: UploadMetadata | null;
+};

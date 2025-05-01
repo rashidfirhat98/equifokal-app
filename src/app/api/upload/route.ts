@@ -28,7 +28,10 @@ export async function POST(req: Request) {
     });
     return NextResponse.json(uploadResult, { status: 201 });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error }, { status: 500 });
+    console.error("Error uploading photo:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

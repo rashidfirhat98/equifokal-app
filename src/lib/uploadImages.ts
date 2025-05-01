@@ -1,5 +1,3 @@
-import prisma from "@/lib/prisma";
-
 import env from "@/lib/env";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { insertUserImage } from "./db/images";
@@ -45,25 +43,6 @@ export async function uploadImages({
   isProfilePic,
 }: UploadImageArgs): Promise<UploadImageResult> {
   try {
-    // const files = formData.getAll("files");
-    // if (!files.length) {
-    //   return { status: "error", message: "No files found" };
-    // }
-
-    // const metadataList = [];
-    // for (let i = 0; i < files.length; i++) {
-    //   const metadataString = formData.get(`metadata[${i}]`);
-    //   metadataList.push(
-    //     metadataString ? JSON.parse(metadataString as string) : null
-    //   );
-    // }
-
-    // const isPortfolio = formData.get("isPortfolio") || undefined;
-    // const isProfilePic = formData.get("isProfilePic") || undefined;
-    // console.log(files);
-
-    // console.log("Extracted Metadata:", metadataList);
-
     const uploadedImages: UploadedImage[] = [];
 
     for (const { file, metadata } of files) {
@@ -73,7 +52,7 @@ export async function uploadImages({
 
       const createdImage = await insertUserImage({
         userId,
-        fileUrl,
+        url: fileUrl,
         fileName: file.name,
         metadata: {
           model: metadata?.model,
