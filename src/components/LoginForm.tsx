@@ -5,35 +5,48 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "./ui/form";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+
+const formSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string(),
+});
 
 export default function LoginForm() {
-  const router = useRouter();
-  const [loginData, setLoginData] = useState({
-    email: "",
-    password: "",
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
+  const router = useRouter();
+
   const [alert, setAlert] = useState({
     status: "",
     message: "",
   });
 
-  const onChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-    setLoginData({
-      ...loginData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const onSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
-    e.preventDefault();
-
+  const { handleSubmit } = form;
+  const onSubmit = async (formData: z.infer<typeof formSchema>) => {
     try {
       const res = await signIn("credentials", {
-        ...loginData,
+        ...formData,
         redirect: false,
       });
       setAlert({ status: "success", message: "Logged in successfully" });
-      setLoginData({ email: "", password: "" });
 
       if (res?.error) {
         setAlert({ status: "error", message: "Invalid email or password" });
@@ -69,35 +82,37 @@ export default function LoginForm() {
           </h2>
         </div>
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form onSubmit={onSubmit} className="space-y-6">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm/6 font-medium text-gray-900"
-              >
-                Email address
-              </label>
-              <div className="mt-2">
-                <input
-                  onChange={onChange}
-                  value={loginData.email}
-                  id="email"
+          <Form {...form}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <div>
+                <FormField
+                  control={form.control}
                   name="email"
-                  type="email"
-                  required
-                  autoComplete="email"
-                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="password"
-                  className="block text-sm/6 font-medium text-gray-900"
-                >
-                  Password
-                </label>
+              <div>
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 {/* <div className="text-sm">
                   <a
                     href="#"
@@ -107,28 +122,24 @@ export default function LoginForm() {
                   </a>
                 </div> */}
               </div>
-              <div className="mt-2">
-                <input
-                  onChange={onChange}
-                  value={loginData.password}
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-500 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
-                />
+              {/* <div>
+                <button
+                  type="submit"
+                  className="flex w-full justify-center rounded-md bg-teal-500 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-teal-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
+                >
+                  Sign in
+                </button>
+              </div> */}
+              <div>
+                <Button
+                  type="submit"
+                  className="flex w-full justify-center rounded-md px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2"
+                >
+                  Register
+                </Button>
               </div>
-            </div>
-            <div>
-              <button
-                type="submit"
-                className="flex w-full justify-center rounded-md bg-teal-500 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-teal-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
-              >
-                Sign in
-              </button>
-            </div>
-          </form>
+            </form>
+          </Form>
           <p className="mt-10 text-center text-sm/6 text-gray-500">
             Not a member?{" "}
             <Link

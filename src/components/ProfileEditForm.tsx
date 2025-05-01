@@ -37,18 +37,18 @@ type Props = {
   };
 };
 
+const formSchema = z.object({
+  name: z.string(),
+  email: z.string(),
+  bio: z.string().optional(),
+  profilePic: AcceptedCoverImageSchema.optional(),
+  isProfilePic: z.boolean().default(true),
+});
+
 export default function ProfileEditForm({ userDetails }: Props) {
   //TODO: Call user details API
   //TODO: Change to edit profile form
   const profilePicURL = userDetails.profilePic || profilePic;
-
-  const formSchema = z.object({
-    name: z.string(),
-    email: z.string(),
-    bio: z.string().optional(),
-    profilePic: AcceptedCoverImageSchema.optional(),
-    isProfilePic: z.boolean().default(true),
-  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -278,7 +278,6 @@ export default function ProfileEditForm({ userDetails }: Props) {
                   </FormItem>
                 )}
               />
-
               <div>
                 <Button
                   type="submit"
@@ -287,12 +286,6 @@ export default function ProfileEditForm({ userDetails }: Props) {
                   Save Profile
                 </Button>
               </div>
-              <button
-                type="button"
-                onClick={() => console.log(form.getValues())}
-              >
-                Check form values
-              </button>
             </form>
           </Form>
         </div>

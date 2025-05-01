@@ -9,6 +9,10 @@ function validateInput(name: string, email: string, password: string) {
   if (password.length < 6) {
     return "Password must be at least 6 characters long";
   }
+
+  const regex = /(?=.*[A-Z])(?=.*[!@#$%^&*])/;
+  if (!regex.test(password))
+    return "Password must include at least one uppercase letter and one special character";
   return null;
 }
 
@@ -22,7 +26,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: validationError }, { status: 400 });
     }
 
-    // Check if user already exists
     const existingUser = await findUserByEmail(email);
 
     if (existingUser) {
