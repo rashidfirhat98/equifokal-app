@@ -4,6 +4,8 @@ import Portfolio from "./Portfolio";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import ArticleList from "./ArticleList";
 import {
+  fetchFollowersList,
+  fetchFollowingList,
   fetchUserArticleList,
   fetchUserGalleriesList,
   fetchUserImages,
@@ -20,7 +22,11 @@ export default async function DashboardTabs({ user }: Props) {
   const galleriesRes = await fetchUserGalleriesList(user.id);
   const articlesRes = await fetchUserArticleList(user.id);
   const portfolioRes = await fetchUserPortfolioImages(user.id);
+  const followerRes = await fetchFollowersList(user.id);
+  const followingRes = await fetchFollowingList(user.id);
 
+  console.log("followerRes:", followerRes);
+  console.log("followingRes:", followingRes);
   const { galleries, nextCursor } = galleriesRes;
   return (
     <Tabs orientation="vertical" defaultValue="portfolio" className="w-full">

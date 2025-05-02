@@ -60,3 +60,25 @@ export const totalUserFollowings = async (userId: string) => {
     },
   });
 };
+
+export const findFollowerListByUserId = async (userId: string) => {
+  return prisma.follow.findMany({
+    where: {
+      followingId: userId,
+    },
+    include: {
+      follower: true,
+    },
+  });
+};
+
+export const findFollowingListByUserId = async (userId: string) => {
+  return prisma.follow.findMany({
+    where: {
+      followerId: userId,
+    },
+    include: {
+      following: true,
+    },
+  });
+};

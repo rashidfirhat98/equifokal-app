@@ -44,7 +44,6 @@ export default function ArticleList({
         `/api/articles?userId=${userId}&cursor=${nextCursor ?? ""}&limit=10`
       );
       const data = await res.json();
-      console.log(data);
       setArticles((prev) => [...prev, ...data.articles]);
       setNextCursor(data.nextCursor);
     } catch (error) {

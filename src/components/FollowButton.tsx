@@ -1,19 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { SetStateAction } from "react";
 import { Button } from "./ui/button";
 
 export default function FollowButton({
   followerId,
   followingId,
-  isFollowingInitial,
+  isFollowing,
+  setIsFollowing,
 }: {
   followerId: string;
   followingId: string;
-  isFollowingInitial?: boolean;
+  isFollowing: boolean;
+  setIsFollowing: React.Dispatch<SetStateAction<boolean>>;
 }) {
-  const [isFollowing, setIsFollowing] = useState(isFollowingInitial);
-
   async function toggleFollow() {
     await fetch("/api/follow", {
       method: isFollowing ? "DELETE" : "POST",

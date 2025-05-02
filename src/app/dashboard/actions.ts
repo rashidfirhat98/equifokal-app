@@ -16,6 +16,7 @@ import {
 } from "@/lib/services/galleries";
 import { getArticlesList } from "@/lib/services/articles";
 import { getUserDetails } from "@/lib/services/user";
+import { getFollowerList, getFollowingList } from "@/lib/services/follow";
 
 const gallerySchema = z.object({
   title: z.string().min(3),
@@ -390,5 +391,47 @@ export const fetchUserArticleList = async (
   } catch (error) {
     console.error("Error fetching user article list:", error);
     throw new Error("Failed to fetch user article list.");
+  }
+};
+
+export const fetchFollowersList = async (userId: string) => {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      throw new Error("Unauthorized");
+    }
+
+    const userIdParam = userId ?? session.user.id;
+
+    if (!userIdParam) {
+      throw new Error("Not authenticated or no user ID provided.");
+    }
+
+    return await getFollowerList(userIdParam);
+  } catch (error) {
+    console.error("Error fetching user followers list:", error);
+    throw new Error("Failed to fetch user followers list.");
+  }
+};
+
+export const fetchFollowingList = async (userId: string) => {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      throw new Error("Unauthorized");
+    }
+
+    const userIdParam = userId ?? session.user.id;
+
+    if (!userIdParam) {
+      throw new Error("Not authenticated or no user ID provided.");
+    }
+
+    return await getFollowingList(userIdParam);
+  } catch (error) {
+    console.error("Error fetching user followers list:", error);
+    throw new Error("Failed to fetch user followers list.");
   }
 };
