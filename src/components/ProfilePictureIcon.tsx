@@ -1,20 +1,19 @@
+import { profilePicURL } from "@/lib/utils";
 import Image from "next/image";
 import React from "react";
-import profilePic from "@/assets/images/EQFKL_logo.jpg";
 
 type Props = {
-  profilePicURL: string | null;
+  profilePic: string | null;
   width: number;
   height: number;
 };
 
 export default function ProfilePictureIcon({
-  profilePicURL,
+  profilePic,
   width,
   height,
 }: Props) {
-  const defaultProfilePic = profilePic;
-  const profilePicIcon = profilePicURL || defaultProfilePic;
+  const profilePicIcon = profilePicURL(profilePic);
   return (
     <Image
       src={profilePicIcon}

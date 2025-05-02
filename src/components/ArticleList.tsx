@@ -120,7 +120,7 @@ export default function ArticleList({
                 </div>
                 <div className="flex pt-3 items-center gap-4">
                   <ProfilePictureIcon
-                    profilePicURL={article.profilePic}
+                    profilePic={article.profilePic}
                     width={30}
                     height={30}
                   />

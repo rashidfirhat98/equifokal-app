@@ -75,7 +75,7 @@ export default function DashboardUserDetails({
           <div className="grid grid-cols-3 gap-2  ">
             <div className="flex flex-col md:items-start items-center">
               <p className="text-xs font-thin muted whitespace-nowrap">POSTS</p>
-              <h4 className="font-semibold">30</h4>
+              <h4 className="font-semibold">{profileUser.postCount}</h4>
             </div>
             <div className="flex flex-col md:items-start items-center mb-3">
               <p className="text-xs font-thin muted whitespace-nowrap">

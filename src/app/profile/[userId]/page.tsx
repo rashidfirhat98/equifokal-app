@@ -17,7 +17,6 @@ export default async function OtherUserProfilePage({ params }: Props) {
   const currentUser = await fetchCurrentUser();
   const isFollowing = await fetchIsFollowing(user.id, currentUser?.id);
 
-  console.log(isFollowing);
   if (!user) {
     return <div>User not found</div>;
   }

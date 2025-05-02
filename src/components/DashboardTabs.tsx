@@ -11,10 +11,13 @@ import {
   fetchUserImages,
   fetchUserPortfolioImages,
 } from "@/app/dashboard/actions";
-import { User } from "next-auth";
+import FollowersList from "./FollowersList";
+import FollowingsList from "./UserList";
+import { UserDetails } from "@/models/User";
+import UserList from "./UserList";
 
 type Props = {
-  user: User;
+  user: UserDetails;
 };
 
 export default async function DashboardTabs({ user }: Props) {
@@ -24,9 +27,7 @@ export default async function DashboardTabs({ user }: Props) {
   const portfolioRes = await fetchUserPortfolioImages(user.id);
   const followerRes = await fetchFollowersList(user.id);
   const followingRes = await fetchFollowingList(user.id);
-
-  console.log("followerRes:", followerRes);
-  console.log("followingRes:", followingRes);
+  console.log(followingRes);
   const { galleries, nextCursor } = galleriesRes;
   return (
     <Tabs orientation="vertical" defaultValue="portfolio" className="w-full">
@@ -38,11 +39,15 @@ export default async function DashboardTabs({ user }: Props) {
         <TabsTrigger value="following">Following</TabsTrigger>
       </TabsList>
       <TabsContent value="portfolio">
-        <Portfolio
-          initialPhotos={portfolioRes.photos}
-          initialCursor={portfolioRes.nextCursor}
-          userId={user.id}
-        />
+        {portfolioRes.photos.length > 0 ? (
+          <Portfolio
+            initialPhotos={portfolioRes.photos}
+            initialCursor={portfolioRes.nextCursor}
+            userId={user.id}
+          />
+        ) : (
+          <div className="text-center large">No photos found</div>
+        )}
       </TabsContent>
       <TabsContent value="gallery">
         {galleries && galleries.length > 0 ? (
@@ -63,11 +68,26 @@ export default async function DashboardTabs({ user }: Props) {
             userId={user.id}
           />
         ) : (
-          <div className="text-center">No articles found</div>
+          <div className="text-center large">No articles found</div>
         )}
       </TabsContent>
       <TabsContent value="followers">
-        <div>Insert Follower list here</div>
+        {followerRes.length > 0 ? (
+          <UserList users={followerRes} />
+        ) : (
+          <div className="text-center large">
+            User does not have any followers yet
+          </div>
+        )}
+      </TabsContent>
+      <TabsContent value="following">
+        {followingRes.length > 0 ? (
+          <UserList users={followingRes} />
+        ) : (
+          <div className="text-center large">
+            User is not following anyone yet
+          </div>
+        )}
       </TabsContent>
     </Tabs>
   );

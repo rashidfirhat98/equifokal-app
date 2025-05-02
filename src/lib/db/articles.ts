@@ -113,3 +113,9 @@ export const insertArticleGalleryByGalleryIds = async ({
     skipDuplicates: true,
   });
 };
+
+export const totalArticlesByUserId = async (userId: string) => {
+  return await prisma.article.count({
+    where: { userId },
+  });
+};
