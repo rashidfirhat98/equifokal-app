@@ -2,7 +2,7 @@ import fetchImages from "@/lib/utils/fetchImages";
 import type { ImagesResults } from "@/models/Images";
 import ImgContainer from "./ImgContainer";
 import addBlurredDataUrls from "@/lib/utils/getBase64";
-import getPrevNextPages from "@/lib/getPrevNextPages";
+import getPrevNextPages from "@/lib/utils/getPrevNextPages";
 import Footer from "./Footer";
 
 type Props = {
