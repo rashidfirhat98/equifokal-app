@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
 import Navbar from "@/components/Navbar";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ export default function RootLayout({
       >
         <Navbar />
         <main className="max-w-6xl mx-auto">{children}</main>
+        <SpeedInsights />
       </body>
     </html>
   );
