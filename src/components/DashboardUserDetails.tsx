@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import FollowButton from "./FollowButton";
 import { UserDetails } from "@/models/User";
-import { profilePicURL } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import { profilePicURL } from "@/lib/utils/profilePic";
+import ProfilePictureIcon from "./ProfilePictureIcon";
 
 type Props = {
   user: UserDetails;
@@ -46,12 +46,10 @@ export default function DashboardUserDetails({
     <section className="px-4 py-12">
       <div className="md:grid md:grid-cols-4 gap-4 md:gap-3 flex flex-col justify-center items-center">
         <div className="col-span-1 flex items-center justify-center">
-          <Image
-            width={90}
-            height={90}
-            alt="profile-pic"
-            src={profilePic}
-            className="rounded-full aspect-square object-cover"
+          <ProfilePictureIcon
+            profilePic={user.profilePic}
+            width={100}
+            height={100}
           />
         </div>
         <div className="w-full col-span-3 h-full flex flex-col items-center md:items-start md:pl-4 md:border-l-2 border-gray-100 ">

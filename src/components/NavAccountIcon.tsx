@@ -19,6 +19,7 @@ import {
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { profilePicURL } from "@/lib/utils/profilePic";
 
 type Props = {
   user: {
@@ -35,7 +36,7 @@ type Props = {
 };
 
 export default function NavAccountIcon({ user }: Props) {
-  const profilePicUrl = user.profilePic;
+  const profilePic = profilePicURL(user.profilePic);
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -47,7 +48,7 @@ export default function NavAccountIcon({ user }: Props) {
     <DropdownMenu>
       <DropdownMenuTrigger className="cursor-pointer" asChild>
         <Image
-          src={profilePicUrl || profilePic}
+          src={profilePic}
           alt={"profilePicIcon"}
           width={30}
           height={30}

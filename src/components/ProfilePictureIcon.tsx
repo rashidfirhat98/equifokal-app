@@ -1,4 +1,4 @@
-import { profilePicURL } from "@/lib/utils";
+import { profilePicURL } from "@/lib/utils/profilePic";
 import Image from "next/image";
 import React from "react";
 

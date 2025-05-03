@@ -29,7 +29,7 @@ export const editUserDetails = async ({
   bio,
   profilePicURL,
 }: EditUserDetailsArg) => {
-  const updatedUser = updateUserById({
+  const updatedUser = await updateUserById({
     id: userId,
     name,
     email,

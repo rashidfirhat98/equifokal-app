@@ -8,6 +8,7 @@ const env = cleanEnv(process.env, {
   NEXT_AWS_S3_SECRET_ACCESS_KEY: str(),
   NEXT_AWS_S3_BUCKET_NAME: str(),
   NEXT_PUBLIC_CLIENT_URL: str(),
+  NEXT_PUBLIC_AWS_S3_BUCKET_URL: str(),
 });
 
 export default env;

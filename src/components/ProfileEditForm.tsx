@@ -46,8 +46,6 @@ const formSchema = z.object({
 });
 
 export default function ProfileEditForm({ userDetails }: Props) {
-  //TODO: Call user details API
-  //TODO: Change to edit profile form
   const profilePicURL = userDetails.profilePic || profilePic;
 
   const form = useForm<z.infer<typeof formSchema>>({

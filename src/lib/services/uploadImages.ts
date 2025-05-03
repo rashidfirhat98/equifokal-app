@@ -1,6 +1,6 @@
 import env from "@/lib/env";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { insertUserImage } from "./db/images";
+import { insertUserImage } from "../db/images";
 import {
   UploadedImage,
   UploadImageArgs,

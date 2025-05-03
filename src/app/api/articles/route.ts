@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
-import { uploadImages } from "@/lib/uploadImages";
+import { uploadImages } from "@/lib/services/uploadImages";
 import { createArticle, getArticlesList } from "@/lib/services/articles";
-import { extractUploadData } from "@/lib/extractUploadData";
+import { extractUploadData } from "@/lib/utils/extractUploadData";
 
 export async function GET(req: Request) {
   try {

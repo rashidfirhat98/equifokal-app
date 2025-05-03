@@ -6,7 +6,7 @@ import {
   findUserPortfolioImages,
   totalImagesByUserId,
 } from "../db/images";
-import addBlurredDataUrls from "../getBase64";
+import addBlurredDataUrls from "../utils/getBase64";
 
 export const getUserPortfolioImages = async (
   userId: string,

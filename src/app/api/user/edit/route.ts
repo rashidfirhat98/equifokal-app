@@ -1,8 +1,8 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/authOptions";
-import { uploadImages } from "@/lib/uploadImages";
-import { extractUploadData } from "@/lib/extractUploadData";
+import { uploadImages } from "@/lib/services/uploadImages";
+import { extractUploadData } from "@/lib/utils/extractUploadData";
 import { editUserDetails } from "@/lib/services/user";
 
 export async function POST(req: Request) {

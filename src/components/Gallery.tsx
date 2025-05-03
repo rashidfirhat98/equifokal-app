@@ -1,7 +1,7 @@
-import fetchImages from "@/lib/fetchImages";
+import fetchImages from "@/lib/utils/fetchImages";
 import type { ImagesResults } from "@/models/Images";
 import ImgContainer from "./ImgContainer";
-import addBlurredDataUrls from "@/lib/getBase64";
+import addBlurredDataUrls from "@/lib/utils/getBase64";
 import getPrevNextPages from "@/lib/getPrevNextPages";
 import Footer from "./Footer";
 

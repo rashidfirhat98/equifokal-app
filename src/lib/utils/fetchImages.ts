@@ -1,6 +1,6 @@
 import type { ImagesResults } from "@/models/Images";
 import { ImagesSchemaWithPhotos } from "@/models/Images";
-import env from "./env";
+import env from "../env";
 
 export default async function fetchImages(
   url: string
