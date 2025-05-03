@@ -51,7 +51,7 @@ export default function ArticleList({
     } finally {
       setLoading(false);
     }
-  }, [nextCursor]);
+  }, [nextCursor, userId]);
 
   useEffect(() => {
     nextCursorRef.current = nextCursor;

@@ -37,7 +37,7 @@ export default function Portfolio({
     } finally {
       setLoading(false);
     }
-  }, [nextCursor]);
+  }, [nextCursor, userId]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(

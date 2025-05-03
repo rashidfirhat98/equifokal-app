@@ -18,7 +18,7 @@ export default function ArticleSection({ article }: Props) {
           </div>
           <div className="flex pt-6 items-center gap-4">
             <ProfilePictureIcon
-              profilePicURL={article.profilePic}
+              profilePic={article.profilePic}
               width={50}
               height={50}
             />

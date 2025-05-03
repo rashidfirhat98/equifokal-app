@@ -1,6 +1,8 @@
+import { Metadata } from "@prisma/client";
+
 type FileWithMetadata = {
   file: File;
-  metadata: Record<string, any> | null;
+  metadata: ExtractedMetadata | null;
 };
 
 type ExtractedUploadData = {

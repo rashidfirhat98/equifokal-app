@@ -52,7 +52,7 @@ export default function GalleryList({
       setLoading(false);
       isFetchingRef.current = false;
     }
-  }, [nextCursor]);
+  }, [nextCursor, userId]);
 
   // Update the ref whenever the state changes
   useEffect(() => {

@@ -4,7 +4,7 @@ import { unauthorized } from "next/navigation";
 import { fetchCurrentUser, fetchUserArticleList } from "./actions";
 
 export default async function ArticleListPage() {
-  const user = fetchCurrentUser();
+  const user = await fetchCurrentUser();
   if (!user) {
     return unauthorized();
   }
@@ -20,7 +20,11 @@ export default async function ArticleListPage() {
         <h1 className="heading-2 my-8">Articles</h1>
         <h2 className="heading-5 mt-10">Your Articles</h2>
       </section>
-      <ArticleList initialArticles={articles} initialCursor={nextCursor} />
+      <ArticleList
+        initialArticles={articles}
+        initialCursor={nextCursor}
+        userId={user.id}
+      />
     </>
   );
 }

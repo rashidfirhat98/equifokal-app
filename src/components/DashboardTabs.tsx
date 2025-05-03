@@ -11,8 +11,6 @@ import {
   fetchUserImages,
   fetchUserPortfolioImages,
 } from "@/app/dashboard/actions";
-import FollowersList from "./FollowersList";
-import FollowingsList from "./UserList";
 import { UserDetails } from "@/models/User";
 import UserList from "./UserList";
 
@@ -27,7 +25,6 @@ export default async function DashboardTabs({ user }: Props) {
   const portfolioRes = await fetchUserPortfolioImages(user.id);
   const followerRes = await fetchFollowersList(user.id);
   const followingRes = await fetchFollowingList(user.id);
-  console.log(followingRes);
   const { galleries, nextCursor } = galleriesRes;
   return (
     <Tabs orientation="vertical" defaultValue="portfolio" className="w-full">
