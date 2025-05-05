@@ -1,7 +1,9 @@
 import UploadForm from "@/components/UploadForm";
 import { unauthorized } from "next/navigation";
-import { fetchCurrentUser, fetchUserImages } from "./actions";
+import { fetchCurrentUser, fetchUserPhotoCount } from "./actions";
 import PhotoList from "@/components/PhotoList";
+import { Suspense } from "react";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default async function UploadPage() {
   const user = await fetchCurrentUser();
@@ -10,22 +12,20 @@ export default async function UploadPage() {
     return unauthorized();
   }
 
-  const res = await fetchUserImages();
+  const photoCount = await fetchUserPhotoCount(user.id);
 
-  const { photos, nextCursor, totalResults } = res;
-
-  if (!photos?.length) {
-    return <UploadForm photosAmt={totalResults} />;
-  } else {
-    return (
-      <section className="px-2 py-3">
-        <h1 className="heading-2 my-8">Photo Bucket</h1>
-        <UploadForm photosAmt={totalResults} />
+  return (
+    <section className="px-2 py-3">
+      <h1 className="heading-2 my-8">Photo Bucket</h1>
+      <UploadForm photosAmt={photoCount} />
+      {photoCount > 0 && (
         <div>
           <h2 className="heading-5 mt-10">Your Photos</h2>
-          <PhotoList initialPhotos={photos} initialCursor={nextCursor} />
+          <Suspense fallback={<LoadingSpinner />}>
+            <PhotoList userId={user.id} />
+          </Suspense>
         </div>
-      </section>
-    );
-  }
+      )}
+    </section>
+  );
 }

@@ -4,6 +4,7 @@ import {
   findArticlesByUserIdAndCursor,
   insertArticleGalleryByGalleryIds,
   insertUserArticle,
+  totalArticlesByUserId,
 } from "../db/articles";
 
 type CreateArticleInput = {
@@ -191,4 +192,13 @@ export const createArticle = async ({
   }
 
   return { article };
+};
+
+export const getUserArticleCount = async (userId: string) => {
+  const count = await totalArticlesByUserId(userId);
+
+  if (!count) {
+    throw new Error("Article count not found");
+  }
+  return count;
 };

@@ -5,42 +5,33 @@ import GalleryCard from "./GalleryCard";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
+import GalleryForm from "./GalleryForm";
 
 type Props = {
-  initialGalleries: Gallery[] | undefined;
-  initialCursor: number | null;
   userId: string;
 };
 
-export default function GalleryList({
-  initialGalleries,
-  initialCursor,
-  userId,
-}: Props) {
-  const [galleries, setGalleries] = useState<Gallery[]>(initialGalleries || []);
-  const [nextCursor, setNextCursor] = useState<number | null>(initialCursor);
+export default function GalleryList({ userId }: Props) {
+  const [galleries, setGalleries] = useState<Gallery[]>([]);
+  const [nextCursor, setNextCursor] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const didMountRef = useRef(false);
   const isFetchingRef = useRef(false);
-  const lastCursorRef = useRef<number | null>(null);
-  const nextCursorRef = useRef<number | null>(initialCursor);
+  const hasFetched = useRef(false);
 
-  const fetchMoreImages = useCallback(async () => {
-    if (
-      isFetchingRef.current ||
-      !nextCursor ||
-      nextCursor === lastCursorRef.current
-    )
-      return;
+  const fetchMoreGalleries = useCallback(async () => {
+    if (isFetchingRef.current || (hasLoaded && !nextCursor)) return;
 
     isFetchingRef.current = true;
-    lastCursorRef.current = nextCursor;
     setLoading(true);
 
     try {
       const res = await fetch(
-        `/api/user/galleries?userId=${userId}&cursor=${nextCursor}&limit=10`
+        `/api/user/galleries?userId=${userId}&cursor=${
+          nextCursor ?? ""
+        }&limit=10`
       );
       const data = await res.json();
 
@@ -50,29 +41,23 @@ export default function GalleryList({
       console.error("Error fetching images:", error);
     } finally {
       setLoading(false);
+      setHasLoaded(true);
       isFetchingRef.current = false;
     }
-  }, [nextCursor, userId]);
+  }, [nextCursor, userId, hasLoaded]);
 
-  // Update the ref whenever the state changes
   useEffect(() => {
-    nextCursorRef.current = nextCursor;
-  }, [nextCursor]);
+    if (!hasFetched.current) {
+      fetchMoreGalleries();
+      hasFetched.current = true;
+    }
+  }, [fetchMoreGalleries]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        const first = entries[0];
-        console.log("Observer sees cursor:", nextCursorRef.current);
-
-        if (
-          didMountRef.current &&
-          first.isIntersecting &&
-          nextCursorRef.current &&
-          !loading &&
-          nextCursorRef.current !== lastCursorRef.current
-        ) {
-          fetchMoreImages();
+        if (entries[0].isIntersecting && !loading && nextCursor) {
+          fetchMoreGalleries();
         }
       },
       { threshold: 1 }
@@ -86,17 +71,24 @@ export default function GalleryList({
     return () => {
       if (currentLoader) observer.unobserve(currentLoader);
     };
-  }, [loading, fetchMoreImages]);
+  }, [loading, fetchMoreGalleries, nextCursor]);
   return (
-    <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-2 my-3">
-      {galleries &&
+    <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-3">
+      {!hasLoaded ? (
+        <div className="col-span-full text-center py-8">
+          <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
+        </div>
+      ) : galleries ? (
         galleries.map((gallery) => (
           <Link key={gallery.id} href={`/gallery/${gallery.id}`}>
             <GalleryCard key={gallery.id} gallery={gallery} />
           </Link>
-        ))}
+        ))
+      ) : (
+        <GalleryForm />
+      )}
       <div ref={loaderRef} className="loader flex items-center justify-center">
-        {loading && (
+        {loading && hasLoaded && (
           <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
         )}
       </div>

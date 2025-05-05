@@ -158,3 +158,12 @@ export const getImageWithMetadataById = async (id: number) => {
     // updatedAt: photo.updatedAt.toISOString(),
   };
 };
+
+export const getUserPhotoCount = async (userId: string) => {
+  const count = await totalImagesByUserId(userId);
+
+  if (!count) {
+    throw new Error("Photo count not found");
+  }
+  return count;
+};

@@ -191,7 +191,7 @@ export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
         <CardDescription>
           {photosAmt
             ? `You have ${photosAmt} photos uploaded in the bucket.`
-            : "You don't have any photos in the bucket."}{" "}
+            : "You don't have any photos in the bucket. "}
           Click to add more photos. Or how about viewing the creations of other
           travellers for some inspiration?
         </CardDescription>

@@ -5,39 +5,29 @@ import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "./ui/button";
 import ProfilePictureIcon from "./ProfilePictureIcon";
 
 type Props = {
-  initialArticles: Article[];
-  initialCursor: number | null;
   userId: string;
 };
 
-export default function ArticleList({
-  initialArticles,
-  initialCursor,
-  userId,
-}: Props) {
-  const [articles, setArticles] = useState<Article[]>(initialArticles);
-  const [nextCursor, setNextCursor] = useState<number | null>(initialCursor);
+export default function ArticleList({ userId }: Props) {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [nextCursor, setNextCursor] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const loaderRef = useRef<HTMLDivElement | null>(null);
-  const isFetchingRef = useRef(false);
   const didMountRef = useRef(false);
-  const lastCursorRef = useRef<number | null>(null);
-  const nextCursorRef = useRef<number | null>(initialCursor);
+  const isFetchingRef = useRef(false);
+  const hasFetched = useRef(false);
 
   const fetchMoreArticles = useCallback(async () => {
-    if (
-      isFetchingRef.current ||
-      !nextCursor ||
-      nextCursor === lastCursorRef.current
-    )
-      return;
+    console.log("triggered");
+    if (isFetchingRef.current) return;
+
+    if (hasLoaded && nextCursor === null) return;
 
     isFetchingRef.current = true;
-    lastCursorRef.current = nextCursor;
     setLoading(true);
     try {
       const res = await fetch(
@@ -50,29 +40,25 @@ export default function ArticleList({
       console.error("Error fetching images:", error);
     } finally {
       setLoading(false);
+      setHasLoaded(true);
+      isFetchingRef.current = false;
     }
-  }, [nextCursor, userId]);
+  }, [nextCursor, userId, hasLoaded]);
 
   useEffect(() => {
-    nextCursorRef.current = nextCursor;
-  }, [nextCursor]);
+    if (!hasFetched.current) {
+      fetchMoreArticles();
+      hasFetched.current = true;
+    }
+  }, [fetchMoreArticles]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const observer = new IntersectionObserver(
       (entries) => {
-        console.log("Observer sees cursor:", nextCursor);
-        const first = entries[0];
-        if (
-          didMountRef.current &&
-          first.isIntersecting &&
-          nextCursorRef.current &&
-          !loading &&
-          nextCursorRef.current !== lastCursorRef.current
-        ) {
+        if (entries[0].isIntersecting && !loading && nextCursor) {
           fetchMoreArticles();
         }
-        console.log("Observer unobserved cursor:", nextCursor);
       },
       { threshold: 1 }
     );
@@ -89,7 +75,11 @@ export default function ArticleList({
   return (
     <>
       <section className="px-2 mt-3 pb-3">
-        {articles &&
+        {!hasLoaded ? (
+          <div className="col-span-full text-center py-8">
+            <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
+          </div>
+        ) : articles ? (
           articles.map((article) => (
             <Link key={article.id} href={`/article/${article.id}`}>
               <div className="my-3 p-3 md:p-6 border-b-2 ">
@@ -138,9 +128,12 @@ export default function ArticleList({
                 </div>
               </div>
             </Link>
-          ))}
+          ))
+        ) : (
+          <div className="text-center large">No article found</div>
+        )}
         <div ref={loaderRef} className="loader my-6">
-          {loading && (
+          {loading && hasLoaded && (
             <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
           )}
         </div>

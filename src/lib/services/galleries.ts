@@ -161,3 +161,12 @@ export const getGalleryWithImageMetadataById = async (galleryId: number) => {
     updatedAt: gallery.updatedAt.toISOString(),
   };
 };
+
+export const getUserGalleryCount = async (userId: string) => {
+  const count = totalGalleriesByUserId(userId);
+
+  if (!count) {
+    throw new Error("Gallery count not found");
+  }
+  return count;
+};

@@ -16,8 +16,8 @@ export default function UserList({ users }: Props) {
           </div>
         ))
       ) : (
-        <div>
-          <p className="large">You are not following anyone yet</p>
+        <div className="text-center large">
+          User is not following anyone yet
         </div>
       )}
     </section>

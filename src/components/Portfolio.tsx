@@ -6,19 +6,14 @@ import ImgContainer from "./ImgContainer";
 import { Loader2 } from "lucide-react";
 
 type Props = {
-  initialPhotos: Photo[];
-  initialCursor: number | null;
   userId: string;
 };
 
-export default function Portfolio({
-  initialPhotos,
-  initialCursor,
-  userId,
-}: Props) {
-  const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
-  const [nextCursor, setNextCursor] = useState<number | null>(initialCursor);
+export default function Portfolio({ userId }: Props) {
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [nextCursor, setNextCursor] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const hasFetched = useRef(false);
 
@@ -36,8 +31,16 @@ export default function Portfolio({
       console.error("Error fetching images:", error);
     } finally {
       setLoading(false);
+      setHasLoaded(true);
     }
   }, [nextCursor, userId]);
+
+  useEffect(() => {
+    if (!hasFetched.current) {
+      fetchMoreImages();
+      hasFetched.current = true;
+    }
+  }, [fetchMoreImages]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -61,12 +64,18 @@ export default function Portfolio({
   return (
     <>
       <section className="px-2 my-3 grid grid-cols-gallery auto-rows-[10px]">
-        {photos.map((photo) => (
-          <ImgContainer key={photo.id} photo={photo} />
-        ))}
+        {!hasLoaded ? (
+          <div className="col-span-full text-center py-8">
+            <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
+          </div>
+        ) : photos.length > 0 ? (
+          photos.map((photo) => <ImgContainer key={photo.id} photo={photo} />)
+        ) : (
+          <div className="text-center large col-span-full">No photos found</div>
+        )}
       </section>
       <div ref={loaderRef} className="loader">
-        {loading && (
+        {loading && hasLoaded && (
           <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
         )}
       </div>

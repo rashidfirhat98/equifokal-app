@@ -1,7 +1,7 @@
 "use client";
 
-import { Check, ChevronsUpDown, X } from "lucide-react";
-import { useState } from "react";
+import { Check, ChevronsUpDown, Loader2, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import {
   Command,
   CommandEmpty,
@@ -24,15 +24,21 @@ type Props = {
   photos: Photo[];
   selectedPhotos: number[];
   setSelectedPhotos: (ids: number[]) => void;
+  loading?: boolean;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
 };
 
 export default function MultiSelectInput({
   photos,
   selectedPhotos = [],
   setSelectedPhotos,
+  loading,
+  onLoadMore,
+  hasMore,
 }: Props) {
   const [open, setOpen] = useState(false);
-
+  const loaderRef = useRef<HTMLDivElement | null>(null);
   const handleSelect = (photo: Photo) => {
     const updatedPhotos = selectedPhotos.includes(photo.id)
       ? selectedPhotos.filter((id) => id !== photo.id)
@@ -40,6 +46,26 @@ export default function MultiSelectInput({
 
     setSelectedPhotos(updatedPhotos);
   };
+
+  useEffect(() => {
+    if (!onLoadMore || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loading) {
+          onLoadMore();
+        }
+      },
+      { threshold: 1 }
+    );
+
+    const node = loaderRef.current;
+    if (node) observer.observe(node);
+
+    return () => {
+      if (node) observer.unobserve(node);
+    };
+  }, [onLoadMore, hasMore, loading]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -108,13 +134,15 @@ export default function MultiSelectInput({
                     onSelect={() => handleSelect(photo)}
                     className="flex items-center gap-2 p-2"
                   >
-                    <Image
-                      src={photo.src.large}
-                      alt={photo.alt}
-                      width={48}
-                      height={48}
-                      className="rounded-md object-cover"
-                    />
+                    <div className="relative aspect-[4/3] w-10">
+                      <Image
+                        src={photo.src.large}
+                        alt={photo.alt}
+                        fill
+                        className="rounded-md object-cover"
+                      />
+                    </div>
+
                     <span className="text-sm truncate">{photo.alt}</span>
                     <Check
                       className={cn(
@@ -125,6 +153,11 @@ export default function MultiSelectInput({
                   </CommandItem>
                 );
               })}
+              {hasMore && (
+                <div ref={loaderRef} className="flex justify-center py-2">
+                  <Loader2 className="animate-spin text-gray-500 w-6 h-6" />
+                </div>
+              )}
             </CommandGroup>
           </CommandList>
         </Command>

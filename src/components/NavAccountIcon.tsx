@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import profilePic from "@/assets/images/EQFKL_logo.jpg";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,7 +46,7 @@ export default function NavAccountIcon({ user }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="cursor-pointer" asChild>
-        <div className="relative w-10 h-10">
+        <div className="relative w-9 h-9">
           <Image
             src={profilePic}
             alt={"profilePicIcon"}

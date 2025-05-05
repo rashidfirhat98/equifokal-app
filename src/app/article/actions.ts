@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/authOptions";
 import {
   getArticlePostDetails,
   getArticlesList,
+  getUserArticleCount,
 } from "@/lib/services/articles";
 import { getUserDetails } from "@/lib/services/user";
 import { getServerSession } from "next-auth";
@@ -60,3 +61,16 @@ export const fetchArticlePost = async (id: string) => {
     throw new Error("Failed to fetch article post.");
   }
 };
+
+export async function fetchUserArticleCount(userId: string) {
+  try {
+    if (!userId) {
+      throw new Error("Not authenticated or no user ID provided.");
+    }
+
+    return await getUserArticleCount(userId);
+  } catch (error) {
+    console.error("Error fetching user article count:", error);
+    throw new Error("User article count not found");
+  }
+}

@@ -4,8 +4,10 @@ import {
   createUserGallery,
   getUserGalleriesList,
   getUserGalleriesListWithPagination,
+  getUserGalleryCount,
 } from "@/lib/services/galleries";
 import { getUserPortfolioImages } from "@/lib/services/images";
+import { getUserDetails } from "@/lib/services/user";
 import { GalleryFormData, GalleryFormDataSchema } from "@/models/Gallery";
 import { getServerSession } from "next-auth";
 
@@ -94,3 +96,29 @@ export const submitGalleryData = async (data: GalleryFormData) => {
     throw new Error("Failed to create gallery");
   }
 };
+
+export async function fetchCurrentUser() {
+  try {
+    const session = await getServerSession(authOptions);
+
+    let currentUser = null;
+    if (session?.user.id) {
+      currentUser = await getUserDetails(session.user.id);
+    }
+    return currentUser;
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    throw new Error("User not found");
+  }
+}
+
+export async function fetchUserGalleryCount(userId: string) {
+  try {
+    if (!userId) throw new Error("Not authenticated or no user ID provided.");
+
+    return await getUserGalleryCount(userId);
+  } catch (error) {
+    console.error("Error fetching user gallery count:", error);
+    throw new Error("User gallery count not found");
+  }
+}

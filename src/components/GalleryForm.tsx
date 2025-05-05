@@ -11,10 +11,10 @@ import {
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import MultiSelectInput from "./MultiSelectInput";
-import { ImagesInfiniteResults, ImagesResults } from "@/models/Images";
+import { Photo } from "@/models/Images";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -34,7 +34,6 @@ import {
 import { submitGalleryData } from "@/app/gallery/actions";
 
 type Props = {
-  photos?: ImagesInfiniteResults | ImagesResults;
   galleriesAmt?: number;
 };
 
@@ -44,13 +43,49 @@ const formSchema = z.object({
   photoIds: z.array(z.number()).min(1, "Select at least one image"),
 });
 
-export default function GalleryForm({ photos, galleriesAmt }: Props) {
+export default function GalleryForm({ galleriesAmt }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [nextCursor, setNextCursor] = useState<number | null>(null);
   const [alert, setAlert] = useState({
     status: "",
     message: "",
   });
+
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const isFetchingRef = useRef(false);
+  const hasFetched = useRef(false);
+
+  const fetchMoreImages = useCallback(async () => {
+    if (isFetchingRef.current || (hasLoaded && !nextCursor)) return;
+
+    isFetchingRef.current = true;
+    setLoading(true);
+
+    try {
+      const res = await fetch(
+        `/api/user/photos?&cursor=${nextCursor ?? ""}&limit=10`
+      );
+      const data = await res.json();
+
+      setPhotos((prev) => [...prev, ...data.photos]);
+      setNextCursor(data.nextCursor);
+    } catch (error) {
+      console.error("Error fetching images:", error);
+    } finally {
+      setLoading(false);
+      setHasLoaded(true);
+      isFetchingRef.current = false;
+    }
+  }, [nextCursor, hasLoaded]);
+
+  useEffect(() => {
+    if (!hasFetched.current) {
+      fetchMoreImages();
+      hasFetched.current = true;
+    }
+  }, [fetchMoreImages]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -82,12 +117,13 @@ export default function GalleryForm({ photos, galleriesAmt }: Props) {
     }
   };
   return (
-    <Card className="mx-2 flex flex-col items-center">
+    <Card className="flex flex-col items-center">
       <CardHeader className="text-center pt-8">
         {/* <CardTitle>Create a gallery</CardTitle> */}
         <CardDescription>
-          {galleriesAmt &&
-            `You have ${galleriesAmt} galleries previously created. `}
+          {galleriesAmt
+            ? `You have ${galleriesAmt} galleries previously created. `
+            : "You don't have any galleries yet. "}
           Add photos from your bucket to create a gallery here.
         </CardDescription>
       </CardHeader>
@@ -137,7 +173,6 @@ export default function GalleryForm({ photos, galleriesAmt }: Props) {
                   )}
                 />
 
-                {/* Multi-Select Image Picker */}
                 {photos && (
                   <FormField
                     control={form.control}
@@ -152,7 +187,10 @@ export default function GalleryForm({ photos, galleriesAmt }: Props) {
                             <MultiSelectInput
                               selectedPhotos={field.value ?? []} // Ensure it's always an array
                               setSelectedPhotos={field.onChange}
-                              photos={photos.photos}
+                              photos={photos}
+                              loading={loading}
+                              onLoadMore={fetchMoreImages}
+                              hasMore={!!nextCursor}
                             />
                           </FormControl>
                           <FormMessage />

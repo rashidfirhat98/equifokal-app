@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/authOptions";
 import {
   getUserImages,
   getUserImagesWithPagination,
+  getUserPhotoCount,
 } from "@/lib/services/images";
 import { getUserDetails } from "@/lib/services/user";
 import { getServerSession } from "next-auth";
@@ -59,5 +60,18 @@ export async function fetchUserImagesWithPage(
   } catch (error) {
     console.error("Error fetching user images:", error);
     throw new Error("User images not found");
+  }
+}
+
+export async function fetchUserPhotoCount(userId: string) {
+  try {
+    if (!userId) {
+      throw new Error("Not authenticated or no user ID provided.");
+    }
+
+    return await getUserPhotoCount(userId);
+  } catch (error) {
+    console.error("Error fetching user photo count:", error);
+    throw new Error("User photo count not found");
   }
 }
