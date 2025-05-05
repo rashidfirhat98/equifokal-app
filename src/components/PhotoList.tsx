@@ -86,14 +86,15 @@ const PhotoList = ({ initialPhotos, initialCursor }: Props) => {
     <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-8 gap-8 my-4">
       {photos.map((photo) => (
         <div key={photo.id} className="flex flex-col items-center">
-          <Image
-            src={photo.src.large}
-            alt={photo.alt}
-            width={photo.width}
-            height={photo.height}
-            loading="lazy"
-            className="rounded-md aspect-square object-cover"
-          />
+          <div className="relative aspect-[1] w-full">
+            <Image
+              src={photo.src.large}
+              alt={photo.alt}
+              fill
+              sizes="max-width: 100px"
+              className="rounded-md aspect-square object-cover"
+            />
+          </div>
           <p className="small my-2">{photo.alt || "Untitled"}</p>
         </div>
       ))}

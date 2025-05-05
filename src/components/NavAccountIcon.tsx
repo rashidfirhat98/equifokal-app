@@ -47,13 +47,14 @@ export default function NavAccountIcon({ user }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="cursor-pointer" asChild>
-        <Image
-          src={profilePic}
-          alt={"profilePicIcon"}
-          width={30}
-          height={30}
-          className="aspect-square object-cover rounded-full"
-        />
+        <div className="relative w-10 h-10">
+          <Image
+            src={profilePic}
+            alt={"profilePicIcon"}
+            fill
+            className="aspect-square object-cover rounded-full"
+          />
+        </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>

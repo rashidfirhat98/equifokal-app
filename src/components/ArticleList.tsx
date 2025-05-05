@@ -104,12 +104,14 @@ export default function ArticleList({
                   </div>
                   <div className="col-span-4 ml-4 md:mx-6">
                     {article.coverImage && (
-                      <Image
-                        width={500}
-                        height={300}
-                        alt={article.coverImage.alt}
-                        src={article.coverImage.url}
-                      />
+                      <div className="relative aspect-[5/3]">
+                        <Image
+                          fill
+                          alt={article.coverImage.alt}
+                          src={article.coverImage.url}
+                          className="object-cover"
+                        />
+                      </div>
                     )}
                   </div>
                   {/* <div className="col-span-1 flex flex-col justify-center items-end  py-6 ml-6">

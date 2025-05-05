@@ -9,13 +9,6 @@ import {
 } from "@/components/ui/card";
 import { Gallery } from "@/models/Gallery";
 import Image from "next/image";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselPrevious,
-  CarouselNext,
-} from "./ui/carousel";
 
 type Props = {
   gallery: Gallery;

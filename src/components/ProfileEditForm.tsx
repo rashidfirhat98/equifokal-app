@@ -22,6 +22,7 @@ import profilePic from "@/assets/images/EQFKL_logo.jpg";
 import { Button } from "./ui/button";
 import { AcceptedCoverImageSchema } from "@/models/ImageUploadSchema";
 import { Checkbox } from "./ui/checkbox";
+import { profilePicURL } from "@/lib/utils/profilePic";
 
 type Props = {
   userDetails: {
@@ -46,7 +47,7 @@ const formSchema = z.object({
 });
 
 export default function ProfileEditForm({ userDetails }: Props) {
-  const profilePicURL = userDetails.profilePic || profilePic;
+  const profilePic = profilePicURL(userDetails.profilePic);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -202,7 +203,7 @@ export default function ProfileEditForm({ userDetails }: Props) {
                     width={100}
                     height={100}
                     alt="profile-pic"
-                    src={previewUrl || profilePicURL}
+                    src={previewUrl || profilePic}
                     className="rounded-full mb-6 aspect-square object-cover"
                   />
 

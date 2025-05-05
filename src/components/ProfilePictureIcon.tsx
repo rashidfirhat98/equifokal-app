@@ -15,12 +15,16 @@ export default function ProfilePictureIcon({
 }: Props) {
   const profilePicIcon = profilePicURL(profilePic);
   return (
-    <Image
-      src={profilePicIcon}
-      alt={"profilePicIcon"}
-      width={width}
-      height={height}
-      className="aspect-square object-cover rounded-full"
-    />
+    <div
+      className={`relative`}
+      style={{ width: `${width}px`, height: `${height}px` }}
+    >
+      <Image
+        src={profilePicIcon}
+        alt={"profilePicIcon"}
+        className="aspect-square object-cover rounded-full"
+        fill
+      />
+    </div>
   );
 }
