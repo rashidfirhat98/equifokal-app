@@ -165,8 +165,5 @@ export const getGalleryWithImageMetadataById = async (galleryId: number) => {
 export const getUserGalleryCount = async (userId: string) => {
   const count = totalGalleriesByUserId(userId);
 
-  if (!count) {
-    throw new Error("Gallery count not found");
-  }
   return count;
 };

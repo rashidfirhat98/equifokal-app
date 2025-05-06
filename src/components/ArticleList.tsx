@@ -79,7 +79,7 @@ export default function ArticleList({ userId }: Props) {
           <div className="col-span-full text-center py-8">
             <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
           </div>
-        ) : articles ? (
+        ) : articles.length > 0 ? (
           articles.map((article) => (
             <Link key={article.id} href={`/article/${article.id}`}>
               <div className="my-3 p-3 md:p-6 border-b-2 ">

@@ -197,8 +197,5 @@ export const createArticle = async ({
 export const getUserArticleCount = async (userId: string) => {
   const count = await totalArticlesByUserId(userId);
 
-  if (!count) {
-    throw new Error("Article count not found");
-  }
   return count;
 };

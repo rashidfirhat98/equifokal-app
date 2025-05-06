@@ -15,14 +15,11 @@ export default async function ArticleListPage() {
   return (
     <section className="mx-2 pt-3">
       <h1 className="heading-2 my-8">Articles</h1>
-      {articleCount > 0 && (
-        <div>
-          <h2 className="heading-5 mt-10">Your Articles</h2>
-          <Suspense fallback={<LoadingSpinner />}>
-            <ArticleList userId={user.id} />
-          </Suspense>
-        </div>
-      )}
+
+      <h2 className="heading-5 mt-10">Your Articles</h2>
+      <Suspense fallback={<LoadingSpinner />}>
+        <ArticleList userId={user.id} />
+      </Suspense>
     </section>
   );
 }

@@ -73,17 +73,19 @@ export default function GalleryList({ userId }: Props) {
     };
   }, [loading, fetchMoreGalleries, nextCursor]);
   return (
-    <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-3">
+    <section className="my-3">
       {!hasLoaded ? (
         <div className="col-span-full text-center py-8">
           <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
         </div>
-      ) : galleries ? (
-        galleries.map((gallery) => (
-          <Link key={gallery.id} href={`/gallery/${gallery.id}`}>
-            <GalleryCard key={gallery.id} gallery={gallery} />
-          </Link>
-        ))
+      ) : galleries.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {galleries.map((gallery) => (
+            <Link key={gallery.id} href={`/gallery/${gallery.id}`}>
+              <GalleryCard key={gallery.id} gallery={gallery} />
+            </Link>
+          ))}
+        </div>
       ) : (
         <GalleryForm />
       )}

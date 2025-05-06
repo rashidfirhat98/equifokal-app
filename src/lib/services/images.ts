@@ -162,8 +162,5 @@ export const getImageWithMetadataById = async (id: number) => {
 export const getUserPhotoCount = async (userId: string) => {
   const count = await totalImagesByUserId(userId);
 
-  if (!count) {
-    throw new Error("Photo count not found");
-  }
   return count;
 };
