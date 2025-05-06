@@ -7,6 +7,7 @@ import {
   totalImagesByUserId,
 } from "../db/images";
 import addBlurredDataUrls from "../utils/getBase64";
+import { convertToCDNUrl } from "../utils/convertToCDNUrl";
 
 export const getUserPortfolioImages = async (
   userId: string,
@@ -32,7 +33,7 @@ export const getUserPortfolioImages = async (
       width: image.metadata?.width || 1000,
       alt: image.fileName,
       src: {
-        large: image.url,
+        large: convertToCDNUrl(image.url),
       },
     }))
   );
@@ -72,7 +73,7 @@ export const getUserImagesWithPagination = async (
       width: image.metadata?.width || 2000,
       alt: image.fileName,
       src: {
-        large: image.url, // Adjust based on your storage
+        large: convertToCDNUrl(image.url),
       },
     })),
     prev_page:
@@ -113,7 +114,7 @@ export const getUserImages = async (
       width: image.metadata?.width || 1000,
       alt: image.fileName,
       src: {
-        large: image.url,
+        large: convertToCDNUrl(image.url),
       },
     }))
   );
@@ -134,11 +135,11 @@ export const getImageWithMetadataById = async (id: number) => {
 
   return {
     id: photo.id,
-    url: photo.url,
+    url: convertToCDNUrl(photo.url),
     height: photo.metadata?.height || 1000,
     width: photo.metadata?.width || 1000,
     alt: photo.fileName || "Uploaded Image",
-    src: { large: photo.url },
+    src: { large: convertToCDNUrl(photo.url) },
     photographer: photo.user.name || "Photographer",
     photographer_url: `/user/${photo.userId}`,
     photographer_id: photo.userId,

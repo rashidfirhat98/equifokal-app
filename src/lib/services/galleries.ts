@@ -6,6 +6,7 @@ import {
   totalGalleriesByUserId,
 } from "../db/galleries";
 import { GalleryFormData } from "@/models/Gallery";
+import { convertToCDNUrl } from "../utils/convertToCDNUrl";
 
 export const getUserGalleriesList = async (
   limit: number,
@@ -31,11 +32,11 @@ export const getUserGalleriesList = async (
     updatedAt: gallery.updatedAt.toISOString(),
     images: gallery.images.map((gi) => ({
       id: gi.image.id,
-      url: gi.image.url,
+      url: convertToCDNUrl(gi.image.url),
       alt: gi.image.fileName,
       width: 0,
       height: 0,
-      src: { large: gi.image.url },
+      src: { large: convertToCDNUrl(gi.image.url) },
       blurredDataUrl: undefined,
     })),
   }));
@@ -74,11 +75,11 @@ export const getUserGalleriesListWithPagination = async (
     description: gallery.description || undefined,
     images: gallery.images.map((galleryImage) => ({
       id: galleryImage.image.id,
-      url: galleryImage.image.url,
+      url: convertToCDNUrl(galleryImage.image.url),
       width: galleryImage.image.metadata?.width ?? 0,
       height: galleryImage.image.metadata?.height ?? 0,
       alt: galleryImage.image.fileName,
-      src: { large: galleryImage.image.url },
+      src: { large: convertToCDNUrl(galleryImage.image.url) },
       blurredDataUrl: undefined,
       metadata: galleryImage.image.metadata
         ? {
@@ -138,11 +139,11 @@ export const getGalleryWithImageMetadataById = async (galleryId: number) => {
     description: gallery.description || undefined,
     images: gallery.images.map((galleryImage) => ({
       id: galleryImage.image.id,
-      url: galleryImage.image.url,
+      url: convertToCDNUrl(galleryImage.image.url),
       width: galleryImage.image.metadata?.width ?? 0,
       height: galleryImage.image.metadata?.height ?? 0,
       alt: galleryImage.image.fileName,
-      src: { large: galleryImage.image.url },
+      src: { large: convertToCDNUrl(galleryImage.image.url) },
       blurredDataUrl: undefined,
       metadata: galleryImage.image.metadata
         ? {

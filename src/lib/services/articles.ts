@@ -6,6 +6,7 @@ import {
   insertUserArticle,
   totalArticlesByUserId,
 } from "../db/articles";
+import { convertToCDNUrl } from "../utils/convertToCDNUrl";
 
 type CreateArticleInput = {
   title: string;
@@ -38,8 +39,8 @@ export const getArticlePostDetails = async (articleId: number) => {
             id: articleById.coverImage.id,
             width: articleById.coverImage.metadata?.width || 0,
             height: articleById.coverImage.metadata?.height || 0,
-            url: articleById.coverImage.url,
-            src: { large: articleById.coverImage.url },
+            url: convertToCDNUrl(articleById.coverImage.url),
+            src: { large: convertToCDNUrl(articleById.coverImage.url) },
             alt: articleById.coverImage.fileName,
             metadata: articleById.coverImage.metadata
               ? {
@@ -118,8 +119,8 @@ export const getArticlesList = async (
             id: article.coverImage.id,
             width: article.coverImage.metadata?.width || 0,
             height: article.coverImage.metadata?.height || 0,
-            url: article.coverImage.url,
-            src: { large: article.coverImage.url },
+            url: convertToCDNUrl(article.coverImage.url),
+            src: { large: convertToCDNUrl(article.coverImage.url) },
             alt: article.coverImage.fileName,
             metadata: article.coverImage.metadata
               ? {
