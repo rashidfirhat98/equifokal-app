@@ -62,6 +62,8 @@ model Image {
   metadata    Metadata?      @relation("ImageMetadata")
   galleries   GalleryImage[]
   Article     Article[]      @relation("ImageCover")
+
+  @@index([userId, portfolio])
 }
 
 model Metadata {

@@ -71,6 +71,8 @@ export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
+
+    console.log(files);
     if (files) {
       setSelectedFiles(files);
       setValue("imgUploads", files, { shouldValidate: true });
@@ -230,7 +232,10 @@ export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
                           type="file"
                           accept="image/*"
                           multiple
-                          onChange={handleFileChange}
+                          onChange={(e) => {
+                            handleFileChange(e);
+                            onChange(e);
+                          }}
                           {...fieldProps}
                         />
                       </FormControl>

@@ -31,14 +31,13 @@ export async function GET(req: Request) {
         });
       }
     }
-    const start = performance.now();
+
     const { photos, nextCursor } = await getUserPortfolioImages(
       userId,
       limit,
       parsedCursor
     );
-    const end = performance.now();
-    console.log(`Fetched portfolio in ${end - start}ms`);
+
     return NextResponse.json({
       photos,
       nextCursor,

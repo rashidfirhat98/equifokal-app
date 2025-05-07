@@ -49,8 +49,20 @@ export const findUserImages = async ({
     where: {
       userId: userId,
     },
-    include: { metadata: true },
-    orderBy: [{ createdAt: "desc" }],
+    select: {
+      id: true,
+      url: true,
+      blurDataUrl: true,
+      fileName: true,
+      createdAt: true,
+      metadata: {
+        select: {
+          width: true,
+          height: true,
+        },
+      },
+    },
+    orderBy: [{ id: "desc" }],
     take: limit + 1,
     ...(cursor && {
       cursor: { id: cursor },
@@ -68,10 +80,20 @@ export const findUserImagesWithPage = async (
     skip: offset,
     take: perPage,
     where: { userId: userId },
-    orderBy: { createdAt: "desc" },
-    include: {
-      metadata: true,
+    select: {
+      id: true,
+      url: true,
+      blurDataUrl: true,
+      fileName: true,
+      createdAt: true,
+      metadata: {
+        select: {
+          width: true,
+          height: true,
+        },
+      },
     },
+    orderBy: [{ id: "desc" }],
   });
 };
 

@@ -15,6 +15,7 @@ export const getUserPortfolioImages = async (
   cursor: number | null
 ): Promise<{ photos: Photo[]; nextCursor: number | null }> => {
   const images = await findUserPortfolioImages({ userId, limit, cursor });
+
   if (!images) {
     throw new Error("No images found");
   }
@@ -25,9 +26,8 @@ export const getUserPortfolioImages = async (
     ? trimmedImages[trimmedImages.length - 1].id
     : null;
 
-  const blurStart = performance.now();
-  const photosWithBlur: Photo[] = await Promise.all(
-    trimmedImages.map((image) => ({
+  return {
+    photos: trimmedImages.map((image) => ({
       id: image.id,
       url: `/photo/${image.id}`,
       height: image.metadata?.height || 1000,
@@ -37,14 +37,7 @@ export const getUserPortfolioImages = async (
         large: convertToCDNUrl(image.url),
       },
       blurredDataUrl: image.blurDataUrl || undefined,
-    }))
-  );
-
-  const blurEnd = performance.now();
-  console.log(`Blurred data URLs generated in ${blurEnd - blurStart}ms`);
-
-  return {
-    photos: photosWithBlur,
+    })),
     nextCursor,
   };
 };
@@ -80,6 +73,7 @@ export const getUserImagesWithPagination = async (
       src: {
         large: convertToCDNUrl(image.url),
       },
+      blurredDataUrl: image.blurDataUrl || undefined,
     })),
     prev_page:
       page > 1
@@ -99,8 +93,10 @@ export const getUserImages = async (
 ) => {
   const totalResults = await totalImagesByUserId(userId);
 
+  const blurStart = performance.now();
   const images = await findUserImages({ userId, limit, cursor });
-
+  const blurEnd = performance.now();
+  console.log(`Blurred data URLs generated in ${blurEnd - blurStart}ms`);
   if (!images) {
     throw new Error("No images found");
   }
@@ -111,8 +107,8 @@ export const getUserImages = async (
     ? trimmedImages[trimmedImages.length - 1].id
     : null;
 
-  const photosWithBlur = await addBlurredDataUrls(
-    trimmedImages.map((image) => ({
+  return {
+    photos: trimmedImages.map((image) => ({
       id: image.id,
       url: `/photo/${image.id}`,
       height: image.metadata?.height || 1000,
@@ -121,11 +117,8 @@ export const getUserImages = async (
       src: {
         large: convertToCDNUrl(image.url),
       },
-    }))
-  );
-
-  return {
-    photos: photosWithBlur,
+      blurredDataUrl: image.blurDataUrl || undefined,
+    })),
     nextCursor,
     totalResults,
   };
@@ -145,6 +138,7 @@ export const getImageWithMetadataById = async (id: number) => {
     width: photo.metadata?.width || 1000,
     alt: photo.fileName || "Uploaded Image",
     src: { large: convertToCDNUrl(photo.url) },
+    blurredDataUrl: photo.blurDataUrl || undefined,
     photographer: photo.user.name || "Photographer",
     photographer_url: `/user/${photo.userId}`,
     photographer_id: photo.userId,
