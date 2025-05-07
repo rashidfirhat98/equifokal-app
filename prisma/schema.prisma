@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["tracing"]
 }
 
 datasource db {
@@ -59,6 +58,7 @@ model Image {
   createdAt   DateTime       @default(now())
   portfolio   Boolean        @default(false)
   profilePic  Boolean        @default(false)
+  blurDataUrl String?
   metadata    Metadata?      @relation("ImageMetadata")
   galleries   GalleryImage[]
   Article     Article[]      @relation("ImageCover")

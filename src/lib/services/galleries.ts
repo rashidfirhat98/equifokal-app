@@ -6,7 +6,7 @@ import {
   totalGalleriesByUserId,
 } from "../db/galleries";
 import { GalleryFormData } from "@/models/Gallery";
-import { convertToCDNUrl } from "../utils/convertToCDNUrl";
+import convertToCDNUrl from "../utils/convertToCDNUrl";
 
 export const getUserGalleriesList = async (
   limit: number,

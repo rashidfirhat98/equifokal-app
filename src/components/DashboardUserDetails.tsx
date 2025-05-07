@@ -21,7 +21,6 @@ export default function DashboardUserDetails({
 }: Props) {
   const [profileUser, setProfileUser] = useState(user);
   const [isFollowing, setIsFollowing] = useState(isFollowingInitial);
-  const profilePic = profilePicURL(user.profilePic);
 
   useEffect(() => {
     const fetchUserDetails = async () => {

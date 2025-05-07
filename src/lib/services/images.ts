@@ -7,13 +7,13 @@ import {
   totalImagesByUserId,
 } from "../db/images";
 import addBlurredDataUrls from "../utils/getBase64";
-import { convertToCDNUrl } from "../utils/convertToCDNUrl";
+import convertToCDNUrl from "../utils/convertToCDNUrl";
 
 export const getUserPortfolioImages = async (
   userId: string,
   limit: number,
   cursor: number | null
-) => {
+): Promise<{ photos: Photo[]; nextCursor: number | null }> => {
   const images = await findUserPortfolioImages({ userId, limit, cursor });
   if (!images) {
     throw new Error("No images found");
@@ -25,7 +25,8 @@ export const getUserPortfolioImages = async (
     ? trimmedImages[trimmedImages.length - 1].id
     : null;
 
-  const photosWithBlur: Photo[] = await addBlurredDataUrls(
+  const blurStart = performance.now();
+  const photosWithBlur: Photo[] = await Promise.all(
     trimmedImages.map((image) => ({
       id: image.id,
       url: `/photo/${image.id}`,
@@ -35,8 +36,12 @@ export const getUserPortfolioImages = async (
       src: {
         large: convertToCDNUrl(image.url),
       },
+      blurredDataUrl: image.blurDataUrl || undefined,
     }))
   );
+
+  const blurEnd = performance.now();
+  console.log(`Blurred data URLs generated in ${blurEnd - blurStart}ms`);
 
   return {
     photos: photosWithBlur,
@@ -106,7 +111,7 @@ export const getUserImages = async (
     ? trimmedImages[trimmedImages.length - 1].id
     : null;
 
-  const photosWithBlur: Photo[] = await addBlurredDataUrls(
+  const photosWithBlur = await addBlurredDataUrls(
     trimmedImages.map((image) => ({
       id: image.id,
       url: `/photo/${image.id}`,

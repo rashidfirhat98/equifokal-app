@@ -18,11 +18,23 @@ export const findUserPortfolioImages = async ({
       portfolio: true,
       // isPrivate: false, // future addition
     },
-    include: { metadata: true },
-    orderBy: [{ createdAt: "desc" }],
+    select: {
+      id: true,
+      url: true,
+      blurDataUrl: true,
+      fileName: true,
+      createdAt: true,
+      metadata: {
+        select: {
+          width: true,
+          height: true,
+        },
+      },
+    },
+    orderBy: { id: "desc" },
     take: limit + 1,
     ...(cursor && {
-      cursor: { id: cursor },
+      cursor: cursor ? { id: cursor } : undefined,
       skip: 1,
     }),
   });
@@ -85,6 +97,7 @@ export const insertUserImage = async ({
   fileName,
   isPortfolio,
   isProfilePic,
+  blurDataUrl,
   metadata,
 }: InsertUserImage) => {
   return await prisma.image.create({
@@ -92,6 +105,7 @@ export const insertUserImage = async ({
       userId,
       url,
       fileName,
+      blurDataUrl,
       ...(isPortfolio ? { portfolio: true } : {}),
       ...(isProfilePic ? { profilePic: true } : {}),
       metadata: metadata

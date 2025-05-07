@@ -6,7 +6,7 @@ import {
   insertUserArticle,
   totalArticlesByUserId,
 } from "../db/articles";
-import { convertToCDNUrl } from "../utils/convertToCDNUrl";
+import convertToCDNUrl from "../utils/convertToCDNUrl";
 
 type CreateArticleInput = {
   title: string;

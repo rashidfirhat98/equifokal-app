@@ -96,6 +96,7 @@ export type InsertUserImage = {
   userId: string;
   url: string;
   fileName: string;
+  blurDataUrl?: string;
   isPortfolio?: boolean;
   isProfilePic?: boolean;
   metadata?: UploadMetadata | null;

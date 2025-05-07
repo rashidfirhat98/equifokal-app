@@ -7,6 +7,13 @@ import {
   UploadImageResult,
 } from "@/models/ImageUploadSchema";
 
+import { getPlaiceholder } from "plaiceholder"; // or your current blur lib
+
+async function generateBlurDataUrl(imageBuffer: Buffer): Promise<string> {
+  const { base64 } = await getPlaiceholder(imageBuffer);
+  return base64;
+}
+
 const s3Client = new S3Client({
   region: env.NEXT_AWS_S3_REGION,
   credentials: {
@@ -16,18 +23,20 @@ const s3Client = new S3Client({
 });
 
 async function uploadFileToS3(buffer: Buffer, fileName: string) {
+  const key = `uploads/${fileName}`;
   const params = {
     Bucket: env.NEXT_AWS_S3_BUCKET_NAME,
-    Key: `${fileName}`,
+    Key: key,
     Body: buffer,
-    ContentType: "image/jpg",
+    ContentType: "image/jpeg",
+    CacheControl: "public, max-age=31536000, immutable",
   };
 
   const command = new PutObjectCommand(params);
   try {
     const response = await s3Client.send(command);
     console.log("File uploaded successfully", response);
-    const fileUrl = `https://${env.NEXT_AWS_S3_BUCKET_NAME}.s3.${env.NEXT_AWS_S3_REGION}.amazonaws.com/uploads/${fileName}`;
+    const fileUrl = `https://${env.NEXT_PUBLIC_AWS_CDN_URL}/${key}`;
 
     return fileUrl;
   } catch (error) {
@@ -48,12 +57,15 @@ export async function uploadImages({
     for (const { file, metadata } of files) {
       const buffer = Buffer.from(await file.arrayBuffer());
 
+      const blurDataUrl = await generateBlurDataUrl(buffer);
+
       const fileUrl = await uploadFileToS3(buffer, file.name);
 
       const createdImage = await insertUserImage({
         userId,
         url: fileUrl,
         fileName: file.name,
+        blurDataUrl,
         metadata: {
           model: metadata?.model,
           aperture: metadata?.aperture,
