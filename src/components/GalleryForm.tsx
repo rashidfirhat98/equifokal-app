@@ -34,6 +34,7 @@ import {
 import { submitGalleryData } from "@/app/gallery/actions";
 
 type Props = {
+  userId: string;
   galleriesAmt?: number;
 };
 
@@ -43,7 +44,7 @@ const formSchema = z.object({
   photoIds: z.array(z.number()).min(1, "Select at least one image"),
 });
 
-export default function GalleryForm({ galleriesAmt }: Props) {
+export default function GalleryForm({ userId, galleriesAmt }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -65,7 +66,7 @@ export default function GalleryForm({ galleriesAmt }: Props) {
 
     try {
       const res = await fetch(
-        `/api/user/photos?&cursor=${nextCursor ?? ""}&limit=10`
+        `/api/user/photos?&userId=${userId}&cursor=${nextCursor ?? ""}&limit=10`
       );
       const data = await res.json();
 
@@ -178,14 +179,12 @@ export default function GalleryForm({ galleriesAmt }: Props) {
                     control={form.control}
                     name="photoIds"
                     render={({ field }) => {
-                      console.log("photoIds value:", field.value); // Debug log
-
                       return (
                         <FormItem>
                           <FormLabel>Select Images</FormLabel>
                           <FormControl>
                             <MultiSelectInput
-                              selectedPhotos={field.value ?? []} // Ensure it's always an array
+                              selectedPhotos={field.value ?? []}
                               setSelectedPhotos={field.onChange}
                               photos={photos}
                               loading={loading}

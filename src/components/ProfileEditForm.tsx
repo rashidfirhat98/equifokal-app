@@ -64,7 +64,7 @@ export default function ProfileEditForm({ userDetails }: Props) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(
-    userDetails?.profilePic ?? null
+    profilePicURL(userDetails.profilePic) ?? null
   );
   const [alert, setAlert] = useState({
     status: "",

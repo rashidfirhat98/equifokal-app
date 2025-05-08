@@ -46,6 +46,11 @@ type PhotoDetails = {
   };
 };
 
+type Alert = {
+  status: string;
+  message?: string;
+};
+
 export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
   const formSchema = z.object({
     imgUploads: AcceptedImageTypeSchema,
@@ -64,19 +69,14 @@ export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [photoDetails, setPhotoDetails] = useState<PhotoDetails[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [alert, setAlert] = useState({
+  const [alert, setAlert] = useState<Alert>({
     status: "",
     message: "",
   });
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-
-    console.log(files);
+  const handleFileChange = async (files: FileList) => {
     if (files) {
       setSelectedFiles(files);
-      setValue("imgUploads", files, { shouldValidate: true });
-      setAlert({ status: "", message: "" });
 
       // Extract metadata from all images concurrently
       const metadataPromises: Promise<PhotoDetails>[] = Array.from(files).map(
@@ -210,41 +210,38 @@ export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit, (errors) =>
-                  console.log("Form Errors:", errors)
+                  setAlert({
+                    status: "error",
+                    message: errors.imgUploads?.message?.toString(),
+                  })
                 )}
                 className="space-y-3"
               >
-                <FormField
-                  control={form.control}
-                  name="imgUploads"
-                  render={({
-                    field: { value, onChange, ref: rhfRef, ...fieldProps },
-                  }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          ref={(el) => {
-                            rhfRef(el);
-                            fileInputRef.current = el;
-                          }}
-                          className="outline-dashed border-none outline-gray-300 w-full min-h-56 shadow-none"
-                          id="current"
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={(e) => {
-                            handleFileChange(e);
-                            onChange(e);
-                          }}
-                          {...fieldProps}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Drag or click on the box to upload photos
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      ref={fileInputRef}
+                      className="outline-dashed border-none outline-gray-300 w-full min-h-56 shadow-none"
+                      id="current"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files) {
+                          handleFileChange(files);
+                          setValue("imgUploads", files, {
+                            shouldValidate: true,
+                          });
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Drag or click on the box to upload photos
+                  </FormDescription>
+                </FormItem>
+
                 <FormField
                   control={form.control}
                   name="isPortfolio"

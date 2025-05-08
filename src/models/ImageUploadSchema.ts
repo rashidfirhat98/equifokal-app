@@ -5,7 +5,7 @@ import { z } from "zod";
 const acceptedImageTypes = [
   "image/png",
   "image/jpeg",
-  "image/jpg",
+  "image/webp",
   "image/svg+xml",
   "image/gif",
 ];
