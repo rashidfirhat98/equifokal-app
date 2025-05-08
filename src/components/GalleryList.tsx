@@ -87,7 +87,7 @@ export default function GalleryList({ userId }: Props) {
           ))}
         </div>
       ) : (
-        <GalleryForm />
+        <GalleryForm userId={userId} />
       )}
       <div ref={loaderRef} className="loader flex items-center justify-center">
         {loading && hasLoaded && (
