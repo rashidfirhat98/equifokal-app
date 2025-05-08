@@ -24,6 +24,7 @@ export default function ProfilePictureIcon({
         alt={"profilePicIcon"}
         className="aspect-square object-cover rounded-full"
         fill
+        sizes={`${width}px,`}
       />
     </div>
   );

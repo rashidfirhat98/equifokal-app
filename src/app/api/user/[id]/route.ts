@@ -1,9 +1,11 @@
 import { getUserDetails } from "@/lib/services/user";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const id = url.pathname.split("/").pop();
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
 
   if (!id) {
     return NextResponse.json({ error: "User id not found", status: 404 });

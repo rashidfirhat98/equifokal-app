@@ -83,7 +83,7 @@ const PhotoList = ({ userId }: Props) => {
                 src={photo.src.large}
                 alt={photo.alt}
                 fill
-                sizes="max-width: 100px"
+                sizes="(max-width: 768px) 30vw, (max-width: 1200px) 10vw, 200px"
                 className="rounded-md aspect-square object-cover"
               />
             </div>

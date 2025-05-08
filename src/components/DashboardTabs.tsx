@@ -2,22 +2,17 @@ import GalleryList from "./GalleryList";
 import Portfolio from "./Portfolio";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import ArticleList from "./ArticleList";
-import {
-  fetchFollowersList,
-  fetchFollowingList,
-} from "@/app/dashboard/actions";
 import { UserDetails } from "@/models/User";
-import UserList from "./UserList";
 import { Suspense } from "react";
 import LoadingSpinner from "./LoadingSpinner";
+
+import UserList from "./UserList";
 
 type Props = {
   user: UserDetails;
 };
 
 export default async function DashboardTabs({ user }: Props) {
-  const followerRes = await fetchFollowersList(user.id);
-  const followingRes = await fetchFollowingList(user.id);
   return (
     <Tabs orientation="vertical" defaultValue="portfolio" className="w-full">
       <TabsList className="grid w-full grid-cols-5">
@@ -44,12 +39,12 @@ export default async function DashboardTabs({ user }: Props) {
       </TabsContent>
       <TabsContent value="followers">
         <Suspense fallback={<LoadingSpinner />}>
-          <UserList users={followerRes} />
+          <UserList userId={user.id} type="follower" />
         </Suspense>
       </TabsContent>
       <TabsContent value="following">
         <Suspense fallback={<LoadingSpinner />}>
-          <UserList users={followingRes} />
+          <UserList userId={user.id} type="following" />
         </Suspense>
       </TabsContent>
     </Tabs>

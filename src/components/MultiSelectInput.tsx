@@ -139,6 +139,7 @@ export default function MultiSelectInput({
                         src={photo.src.large}
                         alt={photo.alt}
                         fill
+                        sizes="40px"
                         className="rounded-md object-cover"
                       />
                     </div>

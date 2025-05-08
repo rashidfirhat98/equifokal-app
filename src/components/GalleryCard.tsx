@@ -34,6 +34,7 @@ export default function GalleryCard({ gallery }: Props) {
                   src={image.src.large}
                   alt={image.alt}
                   fill
+                  sizes="(max-width: 768px) 30vw, (max-width: 1200px) 10vw, 200px"
                   className="rounded-md object-cover"
                 />
               </div>

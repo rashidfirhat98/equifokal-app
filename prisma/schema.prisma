@@ -27,8 +27,8 @@ model User {
   images        Image[]
   galleries     Gallery[]
   articles      Article[]
-  followers     Follow[] @relation("UserFollowers")
-  following     Follow[] @relation("UserFollowing")
+  followers     Follow[]  @relation("UserFollowers")
+  following     Follow[]  @relation("UserFollowing")
 }
 
 model Account {

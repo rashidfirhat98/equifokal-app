@@ -5,7 +5,6 @@ import Link from "next/link";
 import FollowButton from "./FollowButton";
 import { UserDetails } from "@/models/User";
 import { useEffect, useState } from "react";
-import { profilePicURL } from "@/lib/utils/profilePic";
 import ProfilePictureIcon from "./ProfilePictureIcon";
 
 type Props = {

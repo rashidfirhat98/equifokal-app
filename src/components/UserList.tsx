@@ -1,25 +1,106 @@
-import { User } from "@prisma/client";
-import React from "react";
+"use client";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import UserListItem from "./UserListItem";
+import { Loader2 } from "lucide-react";
 
 type Props = {
-  users: User[];
+  userId: string;
+  type: "follower" | "following";
 };
 
-export default function UserList({ users }: Props) {
+type Follower = {
+  id: string;
+  name: string;
+  profilePic: string;
+  bio?: string;
+};
+
+export default function UserList({ userId, type }: Props) {
+  const [users, setUsers] = useState<Follower[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const loaderRef = useRef<HTMLDivElement | null>(null);
+  const didMountRef = useRef(false);
+  const isFetchingRef = useRef(false);
+  const hasFetched = useRef(false);
+
+  const fetchUsers = useCallback(async () => {
+    if (isFetchingRef.current) return;
+
+    if (hasLoaded && nextCursor === null) return;
+    const fetchUrl =
+      type === "follower"
+        ? `/api/user/${userId}/followers?cursor=${nextCursor ?? ""}&limit=2`
+        : `/api/user/${userId}/followings?cursor=${nextCursor ?? ""}&limit=2`;
+
+    isFetchingRef.current = true;
+    setLoading(true);
+    try {
+      const res = await fetch(fetchUrl);
+      const data = await res.json();
+      setUsers((prev) => [
+        ...prev,
+        ...(type === "follower" ? data.followers : data.followings),
+      ]);
+      setNextCursor(data.nextCursor);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    } finally {
+      setLoading(false);
+      setHasLoaded(true);
+      isFetchingRef.current = false;
+    }
+  }, [nextCursor, userId, hasLoaded, type]);
+
+  useEffect(() => {
+    if (!hasFetched.current) {
+      fetchUsers();
+      hasFetched.current = true;
+    }
+  }, [fetchUsers]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loading && nextCursor) {
+          fetchUsers();
+        }
+      },
+      { threshold: 1 }
+    );
+
+    const currentLoader = loaderRef.current;
+    if (currentLoader) observer.observe(currentLoader);
+
+    didMountRef.current = true;
+
+    return () => {
+      if (currentLoader) observer.unobserve(currentLoader);
+    };
+  }, [nextCursor, loading, fetchUsers]);
+
   return (
     <section className="px-2 mt-3 pb-3">
-      {users ? (
+      {!hasLoaded ? (
+        <div className="col-span-full text-center py-8">
+          <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
+        </div>
+      ) : users.length > 0 ? (
         users.map((user) => (
           <div className="my-3 p-3 border-b-2" key={user.id}>
             <UserListItem user={user} />
           </div>
         ))
       ) : (
-        <div className="text-center large">
-          User is not following anyone yet
-        </div>
+        <div className="text-center large">User has no {type}s yet</div>
       )}
+      <div ref={loaderRef} className="loader my-6">
+        {loading && hasLoaded && (
+          <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
+        )}
+      </div>
     </section>
   );
 }

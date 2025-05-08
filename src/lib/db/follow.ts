@@ -61,24 +61,72 @@ export const totalUserFollowings = async (userId: string) => {
   });
 };
 
-export const findFollowerListByUserId = async (userId: string) => {
+export const findFollowerListByUserId = async (
+  userId: string,
+  limit: number,
+  cursor: string | null = null
+) => {
   return prisma.follow.findMany({
     where: {
       followingId: userId,
+      ...(cursor && {
+        follower: {
+          id: {
+            lt: cursor, // assuming descending order
+          },
+        },
+      }),
     },
-    include: {
-      follower: true,
+    select: {
+      follower: {
+        select: {
+          id: true,
+          name: true,
+          profilePic: true,
+          bio: true,
+        },
+      },
     },
+    orderBy: {
+      follower: {
+        id: "desc",
+      },
+    },
+    take: limit + 1,
   });
 };
 
-export const findFollowingListByUserId = async (userId: string) => {
+export const findFollowingListByUserId = async (
+  userId: string,
+  limit: number,
+  cursor: string | null = null
+) => {
   return prisma.follow.findMany({
     where: {
       followerId: userId,
+      ...(cursor && {
+        following: {
+          id: {
+            lt: cursor, // assuming descending order
+          },
+        },
+      }),
     },
-    include: {
-      following: true,
+    select: {
+      following: {
+        select: {
+          id: true,
+          name: true,
+          profilePic: true,
+          bio: true,
+        },
+      },
     },
+    orderBy: {
+      following: {
+        id: "desc",
+      },
+    },
+    take: limit + 1,
   });
 };

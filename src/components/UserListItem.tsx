@@ -3,7 +3,14 @@ import ProfilePictureIcon from "./ProfilePictureIcon";
 import { User } from "@prisma/client";
 
 type Props = {
-  user: User;
+  user: User | Follower;
+};
+
+type Follower = {
+  id: string;
+  name: string;
+  profilePic: string;
+  bio?: string;
 };
 
 export default function UserListItem({ user }: Props) {

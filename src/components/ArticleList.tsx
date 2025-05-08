@@ -100,6 +100,7 @@ export default function ArticleList({ userId }: Props) {
                           fill
                           alt={article.coverImage.alt}
                           src={article.coverImage.url}
+                          sizes="(max-width: 768px) 25vw, (max-width: 1200px) 5vw, 200px"
                           className="object-cover"
                         />
                       </div>

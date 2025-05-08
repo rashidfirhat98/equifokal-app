@@ -48,10 +48,12 @@ export default function NavAccountIcon({ user }: Props) {
       <DropdownMenuTrigger className="cursor-pointer" asChild>
         <div className="relative w-9 h-9">
           <Image
+            priority
             src={profilePic}
             alt={"profilePicIcon"}
             fill
             className="aspect-square object-cover rounded-full"
+            sizes="36px"
           />
         </div>
       </DropdownMenuTrigger>

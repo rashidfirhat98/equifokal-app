@@ -246,42 +246,42 @@ export const fetchUserArticleList = async (
   }
 };
 
-export const fetchFollowersList = async (userId: string) => {
+export const fetchFollowersList = async (
+  userId: string,
+  limit: number = 10,
+  cursor: string | null = null
+) => {
   try {
-    const session = await getServerSession(authOptions);
+    // const session = await getServerSession(authOptions);
 
-    if (!session) {
-      throw new Error("Unauthorized");
-    }
-
-    const userIdParam = userId ?? session.user.id;
+    const userIdParam = userId;
 
     if (!userIdParam) {
       throw new Error("Not authenticated or no user ID provided.");
     }
 
-    return await getFollowerList(userIdParam);
+    return await getFollowerList(userIdParam, limit, cursor);
   } catch (error) {
     console.error("Error fetching user followers list:", error);
     throw new Error("Failed to fetch user followers list.");
   }
 };
 
-export const fetchFollowingList = async (userId: string) => {
+export const fetchFollowingList = async (
+  userId: string,
+  limit: number = 10,
+  cursor: string | null = null
+) => {
   try {
-    const session = await getServerSession(authOptions);
+    // const session = await getServerSession(authOptions);
 
-    if (!session) {
-      throw new Error("Unauthorized");
-    }
-
-    const userIdParam = userId ?? session.user.id;
+    const userIdParam = userId;
 
     if (!userIdParam) {
       throw new Error("Not authenticated or no user ID provided.");
     }
 
-    return await getFollowingList(userIdParam);
+    return await getFollowingList(userIdParam, limit, cursor);
   } catch (error) {
     console.error("Error fetching user followers list:", error);
     throw new Error("Failed to fetch user followers list.");
