@@ -66,6 +66,8 @@ export async function uploadImages({
         url: fileUrl,
         fileName: file.name,
         blurDataUrl,
+        width: metadata?.width,
+        height: metadata?.height,
         metadata: {
           model: metadata?.model,
           aperture: metadata?.aperture,

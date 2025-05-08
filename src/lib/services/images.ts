@@ -93,10 +93,10 @@ export const getUserImages = async (
 ) => {
   const totalResults = await totalImagesByUserId(userId);
 
-  const blurStart = performance.now();
+  // const blurStart = performance.now();
   const images = await findUserImages({ userId, limit, cursor });
-  const blurEnd = performance.now();
-  console.log(`Blurred data URLs generated in ${blurEnd - blurStart}ms`);
+  // const blurEnd = performance.now();
+  // console.log(`Blurred data URLs generated in ${blurEnd - blurStart}ms`);
   if (!images) {
     throw new Error("No images found");
   }

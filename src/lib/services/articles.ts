@@ -37,24 +37,25 @@ export const getArticlePostDetails = async (articleId: number) => {
       coverImage: articleById.coverImage
         ? {
             id: articleById.coverImage.id,
-            width: articleById.coverImage.metadata?.width || 0,
-            height: articleById.coverImage.metadata?.height || 0,
+            width: articleById.coverImage.width || 0,
+            height: articleById.coverImage.height || 0,
             url: convertToCDNUrl(articleById.coverImage.url),
             src: { large: convertToCDNUrl(articleById.coverImage.url) },
             alt: articleById.coverImage.fileName,
-            metadata: articleById.coverImage.metadata
-              ? {
-                  model: articleById.coverImage.metadata.model || undefined,
-                  aperture:
-                    articleById.coverImage.metadata.aperture || undefined,
-                  focalLength:
-                    articleById.coverImage.metadata.focalLength || undefined,
-                  exposureTime:
-                    articleById.coverImage.metadata.exposureTime || undefined,
-                  iso: articleById.coverImage.metadata.iso || undefined,
-                  flash: articleById.coverImage.metadata.flash || undefined,
-                }
-              : undefined,
+            blurredDataUrl: articleById.coverImage.blurDataUrl || undefined,
+            // metadata: articleById.coverImage.metadata
+            //   ? {
+            //       model: articleById.coverImage.metadata.model || undefined,
+            //       aperture:
+            //         articleById.coverImage.metadata.aperture || undefined,
+            //       focalLength:
+            //         articleById.coverImage.metadata.focalLength || undefined,
+            //       exposureTime:
+            //         articleById.coverImage.metadata.exposureTime || undefined,
+            //       iso: articleById.coverImage.metadata.iso || undefined,
+            //       flash: articleById.coverImage.metadata.flash || undefined,
+            //     }
+            //   : undefined,
           }
         : undefined,
       // galleries: articleById.galleries?.map(({ gallery }) => ({
@@ -117,23 +118,24 @@ export const getArticlesList = async (
       coverImage: article.coverImage
         ? {
             id: article.coverImage.id,
-            width: article.coverImage.metadata?.width || 0,
-            height: article.coverImage.metadata?.height || 0,
+            width: article.coverImage.width || 0,
+            height: article.coverImage.height || 0,
             url: convertToCDNUrl(article.coverImage.url),
             src: { large: convertToCDNUrl(article.coverImage.url) },
             alt: article.coverImage.fileName,
-            metadata: article.coverImage.metadata
-              ? {
-                  model: article.coverImage.metadata.model || undefined,
-                  aperture: article.coverImage.metadata.aperture || undefined,
-                  focalLength:
-                    article.coverImage.metadata.focalLength || undefined,
-                  exposureTime:
-                    article.coverImage.metadata.exposureTime || undefined,
-                  iso: article.coverImage.metadata.iso || undefined,
-                  flash: article.coverImage.metadata.flash || undefined,
-                }
-              : undefined,
+            blurredDataUrl: article.coverImage.blurDataUrl || undefined,
+            //     metadata: article.coverImage.metadata
+            //       ? {
+            //           model: article.coverImage.metadata.model || undefined,
+            //           aperture: article.coverImage.metadata.aperture || undefined,
+            //           focalLength:
+            //             article.coverImage.metadata.focalLength || undefined,
+            //           exposureTime:
+            //             article.coverImage.metadata.exposureTime || undefined,
+            //           iso: article.coverImage.metadata.iso || undefined,
+            //           flash: article.coverImage.metadata.flash || undefined,
+            //         }
+            //       : undefined,
           }
         : undefined,
       // galleries: article.galleries?.map(({ gallery }) => ({

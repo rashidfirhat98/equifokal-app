@@ -79,7 +79,7 @@ export default function GalleryForm({ userId, galleriesAmt }: Props) {
       setHasLoaded(true);
       isFetchingRef.current = false;
     }
-  }, [nextCursor, hasLoaded]);
+  }, [nextCursor, hasLoaded, userId]);
 
   useEffect(() => {
     if (!hasFetched.current) {

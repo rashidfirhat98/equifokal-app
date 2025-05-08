@@ -22,7 +22,6 @@ export default function ArticleList({ userId }: Props) {
   const hasFetched = useRef(false);
 
   const fetchMoreArticles = useCallback(async () => {
-    console.log("triggered");
     if (isFetchingRef.current) return;
 
     if (hasLoaded && nextCursor === null) return;
@@ -31,7 +30,9 @@ export default function ArticleList({ userId }: Props) {
     setLoading(true);
     try {
       const res = await fetch(
-        `/api/articles?userId=${userId}&cursor=${nextCursor ?? ""}&limit=10`
+        `/api/user/articles?userId=${userId}&cursor=${
+          nextCursor ?? ""
+        }&limit=10`
       );
       const data = await res.json();
       setArticles((prev) => [...prev, ...data.articles]);

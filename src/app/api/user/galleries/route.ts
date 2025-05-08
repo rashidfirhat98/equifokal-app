@@ -5,16 +5,16 @@ import { getUserGalleriesList } from "@/lib/services/galleries";
 
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    // const session = await getServerSession(authOptions);
 
     const { searchParams } = new URL(req.url);
     const cursor = searchParams.get("cursor");
     const limit = parseInt(searchParams.get("limit") || "10", 10);
     const userIdParam = searchParams.get("userId");
 
-    const userId = userIdParam ?? session?.user.id;
+    const userId = userIdParam;
 
-    if (!userId || !session)
+    if (!userId)
       return NextResponse.json(
         { message: "Not authenticated or no user ID provided." },
         { status: 401 }
@@ -30,13 +30,14 @@ export async function GET(req: Request) {
         });
       }
     }
-
+    // const start = performance.now();
     const { galleries, nextCursor, totalResults } = await getUserGalleriesList(
       limit,
       parsedCursor,
       userId
     );
-
+    // const end = performance.now();
+    // console.log(`Fetched galleries in ${end - start}ms`);
     return NextResponse.json({
       galleries,
       nextCursor,

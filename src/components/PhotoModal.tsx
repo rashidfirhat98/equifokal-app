@@ -9,14 +9,10 @@ import { Photo } from "@/models/Images";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 
 export default function PhotoModal({ photo }: { photo: Photo }) {
   const router = useRouter();
-  const params = useParams();
   //   const [photo, setPhoto] = useState<Photo | null>(null);
-
-  console.log(params.id);
 
   //   useEffect(() => {
   //     async function fetchPhoto() {

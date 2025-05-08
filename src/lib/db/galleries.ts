@@ -13,17 +13,26 @@ export const findGalleriesByUserIdAndCursor = async (
   cursor: number | null
 ) => {
   return prisma.gallery.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      images: {
-        include: {
-          image: true,
-        },
-      },
-    },
     where: {
       userId: userId,
     },
+    include: {
+      images: {
+        include: {
+          image: {
+            select: {
+              id: true,
+              url: true,
+              fileName: true,
+              width: true,
+              height: true,
+              blurDataUrl: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { id: "desc" },
     take: limit + 1,
     ...(cursor && {
       cursor: { id: cursor },
@@ -38,21 +47,26 @@ export const findGalleriesByUserIdAndPage = async (
   perPage: number
 ) => {
   return await prisma.gallery.findMany({
-    skip: offset,
-    take: perPage,
     where: { userId: userId },
     orderBy: { createdAt: "desc" },
     include: {
       images: {
         include: {
           image: {
-            include: {
-              metadata: true,
+            select: {
+              id: true,
+              url: true,
+              fileName: true,
+              width: true,
+              height: true,
+              blurDataUrl: true,
             },
           },
         },
       },
     },
+    skip: offset,
+    take: perPage,
   });
 };
 

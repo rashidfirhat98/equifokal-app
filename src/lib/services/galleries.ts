@@ -14,9 +14,10 @@ export const getUserGalleriesList = async (
   userId: string
 ) => {
   const totalResults = await totalGalleriesByUserId(userId);
-
+  // const start = performance.now();
   const galleries = await findGalleriesByUserIdAndCursor(userId, limit, cursor);
-
+  // const end = performance.now();
+  // console.log(`Find galleries in ${end - start}ms`);
   if (!galleries) {
     throw new Error("No galleries found.");
   }
@@ -34,10 +35,10 @@ export const getUserGalleriesList = async (
       id: gi.image.id,
       url: convertToCDNUrl(gi.image.url),
       alt: gi.image.fileName,
-      width: 0,
-      height: 0,
+      width: gi.image.width ?? 0,
+      height: gi.image.height ?? 0,
       src: { large: convertToCDNUrl(gi.image.url) },
-      blurredDataUrl: undefined,
+      blurredDataUrl: gi.image.blurDataUrl || undefined,
     })),
   }));
 
@@ -76,23 +77,11 @@ export const getUserGalleriesListWithPagination = async (
     images: gallery.images.map((galleryImage) => ({
       id: galleryImage.image.id,
       url: convertToCDNUrl(galleryImage.image.url),
-      width: galleryImage.image.metadata?.width ?? 0,
-      height: galleryImage.image.metadata?.height ?? 0,
+      width: galleryImage.image?.width ?? 0,
+      height: galleryImage.image?.height ?? 0,
       alt: galleryImage.image.fileName,
       src: { large: convertToCDNUrl(galleryImage.image.url) },
-      blurredDataUrl: undefined,
-      metadata: galleryImage.image.metadata
-        ? {
-            model: galleryImage.image.metadata.model || undefined,
-            aperture: galleryImage.image.metadata.aperture || undefined,
-            focalLength: galleryImage.image.metadata.focalLength || undefined,
-            exposureTime: galleryImage.image.metadata.exposureTime || undefined,
-            iso: galleryImage.image.metadata.iso || undefined,
-            flash: galleryImage.image.metadata.flash || undefined,
-            height: galleryImage.image.metadata.height || undefined,
-            width: galleryImage.image.metadata.width || undefined,
-          }
-        : undefined,
+      blurredDataUrl: galleryImage.image.blurDataUrl || undefined,
     })),
     createdAt: gallery.createdAt.toISOString(),
     updatedAt: gallery.updatedAt.toISOString(),
@@ -144,7 +133,7 @@ export const getGalleryWithImageMetadataById = async (galleryId: number) => {
       height: galleryImage.image.metadata?.height ?? 0,
       alt: galleryImage.image.fileName,
       src: { large: convertToCDNUrl(galleryImage.image.url) },
-      blurredDataUrl: undefined,
+      blurredDataUrl: galleryImage.image.blurDataUrl || undefined,
       metadata: galleryImage.image.metadata
         ? {
             model: galleryImage.image.metadata?.model,

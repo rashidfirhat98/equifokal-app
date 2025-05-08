@@ -5,8 +5,13 @@ export const findArticleById = async (articleId: number) => {
     where: { id: articleId },
     include: {
       coverImage: {
-        include: {
-          metadata: true,
+        select: {
+          id: true,
+          url: true,
+          fileName: true,
+          width: true,
+          height: true,
+          blurDataUrl: true,
         },
       },
       user: true,
@@ -17,8 +22,13 @@ export const findArticleById = async (articleId: number) => {
               images: {
                 include: {
                   image: {
-                    include: {
-                      metadata: true,
+                    select: {
+                      id: true,
+                      url: true,
+                      fileName: true,
+                      width: true,
+                      height: true,
+                      blurDataUrl: true,
                     },
                   },
                 },
@@ -38,32 +48,49 @@ export const findArticlesByUserIdAndCursor = async (
 ) => {
   return prisma.article.findMany({
     where: { userId },
-    include: {
-      coverImage: {
-        include: {
-          metadata: true,
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      description: true,
+      createdAt: true,
+      updatedAt: true,
+      user: {
+        select: {
+          name: true,
+          profilePic: true,
         },
       },
-      user: true,
-      //   galleries: {
-      //     include: {
-      //       gallery: {
-      //         include: {
-      //           images: {
-      //             include: {
-      //               image: {
-      //                 include: {
-      //                   metadata: true,
-      //                 },
-      //               },
-      //             },
-      //           },
-      //         },
-      //       },
-      //     },
-      //   },
+      coverImage: {
+        select: {
+          id: true,
+          url: true,
+          fileName: true,
+          width: true,
+          height: true,
+          blurDataUrl: true,
+        },
+      },
     },
-    orderBy: [{ createdAt: "desc" }],
+    //   galleries: {
+    //     include: {
+    //       gallery: {
+    //         include: {
+    //           images: {
+    //             include: {
+    //               image: {
+    //                 include: {
+    //                   metadata: true,
+    //                 },
+    //               },
+    //             },
+    //           },
+    //         },
+    //       },
+    //     },
+    //   },
+
+    orderBy: [{ id: "desc" }],
     take: limit + 1,
     ...(cursor && {
       cursor: { id: cursor },

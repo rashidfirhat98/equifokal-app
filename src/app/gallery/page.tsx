@@ -18,7 +18,7 @@ export default async function CreateGalleryPage() {
   return (
     <section className="px-2 py-3">
       <h1 className="heading-2 my-8">Galleries</h1>
-      <GalleryForm galleriesAmt={galleryCount} />
+      <GalleryForm userId={user.id} galleriesAmt={galleryCount} />
       {galleryCount > 0 && (
         <div>
           <h2 className="heading-5 mt-10">Your Galleries</h2>

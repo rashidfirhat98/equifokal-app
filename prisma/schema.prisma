@@ -59,11 +59,14 @@ model Image {
   portfolio   Boolean        @default(false)
   profilePic  Boolean        @default(false)
   blurDataUrl String?
+  height      Int?
+  width       Int?
   metadata    Metadata?      @relation("ImageMetadata")
   galleries   GalleryImage[]
   Article     Article[]      @relation("ImageCover")
 
   @@index([userId, portfolio])
+  @@index([userId])
 }
 
 model Metadata {
@@ -90,6 +93,8 @@ model Gallery {
   user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+
+   @@index([userId])
 }
 
 model GalleryImage {
@@ -98,7 +103,9 @@ model GalleryImage {
   gallery   Gallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
   image     Image   @relation(fields: [imageId], references: [id], onDelete: Cascade)
 
-  @@id([galleryId, imageId]) // Composite primary key
+  @@id([galleryId, imageId])
+  @@index([galleryId])
+  @@index([imageId])
 }
 
 model Article {
@@ -113,6 +120,8 @@ model Article {
   coverImage   Image?           @relation("ImageCover", fields: [coverImageId], references: [id], onDelete: SetNull)
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
+
+  @@index([userId])
 }
 
 model ArticleGallery {
@@ -123,6 +132,8 @@ model ArticleGallery {
   gallery   Gallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
 
   @@unique([articleId, galleryId])
+  @@index([articleId])
+  @@index([galleryId])
 }
 
 model Follow {
@@ -133,5 +144,7 @@ model Follow {
   following    User     @relation("UserFollowers", fields: [followingId], references: [id])
   createdAt    DateTime @default(now())
 
-  @@unique([followerId, followingId]) // Prevents duplicate follows
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }

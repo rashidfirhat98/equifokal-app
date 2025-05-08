@@ -128,6 +128,8 @@ export const insertUserImage = async ({
       url,
       fileName,
       blurDataUrl,
+      width: metadata?.width,
+      height: metadata?.height,
       ...(isPortfolio ? { portfolio: true } : {}),
       ...(isProfilePic ? { profilePic: true } : {}),
       metadata: metadata
