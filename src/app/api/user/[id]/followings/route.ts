@@ -17,12 +17,6 @@ export async function GET(
       limit,
       cursor
     );
-    if (!followings || followings.length === 0) {
-      return NextResponse.json(
-        { message: "Followers not found" },
-        { status: 404 }
-      );
-    }
 
     return NextResponse.json({ followings, nextCursor });
   } catch (error) {

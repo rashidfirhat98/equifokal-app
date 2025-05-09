@@ -13,12 +13,6 @@ export async function GET(
 
   try {
     const { followers, nextCursor } = await getFollowerList(id, limit, cursor);
-    if (!followers || followers.length === 0) {
-      return NextResponse.json(
-        { message: "Followers not found" },
-        { status: 404 }
-      );
-    }
 
     return NextResponse.json({ followers, nextCursor });
   } catch (error) {

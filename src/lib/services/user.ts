@@ -59,11 +59,12 @@ export const createNewUser = async ({
 };
 
 export const getUserDetails = async (userId: string) => {
-  const user = await findUserById(userId);
-
-  const followerCount = await totalUserFollowers(userId);
-  const followingCount = await totalUserFollowings(userId);
-  const postCount = await totalArticlesByUserId(userId);
+  const [user, followerCount, followingCount, postCount] = await Promise.all([
+    findUserById(userId),
+    totalUserFollowers(userId),
+    totalUserFollowings(userId),
+    totalArticlesByUserId(userId),
+  ]);
   if (!user) {
     throw new Error("Error fetching user details");
   }
