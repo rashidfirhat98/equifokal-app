@@ -22,19 +22,10 @@ import { Button } from "./ui/button";
 import { AcceptedCoverImageSchema } from "@/models/ImageUploadSchema";
 import { Checkbox } from "./ui/checkbox";
 import { profilePicURL } from "@/lib/utils/profilePic";
+import { UserDetails } from "@/models/User";
 
 type Props = {
-  userDetails: {
-    name: string;
-    id: string;
-    email: string;
-    emailVerified: Date | null;
-    password: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-    profilePic: string | null;
-    bio: string | null;
-  };
+  userDetails: UserDetails;
 };
 
 const formSchema = z.object({
