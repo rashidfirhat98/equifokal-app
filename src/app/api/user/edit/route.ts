@@ -15,13 +15,12 @@ export async function POST(req: Request) {
 
   const formData = await req.formData();
 
-  let profilePicURL: string | null = session.user.image ?? null;
-
-  console.log(profilePicURL);
   const name = formData.get("name")?.toString() || "";
   const email = formData.get("email")?.toString() || "";
   const bio = formData.get("bio")?.toString() || "";
   const files = formData.getAll("files");
+  let profilePicURL: string | null =
+    formData.get("profilePicURL")?.toString() ?? null;
 
   if (files.length > 0) {
     const { filesWithMetadata, isPortfolio, isProfilePic } =
