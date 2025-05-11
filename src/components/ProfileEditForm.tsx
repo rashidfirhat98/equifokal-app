@@ -105,7 +105,6 @@ export default function ProfileEditForm({ userDetails }: Props) {
         setValue("profilePic", photoDetail, { shouldValidate: true });
       };
     } catch (error) {
-      // Fallback: if EXIF fails, just get dimensions
       const img = new window.Image();
       img.src = URL.createObjectURL(file);
 
@@ -155,8 +154,6 @@ export default function ProfileEditForm({ userDetails }: Props) {
         method: "POST",
         body: formData,
       });
-
-      console.log(res);
 
       setAlert({ status: "success", message: "Profile edited" });
 
