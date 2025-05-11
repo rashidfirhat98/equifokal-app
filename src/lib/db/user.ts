@@ -49,6 +49,13 @@ export const insertNewUser = async ({
 export async function findUserById(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      bio: true,
+      email: true,
+      profilePic: true,
+    },
   });
   return user;
 }

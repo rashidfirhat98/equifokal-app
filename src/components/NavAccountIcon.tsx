@@ -22,20 +22,16 @@ import { profilePicURL } from "@/lib/utils/profilePic";
 
 type Props = {
   user: {
-    name: string;
     id: string;
+    name: string;
     email: string;
-    emailVerified: Date | null;
-    password: string | null;
-    createdAt: Date;
-    updatedAt: Date;
     profilePic: string | null;
     bio: string | null;
   };
 };
 
 export default function NavAccountIcon({ user }: Props) {
-  const profilePic = profilePicURL(user.profilePic);
+  const profilePic = profilePicURL(user?.profilePic);
   const router = useRouter();
 
   const handleSignOut = async () => {

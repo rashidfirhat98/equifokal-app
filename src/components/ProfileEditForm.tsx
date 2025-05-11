@@ -18,31 +18,22 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Textarea } from "./ui/textarea";
 import Image from "next/image";
-import profilePic from "@/assets/images/EQFKL_logo.jpg";
 import { Button } from "./ui/button";
 import { AcceptedCoverImageSchema } from "@/models/ImageUploadSchema";
 import { Checkbox } from "./ui/checkbox";
 import { profilePicURL } from "@/lib/utils/profilePic";
+import { UserDetails } from "@/models/User";
 
 type Props = {
-  userDetails: {
-    name: string;
-    id: string;
-    email: string;
-    emailVerified: Date | null;
-    password: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-    profilePic: string | null;
-    bio: string | null;
-  };
+  userDetails: UserDetails;
 };
 
 const formSchema = z.object({
   name: z.string(),
   email: z.string(),
   bio: z.string().optional(),
-  profilePic: AcceptedCoverImageSchema.optional(),
+  profilePicUploads: AcceptedCoverImageSchema.optional(),
+  existingProfilePicURL: z.string().optional(),
   isProfilePic: z.boolean().default(true),
 });
 
@@ -55,7 +46,8 @@ export default function ProfileEditForm({ userDetails }: Props) {
       name: userDetails?.name || "",
       email: userDetails?.email || "",
       bio: userDetails?.bio || "",
-      profilePic: undefined,
+      profilePicUploads: undefined,
+      existingProfilePicURL: userDetails?.profilePic || undefined,
       isProfilePic: true,
     },
   });
@@ -102,10 +94,9 @@ export default function ProfileEditForm({ userDetails }: Props) {
           exifMetadata,
         };
 
-        setValue("profilePic", photoDetail, { shouldValidate: true });
+        setValue("profilePicUploads", photoDetail, { shouldValidate: true });
       };
     } catch (error) {
-      // Fallback: if EXIF fails, just get dimensions
       const img = new window.Image();
       img.src = URL.createObjectURL(file);
 
@@ -126,7 +117,7 @@ export default function ProfileEditForm({ userDetails }: Props) {
           exifMetadata,
         };
 
-        setValue("profilePic", photoDetail, { shouldValidate: true });
+        setValue("profilePicUploads", photoDetail, { shouldValidate: true });
       };
     }
   };
@@ -140,12 +131,16 @@ export default function ProfileEditForm({ userDetails }: Props) {
       formData.append("bio", data.bio);
     }
 
-    if (data.profilePic) {
-      formData.append("files", data.profilePic.file); // Append each file
+    if (data.profilePicUploads) {
+      formData.append("files", data.profilePicUploads.file); // Append each file
       formData.append(
         `metadata[0]`,
-        JSON.stringify(data.profilePic.exifMetadata)
+        JSON.stringify(data.profilePicUploads.exifMetadata)
       );
+    }
+
+    if (data.existingProfilePicURL) {
+      formData.append("profilePicURL", data.existingProfilePicURL);
     }
 
     formData.append("isProfilePic", JSON.stringify(data.isProfilePic));
@@ -155,8 +150,6 @@ export default function ProfileEditForm({ userDetails }: Props) {
         method: "POST",
         body: formData,
       });
-
-      console.log(res);
 
       setAlert({ status: "success", message: "Profile edited" });
 
