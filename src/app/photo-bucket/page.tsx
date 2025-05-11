@@ -1,12 +1,12 @@
 import UploadForm from "@/components/UploadForm";
 import { unauthorized } from "next/navigation";
-import { fetchCurrentUser, fetchUserPhotoCount } from "./actions";
+import { fetchUserPhotoCount, fetchUserSession } from "./actions";
 import PhotoList from "@/components/PhotoList";
 import { Suspense } from "react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default async function UploadPage() {
-  const user = await fetchCurrentUser();
+  const user = await fetchUserSession();
 
   if (!user) {
     return unauthorized();

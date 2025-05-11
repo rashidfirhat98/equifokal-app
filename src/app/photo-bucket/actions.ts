@@ -7,6 +7,7 @@ import {
   getUserPhotoCount,
 } from "@/lib/services/images";
 import { getUserDetails } from "@/lib/services/user";
+import { profilePicURL } from "@/lib/utils/profilePic";
 import { getServerSession } from "next-auth";
 
 export async function fetchCurrentUser() {
@@ -21,6 +22,27 @@ export async function fetchCurrentUser() {
   } catch (error) {
     console.error("Error fetching user:", error);
     throw new Error("User not found");
+  }
+}
+
+export async function fetchUserSession() {
+  try {
+    const session = await getServerSession(authOptions);
+
+    let currentUser = null;
+    if (session?.user.id) {
+      currentUser = {
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+        profilePic: session.user.image,
+      };
+    }
+
+    return currentUser;
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    throw new Error("User session not found");
   }
 }
 

@@ -5,7 +5,6 @@ import ArticleList from "./ArticleList";
 import { UserDetails } from "@/models/User";
 import { Suspense } from "react";
 import LoadingSpinner from "./LoadingSpinner";
-
 import UserList from "./UserList";
 
 type Props = {

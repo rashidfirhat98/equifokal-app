@@ -1,13 +1,12 @@
 import GalleryForm from "@/components/GalleryForm";
 import GalleryList from "@/components/GalleryList";
-import { fetchUserGalleryCount } from "./actions";
-import { fetchCurrentUser } from "../article/actions";
+import { fetchUserGalleryCount, fetchUserSession } from "./actions";
 import { unauthorized } from "next/navigation";
 import { Suspense } from "react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default async function CreateGalleryPage() {
-  const user = await fetchCurrentUser();
+  const user = await fetchUserSession();
 
   if (!user) {
     return unauthorized();

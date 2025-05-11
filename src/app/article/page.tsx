@@ -1,16 +1,14 @@
 import ArticleList from "@/components/ArticleList";
 import React, { Suspense } from "react";
 import { unauthorized } from "next/navigation";
-import { fetchCurrentUser, fetchUserArticleCount } from "./actions";
+import { fetchUserArticleCount, fetchUserSession } from "./actions";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default async function ArticleListPage() {
-  const user = await fetchCurrentUser();
+  const user = await fetchUserSession();
   if (!user) {
     return unauthorized();
   }
-
-  const articleCount = await fetchUserArticleCount(user.id);
 
   return (
     <section className="mx-2 pt-3">
