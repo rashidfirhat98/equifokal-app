@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
   const formData = await req.formData();
 
-  let profilePicURL: string | null = null;
+  let profilePicURL: string | null = session.user.image ?? null;
 
   const name = formData.get("name")?.toString() || "";
   const email = formData.get("email")?.toString() || "";

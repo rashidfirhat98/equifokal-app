@@ -55,12 +55,10 @@ export default function ProfileEditForm({ userDetails }: Props) {
       name: userDetails?.name || "",
       email: userDetails?.email || "",
       bio: userDetails?.bio || "",
-      profilePic: userDetails.profilePic || undefined,
+      profilePic: undefined,
       isProfilePic: true,
     },
   });
-
-  //TODO: Fix empty profile image save
 
   const { setValue } = form;
   const router = useRouter();
