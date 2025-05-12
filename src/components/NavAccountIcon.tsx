@@ -68,7 +68,7 @@ export default function NavAccountIcon({ user }: Props) {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem>
-            <Link className="flex-1" href="/gallery">
+            <Link className="flex-1" href="/create/gallery">
               Galleries
             </Link>
           </DropdownMenuItem>
@@ -90,7 +90,7 @@ export default function NavAccountIcon({ user }: Props) {
           </DropdownMenuSub> */}
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
-              <Link className="flex-1" href="/article">
+              <Link className="flex-1" href="/articles">
                 Articles
               </Link>
             </DropdownMenuSubTrigger>

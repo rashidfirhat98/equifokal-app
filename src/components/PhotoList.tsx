@@ -9,7 +9,7 @@ type Props = {
   userId: string;
 };
 
-const PhotoList = ({ userId }: Props) => {
+export default function PhotoList({ userId }: Props) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [nextCursor, setNextCursor] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -99,6 +99,4 @@ const PhotoList = ({ userId }: Props) => {
       </div>
     </div>
   );
-};
-
-export default PhotoList;
+}

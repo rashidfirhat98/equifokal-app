@@ -51,7 +51,11 @@ type Alert = {
   message?: string;
 };
 
-export default function UploadForm({ photosAmt }: { photosAmt?: number }) {
+export default function UploadForm({
+  photosAmt,
+}: {
+  photosAmt: number | null;
+}) {
   const formSchema = z.object({
     imgUploads: AcceptedImageTypeSchema,
     isPortfolio: z.boolean().default(false).optional(),

@@ -8,6 +8,7 @@ import {
   getUserArticleCount,
 } from "@/lib/services/articles";
 import { getUserDetails } from "@/lib/services/user";
+import { profilePicURL } from "@/lib/utils/profilePic";
 import { getServerSession } from "next-auth";
 
 export async function fetchCurrentUser() {
@@ -35,7 +36,9 @@ export async function fetchUserSession() {
         id: session.user.id,
         name: session.user.name,
         email: session.user.email,
-        profilePic: session.user.image,
+        profilePic: session.user.profilePic
+          ? profilePicURL(session.user.profilePic)
+          : null,
       };
     }
 

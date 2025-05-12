@@ -1,3 +1,5 @@
+"use client";
+
 import GalleryList from "./GalleryList";
 import Portfolio from "./Portfolio";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
@@ -6,12 +8,20 @@ import { UserDetails } from "@/models/User";
 import { Suspense } from "react";
 import LoadingSpinner from "./LoadingSpinner";
 import UserList from "./UserList";
+import { useSessionContext } from "./SessionContext";
 
 type Props = {
-  user: UserDetails;
+  user?: UserDetails;
 };
 
-export default async function DashboardTabs({ user }: Props) {
+export default function DashboardTabs({ user }: Props) {
+  const session = useSessionContext();
+  const sessionUser = user ?? session?.user;
+
+  if (!sessionUser) {
+    return <p>Error: User not found.</p>;
+  }
+
   return (
     <Tabs orientation="vertical" defaultValue="portfolio" className="w-full">
       <TabsList className="grid w-full grid-cols-5">
@@ -23,27 +33,27 @@ export default async function DashboardTabs({ user }: Props) {
       </TabsList>
       <TabsContent value="portfolio">
         <Suspense fallback={<LoadingSpinner />}>
-          <Portfolio userId={user.id} />
+          <Portfolio userId={sessionUser.id} />
         </Suspense>
       </TabsContent>
       <TabsContent value="gallery">
         <Suspense fallback={<LoadingSpinner />}>
-          <GalleryList userId={user.id} />
+          <GalleryList userId={sessionUser.id} />
         </Suspense>
       </TabsContent>
       <TabsContent value="article">
         <Suspense fallback={<LoadingSpinner />}>
-          <ArticleList userId={user.id} />
+          <ArticleList userId={sessionUser.id} />
         </Suspense>
       </TabsContent>
       <TabsContent value="followers">
         <Suspense fallback={<LoadingSpinner />}>
-          <UserList userId={user.id} type="follower" />
+          <UserList userId={sessionUser.id} type="follower" />
         </Suspense>
       </TabsContent>
       <TabsContent value="following">
         <Suspense fallback={<LoadingSpinner />}>
-          <UserList userId={user.id} type="following" />
+          <UserList userId={sessionUser.id} type="following" />
         </Suspense>
       </TabsContent>
     </Tabs>
