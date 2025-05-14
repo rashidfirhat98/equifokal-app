@@ -17,6 +17,7 @@ import {
 import { getArticlesList } from "@/lib/services/articles";
 import { getUserDetails } from "@/lib/services/user";
 import { getFollowerList, getFollowingList } from "@/lib/services/follow";
+import { profilePicURL } from "@/lib/utils/profilePic";
 
 const gallerySchema = z.object({
   title: z.string().min(3),
@@ -129,7 +130,9 @@ export async function fetchUserSession() {
         id: session.user.id,
         name: session.user.name,
         email: session.user.email,
-        profilePic: session.user.image,
+        profilePic: session.user.profilePic
+          ? profilePicURL(session.user.profilePic)
+          : null,
       };
     }
 
@@ -206,11 +209,9 @@ export async function fetchUserGalleriesList(
   cursor: number | null = null
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const userIdParam = userId;
 
-    const userIdParam = userId ?? session?.user.id;
-
-    if (!userIdParam || !session?.user.id)
+    if (!userIdParam)
       throw new Error("Not authenticated or no user ID provided.");
 
     return await getUserGalleriesList(limit, cursor, userIdParam);

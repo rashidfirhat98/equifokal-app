@@ -1,7 +1,7 @@
 import Link from "next/link";
 import SignOutButton from "./SignOutButton";
 import NavAccountIcon from "./NavAccountIcon";
-import { fetchCurrentUser } from "@/app/dashboard/actions";
+import { fetchCurrentUser } from "@/app/(auth)/dashboard/actions";
 
 export default async function Navbar() {
   const user = await fetchCurrentUser();

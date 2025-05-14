@@ -6,9 +6,11 @@ import FollowButton from "./FollowButton";
 import { UserDetails } from "@/models/User";
 import { useEffect, useState } from "react";
 import ProfilePictureIcon from "./ProfilePictureIcon";
+import { useSessionContext } from "./SessionContext";
+import { Loader2 } from "lucide-react";
 
 type Props = {
-  user: UserDetails;
+  user?: UserDetails;
   currentUser?: UserDetails;
   isFollowingInitial?: boolean;
 };
@@ -18,13 +20,16 @@ export default function DashboardUserDetails({
   currentUser,
   isFollowingInitial = false,
 }: Props) {
-  const [profileUser, setProfileUser] = useState(user);
+  const session = useSessionContext();
+  const initialUser = user ?? session?.user;
+  const [profileUser, setProfileUser] = useState(initialUser);
   const [isFollowing, setIsFollowing] = useState(isFollowingInitial);
 
   useEffect(() => {
     const fetchUserDetails = async () => {
+      if (!initialUser?.id) return;
       try {
-        const res = await fetch(`/api/user/${user.id}`);
+        const res = await fetch(`/api/user/${initialUser.id}`);
 
         if (!res.ok) {
           console.error("Failed to fetch user details");
@@ -38,14 +43,27 @@ export default function DashboardUserDetails({
     };
 
     fetchUserDetails();
-  }, [isFollowing, user.id]);
+  }, [isFollowing, initialUser?.id]);
+
+  if (!initialUser) {
+    return <p>Error: User not found.</p>;
+  }
+
+  if (!profileUser) {
+    return (
+      <div className="loader flex items-center justify-center">
+        <p>Loading profile...</p>;
+        <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
+      </div>
+    );
+  }
 
   return (
     <section className="px-4 py-12">
       <div className="md:grid md:grid-cols-4 gap-4 md:gap-3 flex flex-col justify-center items-center">
         <div className="col-span-1 flex items-center justify-center">
           <ProfilePictureIcon
-            profilePic={user.profilePic}
+            profilePic={profileUser.profilePic ?? null}
             width={100}
             height={100}
           />
@@ -56,7 +74,7 @@ export default function DashboardUserDetails({
               {profileUser.name}
             </h1>
             {!currentUser ? (
-              <Link href={"/profile/edit"}>
+              <Link href={"edit/profile"}>
                 <Button variant="outline">Edit Profile</Button>
               </Link>
             ) : (

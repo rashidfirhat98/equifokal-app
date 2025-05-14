@@ -34,16 +34,14 @@ export const fetchUserImages = async (
 };
 
 export async function fetchUserGalleriesList(
+  userId: string | null = null,
   limit: number = 3,
-  cursor: number | null = null,
-  userId: string | null = null
+  cursor: number | null = null
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const userIdParam = userId;
 
-    const userIdParam = userId ?? session?.user.id;
-
-    if (!userIdParam || !session?.user.id)
+    if (!userIdParam)
       throw new Error("Not authenticated or no user ID provided.");
 
     return await getUserGalleriesList(limit, cursor, userIdParam);
@@ -134,8 +132,8 @@ export async function fetchUserSession() {
         id: session.user.id,
         name: session.user.name,
         email: session.user.email,
-        profilePic: session.user.image
-          ? profilePicURL(session.user.image)
+        profilePic: session.user.profilePic
+          ? profilePicURL(session.user.profilePic)
           : null,
       };
     }

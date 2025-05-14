@@ -5,6 +5,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import env from "@/lib/env";
 import { findUserByEmail } from "./db/user";
+import { getUserDetails } from "./services/user";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -53,15 +54,30 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
+        const dbUser = await getUserDetails(user.id);
+        token.id = dbUser.id;
+        token.email = dbUser.email;
+        token.name = dbUser.name;
+        token.image = dbUser.profilePic || undefined;
+        token.bio = dbUser.bio || undefined;
+
+        token.followerCount = dbUser.followerCount;
+        token.followingCount = dbUser.followingCount;
+        token.postCount = dbUser.postCount;
       }
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
+      if (session.user && token) {
         session.user.id = token.id as string;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
+        session.user.profilePic = token.image as string;
+        session.user.bio = token.bio as string;
+
+        session.user.followerCount = token.followerCount as number;
+        session.user.followingCount = token.followingCount as number;
+        session.user.postCount = token.postCount as number;
       }
       return session;
     },
