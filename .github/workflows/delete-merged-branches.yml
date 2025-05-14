@@ -47,7 +47,6 @@ jobs:
                   https://api.vercel.com/v13/deployments/$ID
               done
             fi
-
           else
             echo "Skipping Vercel deployment deletion for protected branch: $BRANCH_NAME"
           fi
