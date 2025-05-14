@@ -74,7 +74,7 @@ export default function DashboardUserDetails({
               {profileUser.name}
             </h1>
             {!currentUser ? (
-              <Link href={"/profile/edit"}>
+              <Link href={"edit/profile"}>
                 <Button variant="outline">Edit Profile</Button>
               </Link>
             ) : (
