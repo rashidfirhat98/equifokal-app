@@ -33,7 +33,7 @@ jobs:
             echo "Looking for Vercel deployments from branch: $BRANCH_NAME"
 
             DEPLOYMENTS=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" \
-              "https://api.vercel.com/v6/deployments?projectId=$VERCEL_PROJECT_ID&meta.githubCommitRef=$BRANCH_NAME"
+              "https://api.vercel.com/v6/deployments?projectId=$VERCEL_PROJECT_ID&meta.githubCommitRef=$BRANCH_NAME")
 
             IDS=$(echo "$DEPLOYMENTS" | jq -r '.deployments[].uid')
 
