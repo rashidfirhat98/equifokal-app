@@ -35,6 +35,15 @@ jobs:
             DEPLOYMENTS=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" \
               "https://api.vercel.com/v6/deployments?projectId=$VERCEL_PROJECT_ID&meta.githubCommitRef=$BRANCH_NAME")
 
+            echo "🧪 Raw deployment response:"
+            echo "$DEPLOYMENTS" | jq '.'
+
+            echo "🔍 Parsed deployments for inspection:"
+            echo "$DEPLOYMENTS" | jq '.deployments[] | {uid, name, url, meta, target, createdAt}'
+
+            # Optional deletion logic — enable after confirming structure
+            echo "🔄 Checking for preview deployments to delete..."
+
             IDS=$(echo "$DEPLOYMENTS" | jq -r '.deployments[] | select(.target == "preview") | .uid')
 
             if [ -z "$IDS" ]; then
