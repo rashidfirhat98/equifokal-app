@@ -7,7 +7,7 @@ import {
   totalArticlesByUserId,
 } from "../db/articles";
 import convertToCDNUrl from "../utils/convertToCDNUrl";
-import { findIsFollowingByFollowId } from "../db/follow";
+import { findIsFollowingByFollowId, isFollowingRelations } from "../db/follow";
 
 type CreateArticleInput = {
   title: string;
@@ -102,7 +102,8 @@ export const getArticlePostDetails = async (
 export const getArticlesList = async (
   limit: number,
   cursor: number | null = null,
-  userId: string
+  userId: string,
+  viewingUserId?: string
 ) => {
   if (!userId) {
     throw new Error("Not authenticated or no user ID provided.");
@@ -112,6 +113,17 @@ export const getArticlesList = async (
 
   if (!articles) {
     throw new Error("No articles found.");
+  }
+
+  let followingMap: Record<string, boolean> = {};
+  if (viewingUserId) {
+    const authorIds = [...new Set(articles.map((a) => a.user.id))];
+
+    const followings = await isFollowingRelations(authorIds, viewingUserId);
+
+    followingMap = Object.fromEntries(
+      followings.map((f) => [f.followingId, true])
+    );
   }
 
   const hasNextPage = articles.length > limit;
@@ -126,9 +138,12 @@ export const getArticlesList = async (
       title: article.title,
       content: article.content,
       description: article.description,
-      createdBy: article.user.name,
-      createdByUserId: article.user.id,
-      profilePic: article.user.profilePic,
+      user: {
+        ...article.user,
+        isFollowing: viewingUserId
+          ? followingMap[article.user.id] ?? false
+          : undefined,
+      },
       createdAt: new Date(article.createdAt).toLocaleString(),
       updatedAt: new Date(article.updatedAt).toLocaleString(),
       coverImage: article.coverImage

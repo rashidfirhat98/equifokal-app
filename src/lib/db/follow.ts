@@ -154,14 +154,14 @@ export const findFollowingListByUserId = async (
 };
 
 export const isFollowingRelations = async (
-  authorIds: [string],
+  authorIds: string[],
   viewingUserId: string
 ) =>
   await prisma.follow.findMany({
     where: {
       followerId: viewingUserId,
       followingId: {
-        in: authorIds, // array of unique userIds from article authors
+        in: authorIds,
       },
     },
     select: {

@@ -51,7 +51,7 @@ export default function DashboardTabs({ user, currentUser }: Props) {
         <Suspense fallback={<LoadingSpinner />}>
           <UserList
             userId={sessionUser.id}
-            currentUserId={currentUser?.id}
+            currentUserId={currentUser?.id ?? session?.user.id}
             type="follower"
           />
         </Suspense>
@@ -60,7 +60,7 @@ export default function DashboardTabs({ user, currentUser }: Props) {
         <Suspense fallback={<LoadingSpinner />}>
           <UserList
             userId={sessionUser.id}
-            currentUserId={currentUser?.id}
+            currentUserId={currentUser?.id ?? session?.user.id}
             type="following"
           />
         </Suspense>
