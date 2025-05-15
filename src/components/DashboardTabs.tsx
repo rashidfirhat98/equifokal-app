@@ -12,9 +12,10 @@ import { useSessionContext } from "./SessionContext";
 
 type Props = {
   user?: UserDetails;
+  currentUser?: UserDetails;
 };
 
-export default function DashboardTabs({ user }: Props) {
+export default function DashboardTabs({ user, currentUser }: Props) {
   const session = useSessionContext();
   const sessionUser = user ?? session?.user;
 
@@ -48,12 +49,20 @@ export default function DashboardTabs({ user }: Props) {
       </TabsContent>
       <TabsContent value="followers">
         <Suspense fallback={<LoadingSpinner />}>
-          <UserList userId={sessionUser.id} type="follower" />
+          <UserList
+            userId={sessionUser.id}
+            currentUserId={currentUser?.id}
+            type="follower"
+          />
         </Suspense>
       </TabsContent>
       <TabsContent value="following">
         <Suspense fallback={<LoadingSpinner />}>
-          <UserList userId={sessionUser.id} type="following" />
+          <UserList
+            userId={sessionUser.id}
+            currentUserId={currentUser?.id}
+            type="following"
+          />
         </Suspense>
       </TabsContent>
     </Tabs>

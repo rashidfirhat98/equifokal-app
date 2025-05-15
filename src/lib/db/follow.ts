@@ -64,7 +64,8 @@ export const totalUserFollowings = async (userId: string) => {
 export const findFollowerListByUserId = async (
   userId: string,
   limit: number,
-  cursor: string | null = null
+  cursor: string | null = null,
+  viewingUserId?: string
 ) => {
   return prisma.follow.findMany({
     where: {
@@ -72,7 +73,7 @@ export const findFollowerListByUserId = async (
       ...(cursor && {
         follower: {
           id: {
-            lt: cursor, // assuming descending order
+            lt: cursor,
           },
         },
       }),
@@ -84,6 +85,16 @@ export const findFollowerListByUserId = async (
           name: true,
           profilePic: true,
           bio: true,
+          ...(viewingUserId && {
+            followers: {
+              where: {
+                followerId: viewingUserId,
+              },
+              select: {
+                id: true,
+              },
+            },
+          }),
         },
       },
     },
@@ -99,7 +110,8 @@ export const findFollowerListByUserId = async (
 export const findFollowingListByUserId = async (
   userId: string,
   limit: number,
-  cursor: string | null = null
+  cursor: string | null = null,
+  viewingUserId?: string
 ) => {
   return prisma.follow.findMany({
     where: {
@@ -107,7 +119,7 @@ export const findFollowingListByUserId = async (
       ...(cursor && {
         following: {
           id: {
-            lt: cursor, // assuming descending order
+            lt: cursor,
           },
         },
       }),
@@ -119,6 +131,16 @@ export const findFollowingListByUserId = async (
           name: true,
           profilePic: true,
           bio: true,
+          ...(viewingUserId && {
+            followers: {
+              where: {
+                followerId: viewingUserId,
+              },
+              select: {
+                id: true,
+              },
+            },
+          }),
         },
       },
     },
@@ -130,3 +152,19 @@ export const findFollowingListByUserId = async (
     take: limit + 1,
   });
 };
+
+export const isFollowingRelations = async (
+  authorIds: [string],
+  viewingUserId: string
+) =>
+  await prisma.follow.findMany({
+    where: {
+      followerId: viewingUserId,
+      followingId: {
+        in: authorIds, // array of unique userIds from article authors
+      },
+    },
+    select: {
+      followingId: true,
+    },
+  });

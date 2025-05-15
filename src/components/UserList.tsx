@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 
 type Props = {
   userId: string;
+  currentUserId?: string;
   type: "follower" | "following";
 };
 
@@ -13,9 +14,10 @@ type Follower = {
   name: string;
   profilePic: string;
   bio?: string;
+  isFollowing?: boolean;
 };
 
-export default function UserList({ userId, type }: Props) {
+export default function UserList({ userId, currentUserId, type }: Props) {
   const [users, setUsers] = useState<Follower[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -31,8 +33,12 @@ export default function UserList({ userId, type }: Props) {
     if (hasLoaded && nextCursor === null) return;
     const fetchUrl =
       type === "follower"
-        ? `/api/user/${userId}/followers?cursor=${nextCursor ?? ""}&limit=2`
-        : `/api/user/${userId}/followings?cursor=${nextCursor ?? ""}&limit=2`;
+        ? `/api/user/${userId}/followers?cursor=${
+            nextCursor ?? ""
+          }&limit=2&viewingUserId=${currentUserId}`
+        : `/api/user/${userId}/followings?cursor=${
+            nextCursor ?? ""
+          }&limit=2&viewingUserId=${currentUserId}`;
 
     isFetchingRef.current = true;
     setLoading(true);
@@ -51,7 +57,7 @@ export default function UserList({ userId, type }: Props) {
       setHasLoaded(true);
       isFetchingRef.current = false;
     }
-  }, [nextCursor, userId, hasLoaded, type]);
+  }, [nextCursor, userId, hasLoaded, type, currentUserId]);
 
   useEffect(() => {
     if (!hasFetched.current) {
@@ -90,7 +96,11 @@ export default function UserList({ userId, type }: Props) {
       ) : users.length > 0 ? (
         users.map((user) => (
           <div className="my-3 p-3 border-b-2" key={user.id}>
-            <UserListItem user={user} />
+            <UserListItem
+              user={user}
+              currentUserId={currentUserId}
+              isFollowingInitial={user.isFollowing}
+            />
           </div>
         ))
       ) : (

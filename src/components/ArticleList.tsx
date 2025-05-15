@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ProfilePictureIcon from "./ProfilePictureIcon";
+import FollowButton from "./FollowButton";
 
 type Props = {
   userId: string;
@@ -114,13 +115,13 @@ export default function ArticleList({ userId }: Props) {
                 </div>
                 <div className="flex pt-3 items-center gap-4">
                   <ProfilePictureIcon
-                    profilePic={article.profilePic}
+                    profilePic={article.user.profilePic}
                     width={30}
                     height={30}
                   />
                   <div>
                     <p className="text-sm font-semibold md:text-lg">
-                      By {article.createdBy}
+                      By {article.user.name}
                     </p>
                     <p className="text-xs text-muted-foreground md:text-sm">
                       {article.createdAt}

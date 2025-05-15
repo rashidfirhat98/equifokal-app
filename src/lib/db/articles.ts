@@ -14,7 +14,13 @@ export const findArticleById = async (articleId: number) => {
           blurDataUrl: true,
         },
       },
-      user: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          profilePic: true,
+        },
+      },
       galleries: {
         include: {
           gallery: {
@@ -57,6 +63,7 @@ export const findArticlesByUserIdAndCursor = async (
       updatedAt: true,
       user: {
         select: {
+          id: true,
           name: true,
           profilePic: true,
         },
