@@ -7,6 +7,7 @@ import {
   totalArticlesByUserId,
 } from "../db/articles";
 import convertToCDNUrl from "../utils/convertToCDNUrl";
+import { findIsFollowingByFollowId, isFollowingRelations } from "../db/follow";
 
 type CreateArticleInput = {
   title: string;
@@ -17,48 +18,62 @@ type CreateArticleInput = {
   userId: string;
 };
 
-export const getArticlePostDetails = async (articleId: number) => {
-  const articleById = await findArticleById(articleId);
+export const getArticlePostDetails = async (
+  articleId: number,
+  viewingUserId?: string
+) => {
+  const article = await findArticleById(articleId);
 
-  if (!articleById) {
+  if (!article) {
     throw new Error("Article not found.");
+  }
+
+  let isFollowing;
+
+  if (viewingUserId) {
+    isFollowing = await findIsFollowingByFollowId({
+      followerId: viewingUserId,
+      followingId: article.user.id,
+    });
   }
 
   return {
     article: {
-      id: articleById.id,
-      title: articleById.title,
-      content: articleById.content,
-      description: articleById.description,
-      createdBy: articleById.user.name,
-      profilePic: articleById.user.profilePic,
-      createdAt: new Date(articleById.createdAt).toLocaleString(),
-      updatedAt: new Date(articleById.updatedAt).toLocaleString(),
-      coverImage: articleById.coverImage
+      id: article.id,
+      title: article.title,
+      content: article.content,
+      description: article.description,
+      createdAt: new Date(article.createdAt).toLocaleString(),
+      updatedAt: new Date(article.updatedAt).toLocaleString(),
+      user: {
+        ...article.user,
+        isFollowing: viewingUserId ? isFollowing : undefined,
+      },
+      coverImage: article.coverImage
         ? {
-            id: articleById.coverImage.id,
-            width: articleById.coverImage.width || 0,
-            height: articleById.coverImage.height || 0,
-            url: convertToCDNUrl(articleById.coverImage.url),
-            src: { large: convertToCDNUrl(articleById.coverImage.url) },
-            alt: articleById.coverImage.fileName,
-            blurredDataUrl: articleById.coverImage.blurDataUrl || undefined,
-            // metadata: articleById.coverImage.metadata
+            id: article.coverImage.id,
+            width: article.coverImage.width || 0,
+            height: article.coverImage.height || 0,
+            url: convertToCDNUrl(article.coverImage.url),
+            src: { large: convertToCDNUrl(article.coverImage.url) },
+            alt: article.coverImage.fileName,
+            blurredDataUrl: article.coverImage.blurDataUrl || undefined,
+            // metadata: article.coverImage.metadata
             //   ? {
-            //       model: articleById.coverImage.metadata.model || undefined,
+            //       model: article.coverImage.metadata.model || undefined,
             //       aperture:
-            //         articleById.coverImage.metadata.aperture || undefined,
+            //         article.coverImage.metadata.aperture || undefined,
             //       focalLength:
-            //         articleById.coverImage.metadata.focalLength || undefined,
+            //         article.coverImage.metadata.focalLength || undefined,
             //       exposureTime:
-            //         articleById.coverImage.metadata.exposureTime || undefined,
-            //       iso: articleById.coverImage.metadata.iso || undefined,
-            //       flash: articleById.coverImage.metadata.flash || undefined,
+            //         article.coverImage.metadata.exposureTime || undefined,
+            //       iso: article.coverImage.metadata.iso || undefined,
+            //       flash: article.coverImage.metadata.flash || undefined,
             //     }
             //   : undefined,
           }
         : undefined,
-      // galleries: articleById.galleries?.map(({ gallery }) => ({
+      // galleries: article.galleries?.map(({ gallery }) => ({
       //   id: gallery.id,
       //   title: gallery.title,
       //   createdAt: gallery.createdAt.toISOString(),
@@ -87,7 +102,8 @@ export const getArticlePostDetails = async (articleId: number) => {
 export const getArticlesList = async (
   limit: number,
   cursor: number | null = null,
-  userId: string
+  userId: string,
+  viewingUserId?: string
 ) => {
   if (!userId) {
     throw new Error("Not authenticated or no user ID provided.");
@@ -97,6 +113,17 @@ export const getArticlesList = async (
 
   if (!articles) {
     throw new Error("No articles found.");
+  }
+
+  let followingMap: Record<string, boolean> = {};
+  if (viewingUserId) {
+    const authorIds = [...new Set(articles.map((a) => a.user.id))];
+
+    const followings = await isFollowingRelations(authorIds, viewingUserId);
+
+    followingMap = Object.fromEntries(
+      followings.map((f) => [f.followingId, true])
+    );
   }
 
   const hasNextPage = articles.length > limit;
@@ -111,8 +138,12 @@ export const getArticlesList = async (
       title: article.title,
       content: article.content,
       description: article.description,
-      createdBy: article.user.name,
-      profilePic: article.user.profilePic,
+      user: {
+        ...article.user,
+        isFollowing: viewingUserId
+          ? followingMap[article.user.id] ?? false
+          : undefined,
+      },
       createdAt: new Date(article.createdAt).toLocaleString(),
       updatedAt: new Date(article.updatedAt).toLocaleString(),
       coverImage: article.coverImage

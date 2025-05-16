@@ -19,9 +19,15 @@ export const getIsFollowing = async (
 export async function getFollowerList(
   userId: string,
   limit: number,
-  cursor: string | null = null
+  cursor: string | null = null,
+  viewingUserId?: string
 ) {
-  const followerRes = await findFollowerListByUserId(userId, limit, cursor);
+  const followerRes = await findFollowerListByUserId(
+    userId,
+    limit,
+    cursor,
+    viewingUserId ?? undefined
+  );
   if (!followerRes) {
     throw new Error("Follower list not found");
   }
@@ -37,6 +43,9 @@ export async function getFollowerList(
     name: follower.name,
     profilePic: follower.profilePic,
     bio: follower.bio,
+    isFollowing: viewingUserId
+      ? (follower.followers?.length ?? 0) > 0
+      : undefined,
   }));
 
   return {
@@ -48,26 +57,35 @@ export async function getFollowerList(
 export async function getFollowingList(
   userId: string,
   limit: number,
-  cursor: string | null = null
+  cursor: string | null = null,
+  viewingUserId?: string
 ) {
-  const followingRes = await findFollowingListByUserId(userId, limit, cursor);
+  const followingRes = await findFollowingListByUserId(
+    userId,
+    limit,
+    cursor,
+    viewingUserId ?? undefined
+  );
   if (!followingRes) {
     throw new Error("Follower list not found");
   }
 
   const hasNextPage = followingRes.length > limit;
-  const trimmedFollower = hasNextPage
+  const trimmedFollowings = hasNextPage
     ? followingRes.slice(0, -1)
     : followingRes;
   const nextCursor = hasNextPage
-    ? trimmedFollower[trimmedFollower.length - 1].following.id
+    ? trimmedFollowings[trimmedFollowings.length - 1].following.id
     : null;
 
-  const followings = trimmedFollower.map(({ following }) => ({
+  const followings = trimmedFollowings.map(({ following }) => ({
     id: following.id,
     name: following.name,
     profilePic: following.profilePic,
     bio: following.bio,
+    isFollowing: viewingUserId
+      ? (following.followers?.length ?? 0) > 0
+      : undefined,
   }));
 
   return {

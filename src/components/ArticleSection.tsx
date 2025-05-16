@@ -1,13 +1,14 @@
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { Article } from "@/models/Article";
 import ProfilePictureIcon from "./ProfilePictureIcon";
+import FollowButton from "./FollowButton";
 
 type Props = {
   article: Article;
+  currentUserId?: string;
 };
 
-export default function ArticleSection({ article }: Props) {
+export default function ArticleSection({ article, currentUserId }: Props) {
   return (
     <section className="px-2 my-3">
       <div className="my-3 p-6 border-b-2">
@@ -18,15 +19,21 @@ export default function ArticleSection({ article }: Props) {
           </div>
           <div className="flex pt-6 items-center gap-4">
             <ProfilePictureIcon
-              profilePic={article.profilePic}
+              profilePic={article.user.profilePic}
               width={50}
               height={50}
             />
             <div>
-              <p className="large"> By {article.createdBy}</p>
+              <p className="large"> By {article.user.name}</p>
               <p className="muted">{article.createdAt}</p>
             </div>
-            <Button variant={"outline"}>Follow</Button>
+            {currentUserId && (
+              <FollowButton
+                followerId={article.user.id}
+                followingId={currentUserId}
+                isFollowingInitial={article.user.isFollowing}
+              />
+            )}
           </div>
         </div>
       </div>

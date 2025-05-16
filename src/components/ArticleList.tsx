@@ -6,12 +6,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ProfilePictureIcon from "./ProfilePictureIcon";
+import FollowButton from "./FollowButton";
 
 type Props = {
   userId: string;
+  currentUserId?: string;
 };
 
-export default function ArticleList({ userId }: Props) {
+export default function ArticleList({ userId, currentUserId }: Props) {
   const [articles, setArticles] = useState<Article[]>([]);
   const [nextCursor, setNextCursor] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -82,8 +84,8 @@ export default function ArticleList({ userId }: Props) {
           </div>
         ) : articles.length > 0 ? (
           articles.map((article) => (
-            <Link key={article.id} href={`/article/${article.id}`}>
-              <div className="my-3 p-3 md:p-6 border-b-2 ">
+            <div key={article.id} className="my-3 p-3 md:p-6 border-b-2 ">
+              <Link href={`/article/${article.id}`}>
                 <div className="grid grid-cols-12 ">
                   <div className="flex justify-between flex-col col-span-8  ">
                     <div>
@@ -100,7 +102,7 @@ export default function ArticleList({ userId }: Props) {
                           fill
                           alt={article.coverImage.alt}
                           src={article.coverImage.url}
-                          sizes="(max-width: 768px) 25vw, (max-width: 1200px) 5vw, 200px"
+                          sizes="(max-width: 768px) 10vw, (max-width: 1200px) 25vw, 200px"
                           className="object-cover"
                         />
                       </div>
@@ -112,24 +114,30 @@ export default function ArticleList({ userId }: Props) {
                   <p className="muted">Delete</p>
                 </div> */}
                 </div>
-                <div className="flex pt-3 items-center gap-4">
-                  <ProfilePictureIcon
-                    profilePic={article.profilePic}
-                    width={30}
-                    height={30}
-                  />
-                  <div>
-                    <p className="text-sm font-semibold md:text-lg">
-                      By {article.createdBy}
-                    </p>
-                    <p className="text-xs text-muted-foreground md:text-sm">
-                      {article.createdAt}
-                    </p>
-                  </div>
-                  {/* <Button variant={"outline"}>Follow</Button> */}
+              </Link>
+              <div className="flex pt-3 items-center gap-4">
+                <ProfilePictureIcon
+                  profilePic={article.user.profilePic}
+                  width={30}
+                  height={30}
+                />
+                <div>
+                  <p className="text-sm font-semibold md:text-lg">
+                    By {article.user.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground md:text-sm">
+                    {article.createdAt}
+                  </p>
                 </div>
+                {currentUserId && (
+                  <FollowButton
+                    followerId={article.user.id}
+                    followingId={currentUserId}
+                    isFollowingInitial={article.user.isFollowing}
+                  />
+                )}
               </div>
-            </Link>
+            </div>
           ))
         ) : (
           <div className="text-center large">No article found</div>

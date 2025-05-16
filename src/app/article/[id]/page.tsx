@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import ArticleSection from "@/components/ArticleSection";
-import { fetchArticlePost } from "../actions";
+import { fetchArticlePost, fetchUserSession } from "../actions";
 
 export default async function ArticleByIdPage({
   params,
@@ -10,14 +10,15 @@ export default async function ArticleByIdPage({
 }) {
   const { id } = await params;
 
+  const user = await fetchUserSession();
+
   const res = await fetchArticlePost(id);
 
   const article = res?.article;
-  console.log(article);
 
   if (!article) {
     return notFound();
   }
 
-  return <ArticleSection article={article} />;
+  return <ArticleSection article={article} currentUserId={user?.id} />;
 }

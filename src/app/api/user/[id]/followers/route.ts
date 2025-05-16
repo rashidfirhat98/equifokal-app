@@ -10,9 +10,15 @@ export async function GET(
 
   const limit = parseInt(searchParams.get("limit") || "10", 10);
   const cursor = searchParams.get("cursor") || null;
+  const viewingUserId = searchParams.get("viewingUserId");
 
   try {
-    const { followers, nextCursor } = await getFollowerList(id, limit, cursor);
+    const { followers, nextCursor } = await getFollowerList(
+      id,
+      limit,
+      cursor,
+      viewingUserId ?? undefined
+    );
 
     return NextResponse.json({ followers, nextCursor });
   } catch (error) {

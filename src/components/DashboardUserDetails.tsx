@@ -81,8 +81,8 @@ export default function DashboardUserDetails({
               <FollowButton
                 followingId={profileUser.id}
                 followerId={currentUser.id}
-                isFollowing={isFollowing}
-                setIsFollowing={setIsFollowing}
+                isFollowingInitial={isFollowing}
+                onFollowToggle={() => setIsFollowing((prev) => !prev)}
               />
             )}
           </div>

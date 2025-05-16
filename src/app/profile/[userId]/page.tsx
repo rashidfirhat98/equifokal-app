@@ -5,6 +5,7 @@ import {
 } from "./actions";
 import DashboardUserDetails from "@/components/DashboardUserDetails";
 import DashboardTabs from "@/components/DashboardTabs";
+import { redirect } from "next/navigation";
 
 type Props = {
   params: Promise<{ userId: string }>;
@@ -25,6 +26,10 @@ export default async function OtherUserProfilePage({ params }: Props) {
     return <div>Loading...</div>;
   }
 
+  if (user.id === currentUser.id) {
+    redirect("/dashboard");
+  }
+
   return (
     <section className="profile-page">
       <DashboardUserDetails
@@ -32,7 +37,7 @@ export default async function OtherUserProfilePage({ params }: Props) {
         currentUser={currentUser}
         isFollowingInitial={isFollowing}
       />
-      <DashboardTabs user={user} />
+      <DashboardTabs user={user} currentUser={currentUser} />
     </section>
   );
 }

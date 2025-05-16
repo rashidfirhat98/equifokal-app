@@ -15,10 +15,14 @@ export const ArticleSchema = z.object({
   title: z.string(),
   content: z.string(),
   description: z.string(),
-  profilePic: z.string().nullable(),
+  user: z.object({
+    id: z.string(),
+    name: z.string(),
+    profilePic: z.string().nullable(),
+    isFollowing: z.boolean().optional(),
+  }),
   coverImage: PhotoSchema.optional(),
   galleries: z.array(GallerySchema).optional(),
-  createdBy: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
