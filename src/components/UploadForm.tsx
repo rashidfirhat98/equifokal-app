@@ -111,7 +111,6 @@ export default function UploadForm({
                 };
               })
               .catch(() => {
-                // If EXIF fails, fallback to image dimensions only
                 const img = new Image();
                 img.src = URL.createObjectURL(file);
 
@@ -136,60 +135,77 @@ export default function UploadForm({
 
       // Wait for all metadata to be processed
       const allMetadata: PhotoDetails[] = await Promise.all(metadataPromises);
-      console.log(allMetadata);
 
       setPhotoDetails(allMetadata);
     }
   };
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
-    const formData = new FormData();
+    if (!photoDetails?.length) return;
 
-    if (data.imgUploads && photoDetails?.length) {
-      Array.from(data.imgUploads as FileList).forEach((file: File, index) => {
-        formData.append("files", file);
-
-        // Find matching metadata from photoDetails state
-        const matchedMetadata = photoDetails.find(
-          (detail: PhotoDetails) => detail.file.name === file.name
-        );
-
-        if (matchedMetadata?.exifMetadata) {
-          formData.append(
-            `metadata[${index}]`,
-            JSON.stringify(matchedMetadata.exifMetadata)
-          );
-        }
-      });
-
-      formData.append("isPortfolio", JSON.stringify(data.isPortfolio));
-    }
+    setIsLoading(true);
 
     try {
-      setIsLoading(true);
+      const uploadResults = await Promise.all(
+        photoDetails.map(async (photo) => {
+          const { file, exifMetadata } = photo;
 
-      const response = await fetch("api/upload", {
+          const signedUrlRes = await fetch("/api/s3-upload-url", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fileName: file.name,
+              fileType: file.type,
+            }),
+          });
+          const data = await signedUrlRes.json();
+          const { url, publicUrl } = data;
+          console.log(url, publicUrl);
+          const uploadRes = await fetch(url, {
+            method: "PUT",
+            headers: { "Content-Type": file.type },
+            body: file,
+          });
+
+          if (!uploadRes.ok) throw new Error("Upload to S3 failed");
+
+          return {
+            fileName: file.name,
+            url: publicUrl,
+            metadata: exifMetadata,
+          };
+        })
+      );
+
+      // Send metadata + S3 URLs to your DB via server action
+      const result = await fetch("/api/upload-metadata", {
         method: "POST",
-        body: formData,
+        body: JSON.stringify({
+          files: uploadResults,
+          isPortfolio: data.isPortfolio,
+          isProfilePic: false,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
-      if (!response.ok) throw new Error("Failed to create article");
-      const result = await response.json();
-      console.log(result);
-      setAlert({ status: result.status, message: result.message });
+      const json = await result.json();
+      if (!result.ok) throw new Error(json.message || "Metadata upload failed");
+
+      setAlert({ status: "success", message: "Upload completed" });
       reset();
       setPhotoDetails([]);
       setSelectedFiles(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      fileInputRef.current!.value = "";
     } catch (error) {
-      console.log(error);
-      setAlert({ status: "error", message: "Network error. Please try again" });
+      console.error(error);
+      setAlert({ status: "error", message: "Upload failed. Try again." });
     } finally {
       setIsLoading(false);
     }
   }
+
   return (
     <Card className="flex flex-col items-center text-center">
       <CardHeader className="items-center pt-8">
