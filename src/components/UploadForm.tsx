@@ -26,11 +26,11 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import * as exifr from "exifr";
 import { AcceptedImageTypeSchema } from "@/models/ImageUploadSchema";
 import { Loader2 } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 import { z } from "zod";
+import { extractPhotoDetails } from "@/lib/utils/extractPhotoDetails";
 
 type PhotoDetails = {
   file: File;
@@ -51,15 +51,16 @@ type Alert = {
   message?: string;
 };
 
+const formSchema = z.object({
+  imgUploads: AcceptedImageTypeSchema,
+  isPortfolio: z.boolean().default(false).optional(),
+});
+
 export default function UploadForm({
   photosAmt,
 }: {
   photosAmt: number | null;
 }) {
-  const formSchema = z.object({
-    imgUploads: AcceptedImageTypeSchema,
-    isPortfolio: z.boolean().default(false).optional(),
-  });
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -70,7 +71,6 @@ export default function UploadForm({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { reset, setValue } = form;
-  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [photoDetails, setPhotoDetails] = useState<PhotoDetails[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState<Alert>({
@@ -80,63 +80,12 @@ export default function UploadForm({
 
   const handleFileChange = async (files: FileList) => {
     if (files) {
-      setSelectedFiles(files);
-
-      // Extract metadata from all images concurrently
-      const metadataPromises: Promise<PhotoDetails>[] = Array.from(files).map(
-        (file) =>
-          new Promise((resolve) => {
-            exifr
-              .parse(file)
-              .then((metadata) => {
-                metadata = metadata || {}; // Ensure metadata is always an object
-
-                const img = new Image();
-                img.src = URL.createObjectURL(file);
-
-                img.onload = () => {
-                  resolve({
-                    file,
-                    exifMetadata: {
-                      height: metadata.ImageHeight ?? img.height,
-                      width: metadata.ImageWidth ?? img.width,
-                      model: metadata.Model ?? null,
-                      aperture: metadata.FNumber ?? null,
-                      focalLength: metadata.FocalLength ?? null,
-                      exposureTime: metadata.ExposureTime ?? null,
-                      iso: metadata.ISO ?? null,
-                      flash: metadata.Flash ?? null,
-                    },
-                  });
-                };
-              })
-              .catch(() => {
-                const img = new Image();
-                img.src = URL.createObjectURL(file);
-
-                img.onload = () => {
-                  resolve({
-                    file,
-                    exifMetadata: {
-                      height: img.height,
-                      width: img.width,
-                      model: null,
-                      aperture: null,
-                      focalLength: null,
-                      exposureTime: null,
-                      iso: null,
-                      flash: null,
-                    },
-                  });
-                };
-              });
-          })
+      const metadataPromises = Array.from(files).map((file) =>
+        extractPhotoDetails(file)
       );
 
-      // Wait for all metadata to be processed
-      const allMetadata: PhotoDetails[] = await Promise.all(metadataPromises);
-
-      setPhotoDetails(allMetadata);
+      const photoDetails = await Promise.all(metadataPromises);
+      setPhotoDetails(photoDetails);
     }
   };
 
@@ -158,9 +107,9 @@ export default function UploadForm({
               fileType: file.type,
             }),
           });
-          const data = await signedUrlRes.json();
-          const { url, publicUrl } = data;
-          console.log(url, publicUrl);
+
+          const { url, publicUrl } = await signedUrlRes.json();
+
           const uploadRes = await fetch(url, {
             method: "PUT",
             headers: { "Content-Type": file.type },
@@ -196,7 +145,6 @@ export default function UploadForm({
       setAlert({ status: "success", message: "Upload completed" });
       reset();
       setPhotoDetails([]);
-      setSelectedFiles(null);
       fileInputRef.current!.value = "";
     } catch (error) {
       console.error(error);

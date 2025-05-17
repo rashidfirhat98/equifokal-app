@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
@@ -31,7 +31,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Loader2, X } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GallerySchema } from "@/models/Gallery";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -39,12 +39,29 @@ import * as exifr from "exifr";
 import {
   AcceptedCoverImageSchema,
   AcceptedCoverImageUploads,
+  UploadImageResult,
 } from "@/models/ImageUploadSchema";
 import { Textarea } from "./ui/textarea";
+import { extractPhotoDetails } from "@/lib/utils/extractPhotoDetails";
 
 type Props = {
   galleries?: z.infer<typeof GallerySchema>[];
 };
+
+const formSchema = z.object({
+  title: z
+    .string()
+    .min(3, "Title is required and must be at least 3 characters."),
+  content: z
+    .string()
+    .min(50, "Content is required and must be at least 50 characters."),
+  description: z
+    .string()
+    .min(30, "Description is required and must be at least 30 characters.")
+    .max(140, "Description must be below 140 characters."),
+  coverImage: AcceptedCoverImageSchema,
+  galleryId: z.array(z.number()).optional(),
+});
 
 export default function ArticleForm({ galleries }: Props) {
   const router = useRouter();
@@ -54,21 +71,6 @@ export default function ArticleForm({ galleries }: Props) {
   const [alert, setAlert] = useState({
     status: "",
     message: "",
-  });
-
-  const formSchema = z.object({
-    title: z
-      .string()
-      .min(3, "Title is required and must be at least 3 characters."),
-    content: z
-      .string()
-      .min(50, "Content is required and must be at least 50 characters."),
-    description: z
-      .string()
-      .min(30, "Description is required and must be at least 30 characters.")
-      .max(140, "Description must be below 140 characters."),
-    coverImage: AcceptedCoverImageSchema,
-    galleryId: z.array(z.number()).optional(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -98,7 +100,7 @@ export default function ArticleForm({ galleries }: Props) {
       setValue("content", editor.getHTML());
     },
   });
-
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   useEffect(() => {
     const saved = localStorage.getItem("draftArticle");
@@ -106,7 +108,6 @@ export default function ArticleForm({ galleries }: Props) {
       const parsed = JSON.parse(saved);
       setValue("title", parsed.title || "");
       editor?.commands.setContent(parsed.content || "");
-      setCoverImage(parsed.coverImage || null);
     }
   }, [setValue, editor]);
 
@@ -119,7 +120,6 @@ export default function ArticleForm({ galleries }: Props) {
           title: watch("title"),
           content: editor?.getHTML(),
           description: watch("description"),
-          coverImage: watch("coverImage"),
           galleryId: watch("galleryId"),
         })
       );
@@ -141,92 +141,74 @@ export default function ArticleForm({ galleries }: Props) {
 
   //   }
   // };
-  const handleImageUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-
+  const handleImageUpload = async (file: File) => {
     if (!file) return;
 
-    try {
-      let metadata = await exifr.parse(file);
-      metadata = metadata || {};
-
-      const img = new window.Image();
-      img.src = URL.createObjectURL(file) as string;
-
-      img.onload = () => {
-        const exifMetadata = {
-          height: metadata.ImageHeight ?? img.height,
-          width: metadata.ImageWidth ?? img.width,
-          model: metadata.Model ?? null,
-          aperture: metadata.FNumber ?? null,
-          focalLength: metadata.FocalLength ?? null,
-          exposureTime: metadata.ExposureTime ?? null,
-          iso: metadata.ISO ?? null,
-          flash: metadata.Flash ?? null,
-        };
-
-        const photoDetail = {
-          file,
-          exifMetadata,
-        };
-
-        setCoverImage(photoDetail);
-        setValue("coverImage", photoDetail, { shouldValidate: true });
-      };
-    } catch (error) {
-      // Fallback: if EXIF fails, just get dimensions
-      const img = new window.Image();
-      img.src = URL.createObjectURL(file);
-
-      img.onload = () => {
-        const exifMetadata = {
-          height: img.height,
-          width: img.width,
-          model: null,
-          aperture: null,
-          focalLength: null,
-          exposureTime: null,
-          iso: null,
-          flash: null,
-        };
-
-        const photoDetail = {
-          file,
-          exifMetadata,
-        };
-
-        setCoverImage(photoDetail);
-        setValue("coverImage", photoDetail, { shouldValidate: true });
-      };
-    }
+    const photoDetail = await extractPhotoDetails(file);
+    setCoverImage(photoDetail);
+    setValue("coverImage", photoDetail, { shouldValidate: true });
   };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append(`title`, data.title);
-      formData.append(`content`, data.content);
-      formData.append(`description`, data.description);
-
-      if (data.galleryId) {
-        formData.append(`galleryId`, JSON.stringify(data.galleryId));
-      }
-
+      let coverImageUpload: UploadImageResult | undefined;
       if (data.coverImage) {
-        formData.append("files", data.coverImage.file); // Append each file
-        formData.append(
-          `metadata[0]`,
-          JSON.stringify(data.coverImage.exifMetadata)
-        );
+        const { file, exifMetadata } = data.coverImage;
+
+        const signedUrlRes = await fetch("/api/s3-upload-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: file.name,
+            fileType: file.type,
+          }),
+        });
+
+        const { url, publicUrl } = await signedUrlRes.json();
+
+        const uploadRes = await fetch(url, {
+          method: "PUT",
+          headers: { "Content-Type": file.type },
+          body: file,
+        });
+
+        if (!uploadRes.ok) throw new Error("Upload to S3 failed");
+
+        const uploadResults = [
+          {
+            fileName: file.name,
+            url: publicUrl,
+            metadata: exifMetadata,
+          },
+        ];
+        // Send metadata + S3 URLs to your DB via server action
+        const result = await fetch("/api/upload-metadata", {
+          method: "POST",
+          body: JSON.stringify({
+            files: uploadResults,
+            isPortfolio: false,
+            isProfilePic: false,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        coverImageUpload = await result.json();
+        if (!result.ok)
+          throw new Error(
+            coverImageUpload?.message || "Metadata upload failed"
+          );
       }
 
       const response = await fetch("/api/articles", {
         method: "POST",
-        body: formData,
+        body: JSON.stringify({
+          ...data,
+          uploadResult: coverImageUpload,
+        }),
       });
 
       if (!response.ok) throw new Error("Failed to create article");
@@ -234,6 +216,7 @@ export default function ArticleForm({ galleries }: Props) {
       localStorage.removeItem("draftArticle");
       reset();
       editor?.commands.setContent("");
+      fileInputRef.current!.value = "";
       router.push("/");
     } catch (error) {
       console.error("Error:", error);
@@ -245,7 +228,9 @@ export default function ArticleForm({ galleries }: Props) {
   return (
     <Form {...form}>
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(onSubmit, (errors) => {
+          console.log(errors);
+        })}
         className="mx-auto py-6 space-y-4"
       >
         <FormField
@@ -254,14 +239,46 @@ export default function ArticleForm({ galleries }: Props) {
           render={({ field: { value, onChange, ...fieldProps } }) => (
             <FormItem>
               <FormControl>
-                <Input
-                  className="outline-dashed border-none outline-gray-300 w-full min-h-56 shadow-none"
-                  id="current"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  {...fieldProps}
-                />
+                <div className="relative w-full min-h-56 border border-dashed border-gray-300 rounded-md flex items-center justify-center bg-white hover:bg-gray-50 transition overflow-hidden">
+                  {coverImage?.file && (
+                    <>
+                      <Image
+                        src={URL.createObjectURL(coverImage.file)}
+                        alt="Preview"
+                        fill
+                        className="object-cover opacity-30 pointer-events-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCoverImage(null);
+                          setValue("coverImage", null, {
+                            shouldValidate: true,
+                          });
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = "";
+                          }
+                        }}
+                        className="absolute top-2 right-2 z-20 bg-white text-gray-600 hover:text-red-600 p-1 rounded-full shadow"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
+                  <Input
+                    ref={fileInputRef}
+                    className="outline-dashed border-none outline-gray-300 w-full min-h-56 shadow-none"
+                    id="current"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleImageUpload(file);
+                      }
+                    }}
+                  />
+                </div>
               </FormControl>
               <FormDescription>
                 Drag or click on the box to upload photos
@@ -270,9 +287,7 @@ export default function ArticleForm({ galleries }: Props) {
           )}
         />
         {errors.coverImage && (
-          <p className="text-red-500 text-sm">
-            {"Something wrong with the image"}
-          </p>
+          <p className="text-red-500 text-sm">{`${errors.coverImage.message}`}</p>
         )}
 
         <FormField

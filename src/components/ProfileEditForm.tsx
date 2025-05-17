@@ -23,6 +23,7 @@ import { AcceptedCoverImageSchema } from "@/models/ImageUploadSchema";
 import { Checkbox } from "./ui/checkbox";
 import { profilePicURL } from "@/lib/utils/profilePic";
 import { UserDetails } from "@/models/User";
+import { extractPhotoDetails } from "@/lib/utils/extractPhotoDetails";
 
 type Props = {
   userDetails: UserDetails;
@@ -63,76 +64,22 @@ export default function ProfileEditForm({ userDetails }: Props) {
     message: "",
   });
 
-  const handleOnchange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-
+  const handleOnchange = async (file: File) => {
     if (!file) return;
 
-    try {
-      let metadata = await exifr.parse(file);
-      metadata = metadata || {};
+    const photoDetail = await extractPhotoDetails(file);
 
-      const img = new window.Image();
-      img.src = URL.createObjectURL(file) as string;
-
-      setPreviewUrl(URL.createObjectURL(file));
-
-      img.onload = () => {
-        const exifMetadata = {
-          height: metadata.ImageHeight ?? img.height,
-          width: metadata.ImageWidth ?? img.width,
-          model: metadata.Model ?? null,
-          aperture: metadata.FNumber ?? null,
-          focalLength: metadata.FocalLength ?? null,
-          exposureTime: metadata.ExposureTime ?? null,
-          iso: metadata.ISO ?? null,
-          flash: metadata.Flash ?? null,
-        };
-
-        const photoDetail = {
-          file,
-          exifMetadata,
-        };
-
-        setValue("profilePicUploads", photoDetail, { shouldValidate: true });
-      };
-    } catch (error) {
-      const img = new window.Image();
-      img.src = URL.createObjectURL(file);
-
-      img.onload = () => {
-        const exifMetadata = {
-          height: img.height,
-          width: img.width,
-          model: null,
-          aperture: null,
-          focalLength: null,
-          exposureTime: null,
-          iso: null,
-          flash: null,
-        };
-
-        const photoDetail = {
-          file,
-          exifMetadata,
-        };
-
-        setValue("profilePicUploads", photoDetail, { shouldValidate: true });
-      };
-    }
+    setValue("profilePicUploads", photoDetail, { shouldValidate: true });
   };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     const formData = new FormData();
-
-    formData.append("name", data.name);
-    formData.append("email", data.email);
     if (data.bio) {
       formData.append("bio", data.bio);
     }
 
     if (data.profilePicUploads) {
-      formData.append("files", data.profilePicUploads.file); // Append each file
+      formData.append("files", data.profilePicUploads.file);
       formData.append(
         `metadata[0]`,
         JSON.stringify(data.profilePicUploads.exifMetadata)
@@ -153,11 +100,7 @@ export default function ProfileEditForm({ userDetails }: Props) {
 
       setAlert({ status: "success", message: "Profile edited" });
 
-      if (!res.ok) throw new Error("Failed to create article");
-      // if (res?.error) {
-      //   setAlert({ status: "error", message: "Invalid email or password" });
-      //   return;
-      // }
+      if (!res.ok) throw new Error("Failed to upload profile image");
 
       router.push("/dashboard");
       router.refresh();
@@ -205,7 +148,12 @@ export default function ProfileEditForm({ userDetails }: Props) {
                     accept="image/*"
                     ref={fileInputRef}
                     className="hidden"
-                    onChange={handleOnchange}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleOnchange(file);
+                      }
+                    }}
                   />
 
                   <Button

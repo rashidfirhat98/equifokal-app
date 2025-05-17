@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { uploadImagesNew } from "@/lib/services/uploadImages";
+import { UploadImageResult } from "@/models/ImageUploadSchema";
 
-export async function POST(req: NextRequest) {
+export async function POST(
+  req: NextRequest
+): Promise<NextResponse<UploadImageResult | { error: string }>> {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
