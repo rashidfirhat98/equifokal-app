@@ -4,6 +4,7 @@ import { insertUserImage } from "../db/images";
 import {
   UploadedImage,
   UploadImageArgs,
+  UploadImageNewArgs,
   UploadImageResult,
 } from "@/models/ImageUploadSchema";
 
@@ -36,7 +37,7 @@ async function uploadFileToS3(buffer: Buffer, fileName: string) {
   try {
     const response = await s3Client.send(command);
     console.log("File uploaded successfully", response);
-    const fileUrl = `https://${env.NEXT_PUBLIC_AWS_CDN_URL}/${key}`;
+    const fileUrl = `${env.NEXT_PUBLIC_AWS_CDN_URL}/${key}`;
 
     return fileUrl;
   } catch (error) {
@@ -65,6 +66,54 @@ export async function uploadImages({
         userId,
         url: fileUrl,
         fileName: file.name,
+        blurDataUrl,
+        width: metadata?.width,
+        height: metadata?.height,
+        metadata: {
+          model: metadata?.model,
+          aperture: metadata?.aperture,
+          focalLength: metadata?.focalLength,
+          exposureTime: metadata?.exposureTime,
+          iso: metadata?.iso,
+          flash: metadata?.flash,
+          width: metadata?.width,
+          height: metadata?.height,
+        },
+        isPortfolio: isPortfolio,
+        isProfilePic: isProfilePic,
+      });
+
+      uploadedImages.push(createdImage);
+    }
+    return {
+      status: "success",
+      message: "Images uploaded successfully",
+      images: uploadedImages,
+    };
+  } catch (error) {
+    console.error("Upload Error:", error);
+    return { status: "error", message: "Failed to upload images" };
+  }
+}
+
+export async function uploadImagesNew({
+  files,
+  userId,
+  isPortfolio,
+  isProfilePic,
+}: UploadImageNewArgs): Promise<UploadImageResult> {
+  try {
+    const uploadedImages: UploadedImage[] = [];
+
+    for (const { url, fileName, metadata } of files) {
+      const imageRes = await fetch(url);
+      const buffer = Buffer.from(await imageRes.arrayBuffer());
+      const blurDataUrl = await generateBlurDataUrl(buffer);
+
+      const createdImage = await insertUserImage({
+        userId,
+        url,
+        fileName,
         blurDataUrl,
         width: metadata?.width,
         height: metadata?.height,

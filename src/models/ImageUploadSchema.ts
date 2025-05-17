@@ -8,6 +8,7 @@ const acceptedImageTypes = [
   "image/webp",
   "image/svg+xml",
   "image/gif",
+  "image/avif",
 ];
 
 export const AcceptedImageTypeSchema =
@@ -76,6 +77,19 @@ export type FileWithMetadata = {
 
 export type UploadImageArgs = {
   files: FileWithMetadata[];
+  userId: string;
+  isPortfolio?: boolean;
+  isProfilePic?: boolean;
+};
+
+export type FileWithMetadataNew = {
+  fileName: string;
+  url: string;
+  metadata: UploadMetadata | null;
+};
+
+export type UploadImageNewArgs = {
+  files: FileWithMetadataNew[];
   userId: string;
   isPortfolio?: boolean;
   isProfilePic?: boolean;
