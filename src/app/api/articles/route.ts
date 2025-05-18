@@ -49,12 +49,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { title, content, description, galleryId, uploadResult } =
+    const { title, content, description, galleryIds, uploadResult } =
       await req.json();
 
     // const formData = await req.formData();
-
-    const galleryIds = JSON.parse(galleryId) as number[];
 
     // const { filesWithMetadata, isPortfolio, isProfilePic } =
     //   extractUploadData(formData);

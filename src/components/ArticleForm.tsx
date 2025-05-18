@@ -60,7 +60,7 @@ const formSchema = z.object({
     .min(30, "Description is required and must be at least 30 characters.")
     .max(140, "Description must be below 140 characters."),
   coverImage: AcceptedCoverImageSchema,
-  galleryId: z.array(z.number()).optional(),
+  galleryIds: z.array(z.number()).optional(),
 });
 
 export default function ArticleForm({ galleries }: Props) {
@@ -80,7 +80,7 @@ export default function ArticleForm({ galleries }: Props) {
       content: "",
       description: "",
       coverImage: undefined,
-      galleryId: [],
+      galleryIds: [],
     },
   });
 
@@ -120,7 +120,7 @@ export default function ArticleForm({ galleries }: Props) {
           title: watch("title"),
           content: editor?.getHTML(),
           description: watch("description"),
-          galleryId: watch("galleryId"),
+          galleryIds: watch("galleryIds"),
         })
       );
     }, 5000);
@@ -183,7 +183,7 @@ export default function ArticleForm({ galleries }: Props) {
             metadata: exifMetadata,
           },
         ];
-        // Send metadata + S3 URLs to your DB via server action
+
         const result = await fetch("/api/upload-metadata", {
           method: "POST",
           body: JSON.stringify({
@@ -334,7 +334,7 @@ export default function ArticleForm({ galleries }: Props) {
         {galleries && (
           <FormField
             control={form.control}
-            name="galleryId"
+            name="galleryIds"
             render={({ field }) => {
               return (
                 <FormItem>
