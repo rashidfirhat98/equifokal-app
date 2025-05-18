@@ -107,6 +107,16 @@ export async function uploadImagesNew({
 
     for (const { url, fileName, metadata } of files) {
       const imageRes = await fetch(url);
+
+      if (!imageRes.ok) {
+        throw new Error(`Failed to fetch image: ${imageRes.statusText}`);
+      }
+
+      const contentType = imageRes.headers.get("content-type");
+      if (!contentType?.startsWith("image/")) {
+        throw new Error(`Invalid content type: ${contentType}`);
+      }
+
       const buffer = Buffer.from(await imageRes.arrayBuffer());
       const blurDataUrl = await generateBlurDataUrl(buffer);
 
