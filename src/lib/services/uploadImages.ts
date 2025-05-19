@@ -106,7 +106,6 @@ export async function uploadImagesNew({
     const uploadedImages: UploadedImage[] = [];
 
     for (const { url, fileName, metadata } of files) {
-      console.log("Image URL:", url);
       const imageRes = await fetch(url);
 
       if (!imageRes.ok) {
