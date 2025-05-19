@@ -26,11 +26,11 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import * as exifr from "exifr";
 import { AcceptedImageTypeSchema } from "@/models/ImageUploadSchema";
 import { Loader2 } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 import { z } from "zod";
+import { extractPhotoDetails } from "@/lib/utils/extractPhotoDetails";
 
 type PhotoDetails = {
   file: File;
@@ -51,15 +51,16 @@ type Alert = {
   message?: string;
 };
 
+const formSchema = z.object({
+  imgUploads: AcceptedImageTypeSchema,
+  isPortfolio: z.boolean().default(false).optional(),
+});
+
 export default function UploadForm({
   photosAmt,
 }: {
   photosAmt: number | null;
 }) {
-  const formSchema = z.object({
-    imgUploads: AcceptedImageTypeSchema,
-    isPortfolio: z.boolean().default(false).optional(),
-  });
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -70,7 +71,6 @@ export default function UploadForm({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { reset, setValue } = form;
-  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [photoDetails, setPhotoDetails] = useState<PhotoDetails[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState<Alert>({
@@ -80,116 +80,80 @@ export default function UploadForm({
 
   const handleFileChange = async (files: FileList) => {
     if (files) {
-      setSelectedFiles(files);
-
-      // Extract metadata from all images concurrently
-      const metadataPromises: Promise<PhotoDetails>[] = Array.from(files).map(
-        (file) =>
-          new Promise((resolve) => {
-            exifr
-              .parse(file)
-              .then((metadata) => {
-                metadata = metadata || {}; // Ensure metadata is always an object
-
-                const img = new Image();
-                img.src = URL.createObjectURL(file);
-
-                img.onload = () => {
-                  resolve({
-                    file,
-                    exifMetadata: {
-                      height: metadata.ImageHeight ?? img.height,
-                      width: metadata.ImageWidth ?? img.width,
-                      model: metadata.Model ?? null,
-                      aperture: metadata.FNumber ?? null,
-                      focalLength: metadata.FocalLength ?? null,
-                      exposureTime: metadata.ExposureTime ?? null,
-                      iso: metadata.ISO ?? null,
-                      flash: metadata.Flash ?? null,
-                    },
-                  });
-                };
-              })
-              .catch(() => {
-                // If EXIF fails, fallback to image dimensions only
-                const img = new Image();
-                img.src = URL.createObjectURL(file);
-
-                img.onload = () => {
-                  resolve({
-                    file,
-                    exifMetadata: {
-                      height: img.height,
-                      width: img.width,
-                      model: null,
-                      aperture: null,
-                      focalLength: null,
-                      exposureTime: null,
-                      iso: null,
-                      flash: null,
-                    },
-                  });
-                };
-              });
-          })
+      const metadataPromises = Array.from(files).map((file) =>
+        extractPhotoDetails(file)
       );
 
-      // Wait for all metadata to be processed
-      const allMetadata: PhotoDetails[] = await Promise.all(metadataPromises);
-      console.log(allMetadata);
-
-      setPhotoDetails(allMetadata);
+      const photoDetails = await Promise.all(metadataPromises);
+      setPhotoDetails(photoDetails);
     }
   };
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
-    const formData = new FormData();
+    if (!photoDetails?.length) return;
 
-    if (data.imgUploads && photoDetails?.length) {
-      Array.from(data.imgUploads as FileList).forEach((file: File, index) => {
-        formData.append("files", file);
-
-        // Find matching metadata from photoDetails state
-        const matchedMetadata = photoDetails.find(
-          (detail: PhotoDetails) => detail.file.name === file.name
-        );
-
-        if (matchedMetadata?.exifMetadata) {
-          formData.append(
-            `metadata[${index}]`,
-            JSON.stringify(matchedMetadata.exifMetadata)
-          );
-        }
-      });
-
-      formData.append("isPortfolio", JSON.stringify(data.isPortfolio));
-    }
+    setIsLoading(true);
 
     try {
-      setIsLoading(true);
+      const uploadResults = await Promise.all(
+        photoDetails.map(async (photo) => {
+          const { file, exifMetadata } = photo;
 
-      const response = await fetch("api/upload", {
+          const signedUrlRes = await fetch("/api/s3-upload-url", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fileName: file.name,
+              fileType: file.type,
+            }),
+          });
+
+          const { url, publicUrl } = await signedUrlRes.json();
+
+          const uploadRes = await fetch(url, {
+            method: "PUT",
+            headers: { "Content-Type": file.type },
+            body: file,
+          });
+
+          if (!uploadRes.ok) throw new Error("Upload to S3 failed");
+
+          return {
+            fileName: file.name,
+            url: publicUrl,
+            metadata: exifMetadata,
+          };
+        })
+      );
+
+      // Send metadata + S3 URLs to your DB via server action
+      const result = await fetch("/api/upload-metadata", {
         method: "POST",
-        body: formData,
+        body: JSON.stringify({
+          files: uploadResults,
+          isPortfolio: data.isPortfolio,
+          isProfilePic: false,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
-      if (!response.ok) throw new Error("Failed to create article");
-      const result = await response.json();
-      console.log(result);
-      setAlert({ status: result.status, message: result.message });
+      const json = await result.json();
+      if (!result.ok) throw new Error(json.message || "Metadata upload failed");
+
+      setAlert({ status: "success", message: "Upload completed" });
       reset();
       setPhotoDetails([]);
-      setSelectedFiles(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      fileInputRef.current!.value = "";
     } catch (error) {
-      console.log(error);
-      setAlert({ status: "error", message: "Network error. Please try again" });
+      console.error(error);
+      setAlert({ status: "error", message: "Upload failed. Try again." });
     } finally {
       setIsLoading(false);
     }
   }
+
   return (
     <Card className="flex flex-col items-center text-center">
       <CardHeader className="items-center pt-8">

@@ -19,10 +19,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Textarea } from "./ui/textarea";
 import Image from "next/image";
 import { Button } from "./ui/button";
-import { AcceptedCoverImageSchema } from "@/models/ImageUploadSchema";
+import {
+  AcceptedCoverImageSchema,
+  UploadImageResult,
+} from "@/models/ImageUploadSchema";
 import { Checkbox } from "./ui/checkbox";
 import { profilePicURL } from "@/lib/utils/profilePic";
 import { UserDetails } from "@/models/User";
+import { extractPhotoDetails } from "@/lib/utils/extractPhotoDetails";
+import { Loader2 } from "lucide-react";
 
 type Props = {
   userDetails: UserDetails;
@@ -39,6 +44,7 @@ const formSchema = z.object({
 
 export default function ProfileEditForm({ userDetails }: Props) {
   const profilePic = profilePicURL(userDetails.profilePic);
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,7 +58,7 @@ export default function ProfileEditForm({ userDetails }: Props) {
     },
   });
 
-  const { setValue } = form;
+  const { setValue, reset } = form;
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(
@@ -63,102 +69,80 @@ export default function ProfileEditForm({ userDetails }: Props) {
     message: "",
   });
 
-  const handleOnchange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-
+  const handleOnchange = async (file: File) => {
     if (!file) return;
+    const img = new window.Image();
+    img.src = URL.createObjectURL(file) as string;
+    setPreviewUrl(URL.createObjectURL(file));
+    const photoDetail = await extractPhotoDetails(file);
 
-    try {
-      let metadata = await exifr.parse(file);
-      metadata = metadata || {};
-
-      const img = new window.Image();
-      img.src = URL.createObjectURL(file) as string;
-
-      setPreviewUrl(URL.createObjectURL(file));
-
-      img.onload = () => {
-        const exifMetadata = {
-          height: metadata.ImageHeight ?? img.height,
-          width: metadata.ImageWidth ?? img.width,
-          model: metadata.Model ?? null,
-          aperture: metadata.FNumber ?? null,
-          focalLength: metadata.FocalLength ?? null,
-          exposureTime: metadata.ExposureTime ?? null,
-          iso: metadata.ISO ?? null,
-          flash: metadata.Flash ?? null,
-        };
-
-        const photoDetail = {
-          file,
-          exifMetadata,
-        };
-
-        setValue("profilePicUploads", photoDetail, { shouldValidate: true });
-      };
-    } catch (error) {
-      const img = new window.Image();
-      img.src = URL.createObjectURL(file);
-
-      img.onload = () => {
-        const exifMetadata = {
-          height: img.height,
-          width: img.width,
-          model: null,
-          aperture: null,
-          focalLength: null,
-          exposureTime: null,
-          iso: null,
-          flash: null,
-        };
-
-        const photoDetail = {
-          file,
-          exifMetadata,
-        };
-
-        setValue("profilePicUploads", photoDetail, { shouldValidate: true });
-      };
-    }
+    setValue("profilePicUploads", photoDetail, { shouldValidate: true });
   };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    const formData = new FormData();
-
-    formData.append("name", data.name);
-    formData.append("email", data.email);
-    if (data.bio) {
-      formData.append("bio", data.bio);
-    }
-
-    if (data.profilePicUploads) {
-      formData.append("files", data.profilePicUploads.file); // Append each file
-      formData.append(
-        `metadata[0]`,
-        JSON.stringify(data.profilePicUploads.exifMetadata)
-      );
-    }
-
-    if (data.existingProfilePicURL) {
-      formData.append("profilePicURL", data.existingProfilePicURL);
-    }
-
-    formData.append("isProfilePic", JSON.stringify(data.isProfilePic));
+    setIsLoading(true);
 
     try {
-      const res = await fetch("/api/user/edit", {
+      let profilePicUpload: UploadImageResult | undefined;
+      if (data.profilePicUploads) {
+        const { file, exifMetadata } = data.profilePicUploads;
+        const signedUrlRes = await fetch("/api/s3-upload-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: file.name,
+            fileType: file.type,
+          }),
+        });
+
+        const { url, publicUrl } = await signedUrlRes.json();
+
+        const uploadRes = await fetch(url, {
+          method: "PUT",
+          headers: { "Content-Type": file.type },
+          body: file,
+        });
+
+        if (!uploadRes.ok) throw new Error("Upload to S3 failed");
+
+        const uploadResults = [
+          {
+            fileName: file.name,
+            url: publicUrl,
+            metadata: exifMetadata,
+          },
+        ];
+
+        const result = await fetch("/api/upload-metadata", {
+          method: "POST",
+          body: JSON.stringify({
+            files: uploadResults,
+            isPortfolio: false,
+            isProfilePic: true,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        profilePicUpload = await result.json();
+        if (!result.ok)
+          throw new Error(
+            profilePicUpload?.message || "Metadata upload failed"
+          );
+      }
+
+      const response = await fetch("/api/user/edit", {
         method: "POST",
-        body: formData,
+        body: JSON.stringify({
+          ...data,
+          uploadResult: profilePicUpload,
+        }),
       });
+      if (!response.ok) throw new Error("Failed to edit profile");
 
       setAlert({ status: "success", message: "Profile edited" });
-
-      if (!res.ok) throw new Error("Failed to create article");
-      // if (res?.error) {
-      //   setAlert({ status: "error", message: "Invalid email or password" });
-      //   return;
-      // }
-
+      reset();
       router.push("/dashboard");
       router.refresh();
     } catch (error) {
@@ -166,6 +150,7 @@ export default function ProfileEditForm({ userDetails }: Props) {
       setAlert({ status: "error", message: "Network error. Please try again" });
     }
   };
+
   return (
     <>
       {alert.message && (
@@ -191,31 +176,37 @@ export default function ProfileEditForm({ userDetails }: Props) {
               className="space-y-6"
             >
               <div className="col-span-1 flex flex-col items-center justify-center">
-                <div className="col-span-1 flex flex-col items-center justify-center">
-                  <Image
-                    width={100}
-                    height={100}
-                    alt="profile-pic"
-                    src={previewUrl || profilePic}
-                    className="rounded-full mb-6 aspect-square object-cover"
-                  />
-
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    className="hidden"
-                    onChange={handleOnchange}
-                  />
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    Change Photo
-                  </Button>
+                <div className="flex flex-col items-center justify-center pb-6">
+                  <div className="relative w-24 h-24">
+                    <Image
+                      fill
+                      sizes="80px"
+                      alt="profile-pic"
+                      src={previewUrl || profilePic}
+                      className="rounded-full aspect-square object-cover"
+                    />
+                  </div>
                 </div>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleOnchange(file);
+                    }
+                  }}
+                />
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Change Photo
+                </Button>
               </div>
               <FormField
                 control={form.control}
@@ -275,7 +266,13 @@ export default function ProfileEditForm({ userDetails }: Props) {
                   type="submit"
                   className="flex w-full justify-center rounded-md px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
-                  Save Profile
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="animate-spin" /> Saving...
+                    </>
+                  ) : (
+                    "Save Profile"
+                  )}
                 </Button>
               </div>
             </form>

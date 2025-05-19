@@ -1,8 +1,6 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/authOptions";
-import { uploadImages } from "@/lib/services/uploadImages";
-import { extractUploadData } from "@/lib/utils/extractUploadData";
 import { editUserDetails } from "@/lib/services/user";
 
 export async function POST(req: Request) {
@@ -13,37 +11,17 @@ export async function POST(req: Request) {
 
   const userId = session.user.id;
 
-  const formData = await req.formData();
+  const { name, email, bio, uploadResult, existingProfilePicURL } =
+    await req.json();
 
-  const name = formData.get("name")?.toString() || "";
-  const email = formData.get("email")?.toString() || "";
-  const bio = formData.get("bio")?.toString() || "";
-  const files = formData.getAll("files");
-  let profilePicURL: string | null =
-    formData.get("profilePicURL")?.toString() ?? null;
-
-  if (files.length > 0) {
-    const { filesWithMetadata, isPortfolio, isProfilePic } =
-      extractUploadData(formData);
-    if (!filesWithMetadata || filesWithMetadata.length === 0) {
-      return NextResponse.json({ error: "No files found" }, { status: 400 });
-    }
-
-    const uploadResult = await uploadImages({
-      files: filesWithMetadata,
-      userId,
-      isPortfolio,
-      isProfilePic,
-    });
-
-    if (uploadResult.status === "success" && uploadResult.images?.length) {
-      profilePicURL = uploadResult.images[0].url;
-    }
+  let profilePicURL: string | null = existingProfilePicURL;
+  if (uploadResult.status === "success" && uploadResult.images?.length) {
+    profilePicURL = uploadResult.images[0].url;
   }
 
   try {
     const updatedUser = await editUserDetails({
-      userId: session.user.id,
+      userId,
       name,
       email,
       bio,

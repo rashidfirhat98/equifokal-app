@@ -19,10 +19,21 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "equifokal-dev.s3.ap-southeast-2.amazonaws.com",
       },
-
       {
         protocol: "https",
         hostname: "dal69ajk6u7z2.cloudfront.net",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "djk2c9flpfam8.cloudfront.net",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "d1tp8haoilab5u.cloudfront.net",
         port: "",
         pathname: "/**",
       },

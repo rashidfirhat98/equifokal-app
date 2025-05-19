@@ -49,26 +49,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const formData = await req.formData();
+    const { title, content, description, galleryIds, uploadResult } =
+      await req.json();
 
-    const title = formData.get("title")?.toString() || "";
-    const content = formData.get("content")?.toString() || "";
-    const description = formData.get("description")?.toString() || "";
-    const galleryIdRaw = formData.get("galleryId")?.toString() || "[]";
-    const galleryIds = JSON.parse(galleryIdRaw) as number[];
+    // const formData = await req.formData();
 
-    const { filesWithMetadata, isPortfolio, isProfilePic } =
-      extractUploadData(formData);
-    if (!filesWithMetadata || filesWithMetadata.length === 0) {
-      return NextResponse.json({ error: "No files found" }, { status: 400 });
-    }
+    // const { filesWithMetadata, isPortfolio, isProfilePic } =
+    //   extractUploadData(formData);
+    // if (!filesWithMetadata || filesWithMetadata.length === 0) {
+    //   return NextResponse.json({ error: "No files found" }, { status: 400 });
+    // }
 
-    const uploadResult = await uploadImages({
-      files: filesWithMetadata,
-      userId: session.user.id,
-      isPortfolio,
-      isProfilePic,
-    });
+    // const uploadResult = await uploadImages({
+    //   files: filesWithMetadata,
+    //   userId: session.user.id,
+    //   isPortfolio,
+    //   isProfilePic,
+    // });
 
     const article = await createArticle({
       userId: session.user.id,
