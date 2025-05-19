@@ -15,7 +15,6 @@ export async function POST(req: Request) {
 
     const signedUrl = await getSignedS3Url(fileName, fileType);
 
-    console.log("signedUrlRes", signedUrl);
     return NextResponse.json({ ...signedUrl, status: 201 });
   } catch (error) {
     console.error("Metadata upload failed:", error);

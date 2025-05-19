@@ -15,7 +15,6 @@ export async function POST(req: Request) {
     await req.json();
 
   let profilePicURL: string | null = existingProfilePicURL;
-  console.log(uploadResult);
   if (uploadResult.status === "success" && uploadResult.images?.length) {
     profilePicURL = uploadResult.images[0].url;
   }
