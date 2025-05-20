@@ -18,6 +18,8 @@ export const BasicPhotoSchema = z.object({
   src: z.object({
     large: z.string(),
   }),
+  portfolio: z.boolean(),
+  profilePic: z.boolean(),
 });
 
 export const PhotoSchema = BasicPhotoSchema.extend({
