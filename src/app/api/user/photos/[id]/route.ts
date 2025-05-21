@@ -5,13 +5,19 @@ import { authOptions } from "@/lib/authOptions";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = getServerSession(authOptions);
+  const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 404 });
   }
-  const id = parseInt(params.id);
+  const { id } = await params;
+
+  const photoId = parseInt(id);
+
+  if (isNaN(photoId)) {
+    return NextResponse.json({ error: "Invalid photo id" }, { status: 400 });
+  }
   const { fileName, isPortfolio, isProfilePic } = await req.json();
 
   if (!id || typeof fileName !== "string") {
@@ -19,7 +25,7 @@ export async function PATCH(
   }
 
   const updated = await prisma.image.update({
-    where: { id },
+    where: { id: photoId },
     data: {
       fileName,
       portfolio: isPortfolio,
@@ -27,7 +33,12 @@ export async function PATCH(
     },
   });
 
-  const userUpdated = await prisma.user;
+  const userUpdated = await prisma.user.update({
+    where: { id: session.user.id },
+    data: {
+      profilePic: updated.url,
+    },
+  });
 
-  return NextResponse.json(updated);
+  return NextResponse.json({ updatedImage: updated, user: userUpdated });
 }

@@ -13,9 +13,19 @@ export const GallerySchema = z.object({
   id: z.number(),
   title: z.string(),
   description: z.string().optional(),
-  images: z.array(PhotoSchema),
   createdAt: z.string(),
   updatedAt: z.string(),
+  images: z.array(
+    z.object({
+      id: z.number(),
+      url: z.string(),
+      alt: z.string(),
+      width: z.number(),
+      height: z.number(),
+      src: z.object({ large: z.string() }),
+      blurredDataUrl: z.string().optional(),
+    })
+  ),
 });
 
 export const GalleriesSchemaWithImages = BasicGallerySchema.extend({
