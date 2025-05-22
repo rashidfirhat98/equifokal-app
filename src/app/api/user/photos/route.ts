@@ -1,8 +1,4 @@
-import prisma from "@/lib/prisma";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/authOptions";
-import addBlurredDataUrls from "@/lib/utils/getBase64";
 import { getUserImages } from "@/lib/services/images";
 
 export async function GET(req: Request) {

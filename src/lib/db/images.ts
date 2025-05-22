@@ -55,6 +55,7 @@ export const findUserImages = async ({
       blurDataUrl: true,
       fileName: true,
       createdAt: true,
+      portfolio: true,
       metadata: {
         select: {
           width: true,

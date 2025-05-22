@@ -17,12 +17,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "./ui/checkbox";
+import { useSessionContext } from "./SessionContext";
+import { Badge } from "./ui/badge";
+import { cn } from "@/lib/utils";
 
 type Props = {
   userId: string;
 };
 
 export default function PhotoList({ userId }: Props) {
+  const session = useSessionContext();
+  const user = session?.user;
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [nextCursor, setNextCursor] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -35,6 +40,7 @@ export default function PhotoList({ userId }: Props) {
   const [addToPortfolio, setAddToPortfolio] = useState(false);
   const [makeProfilePicture, setMakeProfilePicture] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [isPortfolioModalOpen, setIsPortfolioModalOpen] = useState(false);
 
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const didMountRef = useRef(false);
@@ -54,6 +60,7 @@ export default function PhotoList({ userId }: Props) {
       const data = await res.json();
 
       setPhotos((prev) => [...prev, ...data.photos]);
+      console.log(photos);
       setNextCursor(data.nextCursor);
     } catch (error) {
       console.error("Error fetching images:", error);
@@ -63,6 +70,28 @@ export default function PhotoList({ userId }: Props) {
       isFetchingRef.current = false;
     }
   }, [nextCursor, hasLoaded, userId]);
+
+  const handleSavePortfolioChanges = async () => {
+    const selectedIds = Array.from(selectedPhotos);
+    try {
+      await fetch("/api/user/photos/portfolio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoIds: selectedIds }),
+      });
+
+      setPhotos((prev) =>
+        prev.map((photo) => ({
+          ...photo,
+          portfolio: selectedPhotos.has(photo.id),
+        }))
+      );
+
+      setIsPortfolioModalOpen(false);
+    } catch (error) {
+      console.error("Failed to update portfolio photos:", error);
+    }
+  };
 
   useEffect(() => {
     if (!hasFetched.current) {
@@ -91,6 +120,15 @@ export default function PhotoList({ userId }: Props) {
     };
   }, [loading, fetchMoreImages, nextCursor]);
 
+  useEffect(() => {
+    if (isPortfolioModalOpen) {
+      const initial = new Set(
+        photos.filter((p) => p.portfolio).map((p) => p.id)
+      );
+      setSelectedPhotos(initial);
+    }
+  }, [isPortfolioModalOpen, photos]);
+
   const toggleOnSelect = () => {
     setOnSelect(!onSelect);
     setSelectedPhotos(new Set());
@@ -113,7 +151,7 @@ export default function PhotoList({ userId }: Props) {
       await fetch(`/api/user/photos/delete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ photoIds: ids }), // now a number[]
+        body: JSON.stringify({ photoIds: ids }),
       });
 
       setPhotos((prev) =>
@@ -127,10 +165,13 @@ export default function PhotoList({ userId }: Props) {
   };
 
   useEffect(() => {
-    if (editPhoto) {
+    if (editPhoto && user) {
+      console.log(editPhoto);
       setEditAlt(editPhoto.alt ?? "");
-      setAddToPortfolio(editPhoto.portfolio ?? false); // adjust field names if needed
-      setMakeProfilePicture(editPhoto.profilePic ?? false); // adjust field names
+      setAddToPortfolio(editPhoto.portfolio ?? false);
+      setMakeProfilePicture(
+        editPhoto.src.large === user.profilePic ? true : false
+      );
     }
   }, [editPhoto]);
 
@@ -150,7 +191,6 @@ export default function PhotoList({ userId }: Props) {
                 <Trash2 size={16} /> Delete
               </Button>
 
-              {/* Placeholder for future edit logic */}
               <Button
                 variant="outline"
                 size="sm"
@@ -166,6 +206,14 @@ export default function PhotoList({ userId }: Props) {
                 }}
               >
                 <PencilIcon size={16} /> Edit
+              </Button>
+
+              <Button
+                onClick={() => setIsPortfolioModalOpen(true)}
+                variant="default"
+                size="sm"
+              >
+                Manage Portfolio
               </Button>
 
               <span className="text-sm text-muted-foreground ml-auto">
@@ -363,6 +411,52 @@ export default function PhotoList({ userId }: Props) {
             <Button variant="destructive" onClick={deleteSelected}>
               Yes, Delete
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={isPortfolioModalOpen}
+        onOpenChange={setIsPortfolioModalOpen}
+      >
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Manage Portfolio</DialogTitle>
+            <DialogDescription>
+              Select the photos you want in your portfolio.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto">
+            {photos.map((photo) => {
+              const isSelected = selectedPhotos.has(photo.id);
+              return (
+                <div
+                  key={photo.id}
+                  className={cn(
+                    "relative cursor-pointer rounded overflow-hidden border-2",
+                    isSelected ? "border-blue-600" : "border-transparent"
+                  )}
+                  onClick={() => toggleSelect(photo.id)}
+                >
+                  <Image
+                    src={photo.src.large}
+                    alt=""
+                    width={300}
+                    height={200}
+                    className="object-cover w-full h-48"
+                  />
+                  {isSelected && (
+                    <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 text-xs rounded">
+                      Selected
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-end mt-4">
+            <Button onClick={handleSavePortfolioChanges}>Save Changes</Button>
           </div>
         </DialogContent>
       </Dialog>

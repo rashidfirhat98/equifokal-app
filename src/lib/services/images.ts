@@ -117,6 +117,7 @@ export const getUserImages = async (
       src: {
         large: convertToCDNUrl(image.url),
       },
+      portfolio: image.portfolio || undefined,
       blurredDataUrl: image.blurDataUrl || undefined,
     })),
     nextCursor,
