@@ -4,6 +4,7 @@ import "../styles/globals.css";
 import Navbar from "@/components/Navbar";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
+import { Toaster } from "@/components/ui/toaster";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,7 @@ export default function RootLayout({
       >
         <Navbar />
         <main className="max-w-6xl mx-auto">{children}</main>
+        <Toaster />
         <SpeedInsights />
         <Analytics />
       </body>

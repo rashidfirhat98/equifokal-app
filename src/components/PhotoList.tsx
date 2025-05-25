@@ -18,12 +18,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "./ui/checkbox";
 import { useSessionContext } from "./SessionContext";
-import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 type Props = {
   userId: string;
 };
+
+type DeletedPhoto = {
+  id: number;
+  fileName: string;
+  url: string;
+}[];
 
 export default function PhotoList({ userId }: Props) {
   const session = useSessionContext();
@@ -41,11 +47,15 @@ export default function PhotoList({ userId }: Props) {
   const [makeProfilePicture, setMakeProfilePicture] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [isPortfolioModalOpen, setIsPortfolioModalOpen] = useState(false);
+  const [usedPhotos, setUsedPhotos] = useState<any[]>([]);
+  const [isCheckingUsage, setIsCheckingUsage] = useState(false);
 
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const didMountRef = useRef(false);
   const isFetchingRef = useRef(false);
   const hasFetched = useRef(false);
+
+  const { toast } = useToast();
 
   const fetchMoreImages = useCallback(async () => {
     if (isFetchingRef.current || (hasLoaded && !nextCursor)) return;
@@ -143,24 +153,95 @@ export default function PhotoList({ userId }: Props) {
     });
   };
 
+  const editSelected = async () => {
+    if (!editPhoto) return;
+    try {
+      await fetch(`/api/user/photos/${editPhoto.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          alt: editAlt,
+          isPortfolio: addToPortfolio,
+          isProfilePic: makeProfilePicture,
+        }),
+      });
+
+      setPhotos((prev) =>
+        prev.map((p) =>
+          p.id === editPhoto.id
+            ? {
+                ...p,
+                alt: editAlt,
+                isPortfolio: addToPortfolio,
+                isProfilePic: makeProfilePicture,
+              }
+            : p
+        )
+      );
+      setEditDialogOpen(false);
+      setEditPhoto(null);
+      setSelectedPhotos(new Set());
+    } catch (err) {
+      console.error("Failed to update photo:", err);
+    }
+  };
+
+  const confirmDelete = async () => {
+    const ids = Array.from(selectedPhotos);
+    if (ids.length === 0) return;
+
+    setIsCheckingUsage(true);
+    try {
+      const res = await fetch(`/api/user/photos/check-usage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoIds: ids }),
+      });
+
+      const data = await res.json();
+      setUsedPhotos(data.usedPhotos || []);
+      setConfirmDialogOpen(true);
+    } catch (err) {
+      console.error("Failed to check photo usage", err);
+    } finally {
+      setIsCheckingUsage(false);
+    }
+  };
+
   const deleteSelected = async () => {
     const ids = Array.from(selectedPhotos);
     if (ids.length === 0) return;
 
     try {
-      await fetch(`/api/user/photos/delete`, {
+      const res = await fetch(`/api/user/photos/delete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ photoIds: ids }),
       });
+
+      const data = await res.json();
+      const deletedPhotos: DeletedPhoto = data.deletedPhotos || [];
 
       setPhotos((prev) =>
         prev.filter((photo) => !selectedPhotos.has(photo.id))
       );
       setSelectedPhotos(new Set());
       setConfirmDialogOpen(false);
+
+      deletedPhotos.forEach((photo) => {
+        toast({
+          title: "Photo deleted",
+          description: `Photo ${photo.fileName} has been deleted.`,
+          variant: "default",
+        });
+      });
     } catch (err) {
       console.error("Failed to delete photos", err);
+      toast({
+        title: "Error",
+        description: "Failed to delete photos.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -184,7 +265,7 @@ export default function PhotoList({ userId }: Props) {
               <Button
                 variant="destructive"
                 disabled={selectedPhotos.size < 1}
-                onClick={() => setConfirmDialogOpen(true)}
+                onClick={confirmDelete}
                 size="sm"
                 className="gap-1"
               >
@@ -244,7 +325,7 @@ export default function PhotoList({ userId }: Props) {
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
         {!hasLoaded ? (
           <div className="col-span-full text-center py-8">
-            <Loader2 className="animate-spin text-muted w-8 h-8 mx-auto" />
+            <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
           </div>
         ) : (
           photos.map((photo) => {
@@ -268,11 +349,9 @@ export default function PhotoList({ userId }: Props) {
                       className="object-cover rounded-md p-1"
                     />
 
-                    {/* Hover overlay when in select mode */}
                     {onSelect && (
                       <div className="absolute inset-0 bg-transparent rounded-md group-hover:bg-black/15 transition-colors pointer-events-none" />
                     )}
-                    {/* Checkbox */}
                     {onSelect && (
                       <div
                         className="absolute top-2 left-2 z-10"
@@ -281,7 +360,7 @@ export default function PhotoList({ userId }: Props) {
                         <div
                           onClick={() => toggleSelect(photo.id)}
                           className={`w-5 h-5 flex items-center justify-center rounded-full border-2 border-spacing-2 border-white bg-white transition-colors ${
-                            isSelected ? "bg-blue-500/70" : "bg-white/60"
+                            isSelected ? "bg-blue-500/75" : "bg-white/60"
                           }`}
                         ></div>
                       </div>
@@ -301,7 +380,7 @@ export default function PhotoList({ userId }: Props) {
           className="col-span-full flex items-center justify-center py-4"
         >
           {loading && hasLoaded && (
-            <Loader2 className="animate-spin text-muted w-8 h-8 mx-auto" />
+            <Loader2 className="animate-spin text-gray-500 w-8 h-8 mx-auto" />
           )}
         </div>
       </div>
@@ -352,42 +431,7 @@ export default function PhotoList({ userId }: Props) {
             >
               Cancel
             </Button>
-            <Button
-              onClick={async () => {
-                if (!editPhoto) return;
-                try {
-                  await fetch(`/api/user/photos/${editPhoto.id}`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      alt: editAlt,
-                      isPortfolio: addToPortfolio,
-                      isProfilePic: makeProfilePicture,
-                    }),
-                  });
-
-                  setPhotos((prev) =>
-                    prev.map((p) =>
-                      p.id === editPhoto.id
-                        ? {
-                            ...p,
-                            alt: editAlt,
-                            isPortfolio: addToPortfolio,
-                            isProfilePic: makeProfilePicture,
-                          }
-                        : p
-                    )
-                  );
-                  setEditDialogOpen(false);
-                  setEditPhoto(null);
-                  setSelectedPhotos(new Set());
-                } catch (err) {
-                  console.error("Failed to update photo:", err);
-                }
-              }}
-            >
-              Save
-            </Button>
+            <Button onClick={editSelected}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -395,10 +439,35 @@ export default function PhotoList({ userId }: Props) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete {selectedPhotos.size} photo(s)?</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. Are you sure you want to permanently
-              delete the selected photos?
-            </DialogDescription>
+            <DialogDescription></DialogDescription>
+            {usedPhotos.length > 0 ? (
+              <div className="space-y-2 text-sm p-2 text-red-600">
+                <p>Some selected photos are in use:</p>
+                <ul className="list-disc list-inside">
+                  {usedPhotos.map((photo) => (
+                    <li key={photo.id}>
+                      {photo.portfolio && "In portfolio"}
+                      {photo.Article.length > 0 &&
+                        `Cover of article: ${photo.Article.map(
+                          (a: any) => a.title
+                        ).join(", ")}`}
+                      {photo.galleries.length > 0 &&
+                        `In galleries: ${photo.galleries
+                          .map((g: any) => g.gallery.title)
+                          .join(", ")}`}
+                      {photo.url === user?.profilePic &&
+                        "Used as profile picture"}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2">
+                  Deleting these photos may break links or remove them from
+                  published content.
+                </p>
+              </div>
+            ) : (
+              "This action cannot be undone. Are you sure you want to permanently delete the selected photos?"
+            )}
           </DialogHeader>
 
           <div className="flex justify-end gap-2">
