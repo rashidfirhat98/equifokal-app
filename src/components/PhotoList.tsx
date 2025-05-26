@@ -31,6 +31,14 @@ type DeletedPhoto = {
   url: string;
 }[];
 
+type UsedPhoto = {
+  id: number;
+  portfolio: string;
+  url: string;
+  Article: { id: number; title: string }[];
+  galleries: { gallery: { id: number; title: string } }[];
+};
+
 export default function PhotoList({ userId }: Props) {
   const session = useSessionContext();
   const user = session?.user;
@@ -47,7 +55,7 @@ export default function PhotoList({ userId }: Props) {
   const [makeProfilePicture, setMakeProfilePicture] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [isPortfolioModalOpen, setIsPortfolioModalOpen] = useState(false);
-  const [usedPhotos, setUsedPhotos] = useState<any[]>([]);
+  const [usedPhotos, setUsedPhotos] = useState<UsedPhoto[]>([]);
   const [isCheckingUsage, setIsCheckingUsage] = useState(false);
 
   const loaderRef = useRef<HTMLDivElement | null>(null);
@@ -70,7 +78,7 @@ export default function PhotoList({ userId }: Props) {
       const data = await res.json();
 
       setPhotos((prev) => [...prev, ...data.photos]);
-      console.log(photos);
+
       setNextCursor(data.nextCursor);
     } catch (error) {
       console.error("Error fetching images:", error);
@@ -254,7 +262,7 @@ export default function PhotoList({ userId }: Props) {
         editPhoto.src.large === user.profilePic ? true : false
       );
     }
-  }, [editPhoto]);
+  }, [editPhoto, user]);
 
   return (
     <div className="space-y-4">
@@ -449,11 +457,14 @@ export default function PhotoList({ userId }: Props) {
                       {photo.portfolio && "In portfolio"}
                       {photo.Article.length > 0 &&
                         `Cover of article: ${photo.Article.map(
-                          (a: any) => a.title
+                          (a: { id: number; title: string }) => a.title
                         ).join(", ")}`}
                       {photo.galleries.length > 0 &&
                         `In galleries: ${photo.galleries
-                          .map((g: any) => g.gallery.title)
+                          .map(
+                            (g: { gallery: { id: number; title: string } }) =>
+                              g.gallery.title
+                          )
                           .join(", ")}`}
                       {photo.url === user?.profilePic &&
                         "Used as profile picture"}
