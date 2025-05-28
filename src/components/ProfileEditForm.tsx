@@ -1,7 +1,6 @@
 "use client";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import * as exifr from "exifr";
 import { useRouter } from "next/navigation";
 import React, { useRef, useState } from "react";
 import {
@@ -28,6 +27,7 @@ import { profilePicURL } from "@/lib/utils/profilePic";
 import { UserDetails } from "@/models/User";
 import { extractPhotoDetails } from "@/lib/utils/extractPhotoDetails";
 import { Loader2 } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 type Props = {
   userDetails: UserDetails;
@@ -45,7 +45,7 @@ const formSchema = z.object({
 export default function ProfileEditForm({ userDetails }: Props) {
   const profilePic = profilePicURL(userDetails.profilePic);
   const [isLoading, setIsLoading] = useState(false);
-
+  const { data: session, update } = useSession();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -141,6 +141,13 @@ export default function ProfileEditForm({ userDetails }: Props) {
       });
       if (!response.ok) throw new Error("Failed to edit profile");
 
+      const updateUser = await response.json();
+      if (profilePicUpload && updateUser) {
+        update({
+          ...updateUser,
+          profilePic: updateUser.profilePic,
+        });
+      }
       setAlert({ status: "success", message: "Profile edited" });
       reset();
       router.push("/dashboard");

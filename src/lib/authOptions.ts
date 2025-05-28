@@ -6,6 +6,7 @@ import bcrypt from "bcrypt";
 import env from "@/lib/env";
 import { findUserByEmail } from "./db/user";
 import { getUserDetails } from "./services/user";
+import convertToCDNUrl from "./utils/convertToCDNUrl";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -58,7 +59,7 @@ export const authOptions: AuthOptions = {
         token.id = dbUser.id;
         token.email = dbUser.email;
         token.name = dbUser.name;
-        token.image = dbUser.profilePic || undefined;
+        token.image = convertToCDNUrl(dbUser?.profilePic || undefined);
         token.bio = dbUser.bio || undefined;
 
         token.followerCount = dbUser.followerCount;

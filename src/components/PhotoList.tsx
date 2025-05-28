@@ -1,7 +1,7 @@
 "use client";
 
 import { Photo } from "@/models/Images";
-import { CircleCheck, Loader2, PencilIcon, Trash2 } from "lucide-react";
+import { CircleCheck, Loader2, PencilIcon, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +20,7 @@ import { Checkbox } from "./ui/checkbox";
 import { useSessionContext } from "./SessionContext";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useSession } from "next-auth/react";
 
 type Props = {
   userId: string;
@@ -33,14 +34,15 @@ type DeletedPhoto = {
 
 type UsedPhoto = {
   id: number;
+  fileName: string;
   portfolio: string;
   url: string;
-  Article: { id: number; title: string }[];
-  galleries: { gallery: { id: number; title: string } }[];
+  articles: { id: number; title: string }[];
+  galleries: { id: number; title: string }[];
 };
 
 export default function PhotoList({ userId }: Props) {
-  const session = useSessionContext();
+  const { data: session, update } = useSession(); // const session = useSessionContext();
   const user = session?.user;
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [nextCursor, setNextCursor] = useState<number | null>(null);
@@ -235,7 +237,9 @@ export default function PhotoList({ userId }: Props) {
       );
       setSelectedPhotos(new Set());
       setConfirmDialogOpen(false);
-
+      if (data.clearedProfilePic && session) {
+        update({ ...session.user, image: null });
+      }
       deletedPhotos.forEach((photo) => {
         toast({
           title: "Photo deleted",
@@ -447,30 +451,81 @@ export default function PhotoList({ userId }: Props) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete {selectedPhotos.size} photo(s)?</DialogTitle>
-            <DialogDescription></DialogDescription>
+            <DialogDescription>
+              Some selected photos are in use:
+            </DialogDescription>
             {usedPhotos.length > 0 ? (
-              <div className="space-y-2 text-sm p-2 text-red-600">
-                <p>Some selected photos are in use:</p>
-                <ul className="list-disc list-inside">
-                  {usedPhotos.map((photo) => (
-                    <li key={photo.id}>
-                      {photo.portfolio && "In portfolio"}
-                      {photo.Article.length > 0 &&
-                        `Cover of article: ${photo.Article.map(
-                          (a: { id: number; title: string }) => a.title
-                        ).join(", ")}`}
-                      {photo.galleries.length > 0 &&
-                        `In galleries: ${photo.galleries
-                          .map(
-                            (g: { gallery: { id: number; title: string } }) =>
-                              g.gallery.title
-                          )
-                          .join(", ")}`}
-                      {photo.url === user?.profilePic &&
-                        "Used as profile picture"}
-                    </li>
-                  ))}
-                </ul>
+              <div className="space-y-4 text-sm p-2 text-red-600">
+                {usedPhotos
+                  .filter((photo) => selectedPhotos.has(photo.id))
+                  .map((photo) => {
+                    console.log(photo.url, user?.profilePic);
+
+                    return (
+                      <div
+                        key={photo.id}
+                        className="relative bg-muted p-3 rounded-lg flex items-start gap-4"
+                      >
+                        {/* Remove Button */}
+                        <button
+                          onClick={() =>
+                            setSelectedPhotos((prev) => {
+                              const updated = new Set(prev);
+                              updated.delete(photo.id);
+                              return updated;
+                            })
+                          }
+                          className="absolute top-2 right-2 text-muted-foreground hover:text-red-500 transition-colors"
+                          aria-label="Remove photo from selection"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+
+                        <div className="relative aspect-square w-20 h-20 shrink-0">
+                          <Image
+                            src={photo.url}
+                            alt={photo.fileName}
+                            fill
+                            sizes="(max-width: 768px) 30vw, (max-width: 1200px) 10vw, 200px"
+                            className="object-cover rounded-md"
+                          />
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <span className="font-medium text-red-700">
+                            {photo.fileName}
+                          </span>
+                          <ul className="list-disc list-inside pl-4 space-y-1">
+                            {photo.portfolio && <li>In portfolio</li>}
+                            {photo.articles.length > 0 && (
+                              <li>
+                                Cover of article:{" "}
+                                <span className="font-semibold">
+                                  {photo.articles
+                                    .map((a) => a.title)
+                                    .join(", ")}
+                                </span>
+                              </li>
+                            )}
+                            {photo.galleries.length > 0 && (
+                              <li>
+                                In galleries:{" "}
+                                <span className="font-semibold">
+                                  {photo.galleries
+                                    .map((g) => g.title)
+                                    .join(", ")}
+                                </span>
+                              </li>
+                            )}
+                            {photo.url === user?.profilePic && (
+                              <li>Used as profile picture</li>
+                            )}
+                          </ul>
+                        </div>
+                      </div>
+                    );
+                  })}
+
                 <p className="mt-2">
                   Deleting these photos may break links or remove them from
                   published content.

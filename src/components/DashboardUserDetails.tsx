@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import ProfilePictureIcon from "./ProfilePictureIcon";
 import { useSessionContext } from "./SessionContext";
 import { Loader2 } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 type Props = {
   user?: UserDetails;
@@ -20,7 +21,7 @@ export default function DashboardUserDetails({
   currentUser,
   isFollowingInitial = false,
 }: Props) {
-  const session = useSessionContext();
+  const { data: session } = useSession();
   const initialUser = user ?? session?.user;
   const [profileUser, setProfileUser] = useState(initialUser);
   const [isFollowing, setIsFollowing] = useState(isFollowingInitial);
