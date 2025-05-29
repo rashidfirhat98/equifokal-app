@@ -141,13 +141,7 @@ export default function ProfileEditForm({ userDetails }: Props) {
       });
       if (!response.ok) throw new Error("Failed to edit profile");
 
-      const updateUser = await response.json();
-      if (profilePicUpload && updateUser) {
-        update({
-          ...updateUser,
-          profilePic: updateUser.profilePic,
-        });
-      }
+      await update();
       setAlert({ status: "success", message: "Profile edited" });
       reset();
       router.push("/dashboard");

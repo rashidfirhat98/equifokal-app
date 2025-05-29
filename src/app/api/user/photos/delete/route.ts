@@ -54,11 +54,15 @@ export async function POST(req: Request) {
     //   });
     // }
 
-    const isProfilePicBeingDeleted = deletablePhotos.some(
-      (p) => p.url === session.user.profilePic
-    );
+    const isProfilePicBeingDeleted = deletablePhotos.some((p) => {
+      console.log("Checking profile pic: ", p.url, session.user.profilePic);
+      return p.url === session.user.profilePic;
+    });
+
+    console.log(isProfilePicBeingDeleted);
 
     if (isProfilePicBeingDeleted) {
+      console.log("triggered profile pic deletion");
       await prisma.user.update({
         where: { email: session.user.email },
         data: { profilePic: null },

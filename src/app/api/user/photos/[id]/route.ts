@@ -24,7 +24,21 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid data" }, { status: 400 });
   }
 
-  const updated = await prisma.image.update({
+  const [photo, user] = await Promise.all([
+    prisma.image.findUnique({ where: { id: photoId } }),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { profilePic: true },
+    }),
+  ]);
+
+  if (!photo || !user) {
+    return NextResponse.json({ error: "Photo not found" }, { status: 404 });
+  }
+
+  const isChangingProfilePic = isProfilePic && user?.profilePic !== photo.url;
+
+  const updatedImage = await prisma.image.update({
     where: { id: photoId },
     data: {
       fileName,
@@ -33,12 +47,15 @@ export async function PATCH(
     },
   });
 
-  const userUpdated = await prisma.user.update({
-    where: { id: session.user.id },
-    data: {
-      profilePic: updated.url,
-    },
-  });
+  let changedProfilePic = false;
 
-  return NextResponse.json({ updatedImage: updated, user: userUpdated });
+  if (isChangingProfilePic) {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { profilePic: updatedImage.url },
+    });
+    changedProfilePic = true;
+  }
+
+  return NextResponse.json({ updatedImage, changedProfilePic });
 }

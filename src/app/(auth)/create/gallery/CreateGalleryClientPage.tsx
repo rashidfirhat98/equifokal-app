@@ -4,6 +4,7 @@ import GalleryForm from "@/components/GalleryForm";
 import GalleryList from "@/components/GalleryList";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useSessionContext } from "@/components/SessionContext";
+import { useSession } from "next-auth/react";
 import { Suspense } from "react";
 
 export default function CreateGalleryClientPage({
@@ -11,7 +12,7 @@ export default function CreateGalleryClientPage({
 }: {
   galleryCount: number;
 }) {
-  const session = useSessionContext();
+  const { data: session } = useSession();
 
   if (!session) {
     return <p className="large">User not found</p>;

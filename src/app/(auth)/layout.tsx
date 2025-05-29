@@ -1,7 +1,5 @@
-import AuthSessionProvider from "@/components/AuthSessionProvider";
 import { authOptions } from "@/lib/authOptions";
 import { getServerSession } from "next-auth";
-
 import { redirect } from "next/navigation";
 
 export default async function AuthLayout({
@@ -15,7 +13,5 @@ export default async function AuthLayout({
     redirect("/login");
   }
 
-  return (
-    <AuthSessionProvider session={session}>{children}</AuthSessionProvider>
-  );
+  return <>{children}</>;
 }

@@ -23,15 +23,15 @@ import { profilePicURL } from "@/lib/utils/profilePic";
 type Props = {
   user: {
     id: string;
-    name: string;
-    email: string;
-    profilePic: string | null;
-    bio: string | null;
+    name?: string | null;
+    email?: string | null;
+    profilePic?: string | null;
+    bio?: string | null;
   };
 };
 
 export default function NavAccountIcon({ user }: Props) {
-  const profilePic = profilePicURL(user?.profilePic);
+  const profilePic = profilePicURL(user?.profilePic ?? null);
   const router = useRouter();
 
   const handleSignOut = async () => {

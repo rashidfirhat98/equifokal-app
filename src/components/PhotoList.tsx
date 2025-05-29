@@ -166,15 +166,24 @@ export default function PhotoList({ userId }: Props) {
   const editSelected = async () => {
     if (!editPhoto) return;
     try {
-      await fetch(`/api/user/photos/${editPhoto.id}`, {
+      const res = await fetch(`/api/user/photos/${editPhoto.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          alt: editAlt,
+          fileName: editAlt,
           isPortfolio: addToPortfolio,
           isProfilePic: makeProfilePicture,
         }),
       });
+
+      if (!res.ok) {
+        throw new Error("Failed to update photo");
+      }
+
+      const data = await res.json();
+      if (data.changedProfilePic) {
+        await update();
+      }
 
       setPhotos((prev) =>
         prev.map((p) =>
@@ -238,7 +247,9 @@ export default function PhotoList({ userId }: Props) {
       setSelectedPhotos(new Set());
       setConfirmDialogOpen(false);
       if (data.clearedProfilePic && session) {
-        update({ ...session.user, image: null });
+        console.log("Clearing profile picture");
+        await update();
+        console.log("Updated session", session);
       }
       deletedPhotos.forEach((photo) => {
         toast({
@@ -276,11 +287,12 @@ export default function PhotoList({ userId }: Props) {
             <>
               <Button
                 variant="destructive"
-                disabled={selectedPhotos.size < 1}
+                disabled={selectedPhotos.size < 1 || isCheckingUsage}
                 onClick={confirmDelete}
                 size="sm"
                 className="gap-1"
               >
+                {isCheckingUsage && <Loader2 className="animate-spin" />}
                 <Trash2 size={16} /> Delete
               </Button>
 
@@ -404,7 +416,18 @@ export default function PhotoList({ userId }: Props) {
               Modify photo metadata like title or caption.
             </DialogDescription>
           </DialogHeader>
-
+          <div className="flex items-center justify-center mb-4">
+            {editPhoto && (
+              <div className="flex justify-center items-center">
+                <Image
+                  src={editPhoto.src.large}
+                  alt={editPhoto.alt}
+                  width={300}
+                  height={300}
+                />
+              </div>
+            )}
+          </div>
           <div className="space-y-4">
             <div>
               <Label htmlFor="alt">Photo Title</Label>
@@ -459,14 +482,11 @@ export default function PhotoList({ userId }: Props) {
                 {usedPhotos
                   .filter((photo) => selectedPhotos.has(photo.id))
                   .map((photo) => {
-                    console.log(photo.url, user?.profilePic);
-
                     return (
                       <div
                         key={photo.id}
                         className="relative bg-muted p-3 rounded-lg flex items-start gap-4"
                       >
-                        {/* Remove Button */}
                         <button
                           onClick={() =>
                             setSelectedPhotos((prev) => {
