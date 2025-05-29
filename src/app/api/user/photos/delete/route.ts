@@ -9,8 +9,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const user = session.user;
-
   const { photoIds } = await req.json();
   if (
     !Array.isArray(photoIds) ||
@@ -55,11 +53,8 @@ export async function POST(req: Request) {
     // }
 
     const isProfilePicBeingDeleted = deletablePhotos.some((p) => {
-      console.log("Checking profile pic: ", p.url, session.user.profilePic);
       return p.url === session.user.profilePic;
     });
-
-    console.log(isProfilePicBeingDeleted);
 
     if (isProfilePicBeingDeleted) {
       console.log("triggered profile pic deletion");
@@ -73,6 +68,7 @@ export async function POST(req: Request) {
       where: { id: { in: deletableIds } },
     });
 
+    console.log(deletablePhotos);
     return NextResponse.json({
       deleted,
       deletedPhotos: deletablePhotos,

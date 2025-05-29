@@ -21,6 +21,7 @@ import { useSessionContext } from "./SessionContext";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "next-auth/react";
+import { Switch } from "./ui/switch";
 
 type Props = {
   userId: string;
@@ -240,24 +241,40 @@ export default function PhotoList({ userId }: Props) {
 
       const data = await res.json();
       const deletedPhotos: DeletedPhoto = data.deletedPhotos || [];
-
+      console.log(deletedPhotos);
       setPhotos((prev) =>
         prev.filter((photo) => !selectedPhotos.has(photo.id))
       );
       setSelectedPhotos(new Set());
       setConfirmDialogOpen(false);
       if (data.clearedProfilePic && session) {
-        console.log("Clearing profile picture");
         await update();
-        console.log("Updated session", session);
       }
-      deletedPhotos.forEach((photo) => {
-        toast({
-          title: "Photo deleted",
-          description: `Photo ${photo.fileName} has been deleted.`,
-          variant: "default",
-        });
+      const MAX_INDIVIDUAL = 5;
+      const delay = 300; // ms
+
+      const individualPhotos = deletedPhotos.slice(0, MAX_INDIVIDUAL);
+      const remainingCount = deletedPhotos.length - individualPhotos.length;
+
+      individualPhotos.forEach((photo, index) => {
+        setTimeout(() => {
+          toast({
+            title: "Photo deleted",
+            description: `Photo ${photo.fileName} has been deleted.`,
+          });
+        }, index * delay);
       });
+
+      if (remainingCount > 0) {
+        setTimeout(() => {
+          toast({
+            title: "Photos deleted",
+            description: `And ${remainingCount} more photo${
+              remainingCount > 1 ? "s" : ""
+            } were deleted.`,
+          });
+        }, individualPhotos.length * delay);
+      }
     } catch (err) {
       console.error("Failed to delete photos", err);
       toast({
@@ -317,6 +334,7 @@ export default function PhotoList({ userId }: Props) {
                 onClick={() => setIsPortfolioModalOpen(true)}
                 variant="default"
                 size="sm"
+                disabled
               >
                 Manage Portfolio
               </Button>
@@ -358,10 +376,16 @@ export default function PhotoList({ userId }: Props) {
             return (
               <Card
                 key={photo.id}
-                onClick={() => onSelect && toggleSelect(photo.id)}
-                className={`relative border cursor-pointer transition-colors ${
-                  isSelected ? "border-black/50" : "border-transparent"
-                } ${onSelect ? "hover:border-black/50" : ""}`}
+                onClick={() => {
+                  if (onSelect) {
+                    toggleSelect(photo.id);
+                  } else {
+                    setEditPhoto(photo);
+                    setEditDialogOpen(true);
+                  }
+                }}
+                className={`relative border cursor-pointer transition-colors hover:border-black/50
+                  isSelected ? "border-black/50" : "border-transparent"`}
               >
                 <CardContent className="p-0">
                   <div className="relative aspect-square w-full  group">
@@ -373,9 +397,8 @@ export default function PhotoList({ userId }: Props) {
                       className="object-cover rounded-md p-1"
                     />
 
-                    {onSelect && (
-                      <div className="absolute inset-0 bg-transparent rounded-md group-hover:bg-black/15 transition-colors pointer-events-none" />
-                    )}
+                    <div className="absolute inset-0 bg-transparent rounded-md group-hover:bg-black/15 transition-colors pointer-events-none" />
+
                     {onSelect && (
                       <div
                         className="absolute top-2 left-2 z-10"
@@ -439,7 +462,7 @@ export default function PhotoList({ userId }: Props) {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Checkbox
+              <Switch
                 id="portfolio"
                 checked={addToPortfolio}
                 onCheckedChange={(v) => setAddToPortfolio(!!v)}
@@ -448,7 +471,7 @@ export default function PhotoList({ userId }: Props) {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Checkbox
+              <Switch
                 id="profile"
                 checked={makeProfilePicture}
                 onCheckedChange={(v) => setMakeProfilePicture(!!v)}
@@ -474,85 +497,91 @@ export default function PhotoList({ userId }: Props) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete {selectedPhotos.size} photo(s)?</DialogTitle>
-            <DialogDescription>
-              Some selected photos are in use:
-            </DialogDescription>
+
             {usedPhotos.length > 0 ? (
-              <div className="space-y-4 text-sm p-2 text-red-600">
-                {usedPhotos
-                  .filter((photo) => selectedPhotos.has(photo.id))
-                  .map((photo) => {
-                    return (
-                      <div
-                        key={photo.id}
-                        className="relative bg-muted p-3 rounded-lg flex items-start gap-4"
-                      >
-                        <button
-                          onClick={() =>
-                            setSelectedPhotos((prev) => {
-                              const updated = new Set(prev);
-                              updated.delete(photo.id);
-                              return updated;
-                            })
-                          }
-                          className="absolute top-2 right-2 text-muted-foreground hover:text-red-500 transition-colors"
-                          aria-label="Remove photo from selection"
+              <>
+                <DialogDescription>
+                  Some selected photos are in use:
+                </DialogDescription>
+                <div className="space-y-4 text-sm p-2 text-red-600">
+                  {usedPhotos
+                    .filter((photo) => selectedPhotos.has(photo.id))
+                    .map((photo) => {
+                      return (
+                        <div
+                          key={photo.id}
+                          className="relative bg-muted p-3 rounded-lg flex items-start gap-4"
                         >
-                          <X className="w-4 h-4" />
-                        </button>
+                          <button
+                            onClick={() =>
+                              setSelectedPhotos((prev) => {
+                                const updated = new Set(prev);
+                                updated.delete(photo.id);
+                                return updated;
+                              })
+                            }
+                            className="absolute top-2 right-2 text-muted-foreground hover:text-red-500 transition-colors"
+                            aria-label="Remove photo from selection"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
 
-                        <div className="relative aspect-square w-20 h-20 shrink-0">
-                          <Image
-                            src={photo.url}
-                            alt={photo.fileName}
-                            fill
-                            sizes="(max-width: 768px) 30vw, (max-width: 1200px) 10vw, 200px"
-                            className="object-cover rounded-md"
-                          />
+                          <div className="relative aspect-square w-20 h-20 shrink-0">
+                            <Image
+                              src={photo.url}
+                              alt={photo.fileName}
+                              fill
+                              sizes="(max-width: 768px) 30vw, (max-width: 1200px) 10vw, 200px"
+                              className="object-cover rounded-md"
+                            />
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-red-700">
+                              {photo.fileName}
+                            </span>
+                            <ul className="list-disc list-inside pl-4 space-y-1">
+                              {photo.portfolio && <li>In portfolio</li>}
+                              {photo.articles.length > 0 && (
+                                <li>
+                                  Cover of article:{" "}
+                                  <span className="font-semibold">
+                                    {photo.articles
+                                      .map((a) => a.title)
+                                      .join(", ")}
+                                  </span>
+                                </li>
+                              )}
+                              {photo.galleries.length > 0 && (
+                                <li>
+                                  In galleries:{" "}
+                                  <span className="font-semibold">
+                                    {photo.galleries
+                                      .map((g) => g.title)
+                                      .join(", ")}
+                                  </span>
+                                </li>
+                              )}
+                              {photo.url === user?.profilePic && (
+                                <li>Used as profile picture</li>
+                              )}
+                            </ul>
+                          </div>
                         </div>
+                      );
+                    })}
 
-                        <div className="flex flex-col gap-1">
-                          <span className="font-medium text-red-700">
-                            {photo.fileName}
-                          </span>
-                          <ul className="list-disc list-inside pl-4 space-y-1">
-                            {photo.portfolio && <li>In portfolio</li>}
-                            {photo.articles.length > 0 && (
-                              <li>
-                                Cover of article:{" "}
-                                <span className="font-semibold">
-                                  {photo.articles
-                                    .map((a) => a.title)
-                                    .join(", ")}
-                                </span>
-                              </li>
-                            )}
-                            {photo.galleries.length > 0 && (
-                              <li>
-                                In galleries:{" "}
-                                <span className="font-semibold">
-                                  {photo.galleries
-                                    .map((g) => g.title)
-                                    .join(", ")}
-                                </span>
-                              </li>
-                            )}
-                            {photo.url === user?.profilePic && (
-                              <li>Used as profile picture</li>
-                            )}
-                          </ul>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                <p className="mt-2">
-                  Deleting these photos may break links or remove them from
-                  published content.
-                </p>
-              </div>
+                  <p className="mt-2">
+                    Deleting these photos may break links or remove them from
+                    published content.
+                  </p>
+                </div>
+              </>
             ) : (
-              "This action cannot be undone. Are you sure you want to permanently delete the selected photos?"
+              <DialogDescription>
+                This action cannot be undone. Are you sure you want to
+                permanently delete the selected photos?
+              </DialogDescription>
             )}
           </DialogHeader>
 
