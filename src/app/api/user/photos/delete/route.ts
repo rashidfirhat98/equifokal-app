@@ -68,7 +68,6 @@ export async function POST(req: Request) {
       where: { id: { in: deletableIds } },
     });
 
-    console.log(deletablePhotos);
     return NextResponse.json({
       deleted,
       deletedPhotos: deletablePhotos,

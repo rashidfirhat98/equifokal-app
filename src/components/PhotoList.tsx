@@ -184,7 +184,16 @@ export default function PhotoList({ userId }: Props) {
       const data = await res.json();
       if (data.changedProfilePic) {
         await update();
+        toast({
+          title: "Profile picture updated",
+          description: `Photo ${editPhoto.alt} has been set as your profile picture.`,
+        });
       }
+
+      toast({
+        title: "Photo updated",
+        description: `Photo ${editPhoto.alt} has been updated.`,
+      });
 
       setPhotos((prev) =>
         prev.map((p) =>
@@ -192,8 +201,8 @@ export default function PhotoList({ userId }: Props) {
             ? {
                 ...p,
                 alt: editAlt,
-                isPortfolio: addToPortfolio,
-                isProfilePic: makeProfilePicture,
+                portfolio: addToPortfolio,
+                profilePic: makeProfilePicture,
               }
             : p
         )
@@ -203,6 +212,11 @@ export default function PhotoList({ userId }: Props) {
       setSelectedPhotos(new Set());
     } catch (err) {
       console.error("Failed to update photo:", err);
+      toast({
+        title: "Error",
+        description: "Failed to update photo.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -251,7 +265,7 @@ export default function PhotoList({ userId }: Props) {
         await update();
       }
       const MAX_INDIVIDUAL = 5;
-      const delay = 300; // ms
+      const delay = 300;
 
       const individualPhotos = deletedPhotos.slice(0, MAX_INDIVIDUAL);
       const remainingCount = deletedPhotos.length - individualPhotos.length;
@@ -436,7 +450,7 @@ export default function PhotoList({ userId }: Props) {
           <DialogHeader>
             <DialogTitle>Edit Photo</DialogTitle>
             <DialogDescription>
-              Modify photo metadata like title or caption.
+              Modify photo details like title.
             </DialogDescription>
           </DialogHeader>
           <div className="flex items-center justify-center mb-4">
