@@ -31,6 +31,7 @@ import { Loader2 } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 import { z } from "zod";
 import { extractPhotoDetails } from "@/lib/utils/extractPhotoDetails";
+import { Switch } from "./ui/switch";
 
 type PhotoDetails = {
   file: File;
@@ -183,7 +184,7 @@ export default function UploadForm({
                     message: errors.imgUploads?.message?.toString(),
                   })
                 )}
-                className="space-y-3"
+                className="space-y-6"
               >
                 <FormItem>
                   <FormControl>
@@ -214,14 +215,15 @@ export default function UploadForm({
                   control={form.control}
                   name="isPortfolio"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4">
+                    <FormItem className="flex items-center space-x-3 space-y-0 p-4">
                       <FormControl>
-                        <Checkbox
+                        <Switch
+                          id="portfolio"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
-                      <div className="text-left space-y-1 leading-none">
+                      <div className="space-y-1 text-left leading-none">
                         <FormLabel>Add to portfolio</FormLabel>
                         <FormDescription>
                           Photos will be included in your portfolio and can be

@@ -4,6 +4,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import PhotoList from "@/components/PhotoList";
 import { useSessionContext } from "@/components/SessionContext";
 import UploadForm from "@/components/UploadForm";
+import { useSession } from "next-auth/react";
 import React, { Suspense } from "react";
 
 export default function UploadClientPage({
@@ -11,7 +12,7 @@ export default function UploadClientPage({
 }: {
   photoCount: number;
 }) {
-  const session = useSessionContext();
+  const { data: session } = useSession();
 
   if (!session?.user) {
     return <p className="large">User not found.</p>;

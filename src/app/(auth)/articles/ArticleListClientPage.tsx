@@ -2,11 +2,11 @@
 
 import ArticleList from "@/components/ArticleList";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { useSessionContext } from "@/components/SessionContext";
+import { useSession } from "next-auth/react";
 import React, { Suspense } from "react";
 
 export default function ArticleListClientPage() {
-  const session = useSessionContext();
+  const { data: session } = useSession();
 
   if (!session) {
     return <p className="large">User not Found</p>;

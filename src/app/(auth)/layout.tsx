@@ -1,4 +1,3 @@
-import { SessionProvider } from "@/components/SessionContext";
 import { authOptions } from "@/lib/authOptions";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -14,5 +13,5 @@ export default async function AuthLayout({
     redirect("/login");
   }
 
-  return <SessionProvider session={session}>{children}</SessionProvider>;
+  return <>{children}</>;
 }

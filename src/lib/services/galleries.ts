@@ -14,10 +14,9 @@ export const getUserGalleriesList = async (
   userId: string
 ) => {
   const totalResults = await totalGalleriesByUserId(userId);
-  // const start = performance.now();
+
   const galleries = await findGalleriesByUserIdAndCursor(userId, limit, cursor);
-  // const end = performance.now();
-  // console.log(`Find galleries in ${end - start}ms`);
+
   if (!galleries) {
     throw new Error("No galleries found.");
   }

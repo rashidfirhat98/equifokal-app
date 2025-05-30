@@ -35,7 +35,6 @@ import { Check, ChevronsUpDown, Loader2, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GallerySchema } from "@/models/Gallery";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as exifr from "exifr";
 import {
   AcceptedCoverImageSchema,
   AcceptedCoverImageUploads,

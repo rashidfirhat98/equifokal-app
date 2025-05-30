@@ -6,6 +6,7 @@ import bcrypt from "bcrypt";
 import env from "@/lib/env";
 import { findUserByEmail } from "./db/user";
 import { getUserDetails } from "./services/user";
+import convertToCDNUrl from "./utils/convertToCDNUrl";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -49,18 +50,32 @@ export const authOptions: AuthOptions = {
   debug: process.env.NODE_ENV !== "production",
   session: {
     strategy: "jwt",
+    maxAge: 24 * 60 * 60,
+    updateAge: 0,
   },
   secret: env.NEXTAUTH_SECRET,
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         const dbUser = await getUserDetails(user.id);
         token.id = dbUser.id;
         token.email = dbUser.email;
         token.name = dbUser.name;
-        token.image = dbUser.profilePic || undefined;
+        token.image = convertToCDNUrl(dbUser?.profilePic || undefined);
         token.bio = dbUser.bio || undefined;
 
+        token.followerCount = dbUser.followerCount;
+        token.followingCount = dbUser.followingCount;
+        token.postCount = dbUser.postCount;
+      }
+
+      if (trigger === "update") {
+        const dbUser = await getUserDetails(token.id);
+        token.image = convertToCDNUrl(dbUser?.profilePic || undefined);
+        token.email = dbUser.email;
+        token.name = dbUser.name;
+        token.image = convertToCDNUrl(dbUser?.profilePic || undefined);
+        token.bio = dbUser.bio || undefined;
         token.followerCount = dbUser.followerCount;
         token.followingCount = dbUser.followingCount;
         token.postCount = dbUser.postCount;

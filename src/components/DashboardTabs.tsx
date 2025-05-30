@@ -9,6 +9,7 @@ import { Suspense } from "react";
 import LoadingSpinner from "./LoadingSpinner";
 import UserList from "./UserList";
 import { useSessionContext } from "./SessionContext";
+import { useSession } from "next-auth/react";
 
 type Props = {
   user?: UserDetails;
@@ -16,7 +17,7 @@ type Props = {
 };
 
 export default function DashboardTabs({ user, currentUser }: Props) {
-  const session = useSessionContext();
+  const { data: session } = useSession();
   const sessionUser = user ?? session?.user;
 
   if (!sessionUser) {

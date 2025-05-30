@@ -21,7 +21,19 @@ export const ArticleSchema = z.object({
     profilePic: z.string().nullable(),
     isFollowing: z.boolean().optional(),
   }),
-  coverImage: PhotoSchema.optional(),
+  coverImage: z
+    .object({
+      id: z.number(),
+      width: z.number(),
+      height: z.number(),
+      url: z.string(),
+      src: z.object({
+        large: z.string(),
+      }),
+      alt: z.string(),
+      blurredDataUrl: z.string().optional(),
+    })
+    .optional(),
   galleries: z.array(GallerySchema).optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
