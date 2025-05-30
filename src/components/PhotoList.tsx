@@ -22,6 +22,10 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "next-auth/react";
 import { Switch } from "./ui/switch";
+import PhotoCard from "./PhotoCard";
+import { EditPhotoDialog } from "./EditPhotoDialog";
+import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
+import { ManagePortfolioDialog } from "./ManagePortfolioDialog";
 
 type Props = {
   userId: string;
@@ -36,7 +40,7 @@ type DeletedPhoto = {
 type UsedPhoto = {
   id: number;
   fileName: string;
-  portfolio: string;
+  portfolio: boolean;
   url: string;
   articles: { id: number; title: string }[];
   galleries: { id: number; title: string }[];
@@ -181,12 +185,18 @@ export default function PhotoList({ userId }: Props) {
         throw new Error("Failed to update photo");
       }
 
-      const data = await res.json();
-      if (data.changedProfilePic) {
+      const { changedProfilePic, removedProfilePic } = await res.json();
+      if (changedProfilePic) {
         await update();
         toast({
           title: "Profile picture updated",
           description: `Photo ${editPhoto.alt} has been set as your profile picture.`,
+        });
+      } else if (removedProfilePic) {
+        await update();
+        toast({
+          title: "Profile picture removed",
+          description: `Photo ${editPhoto.alt} has been removed as your profile picture.`,
         });
       }
 
@@ -255,7 +265,6 @@ export default function PhotoList({ userId }: Props) {
 
       const data = await res.json();
       const deletedPhotos: DeletedPhoto = data.deletedPhotos || [];
-      console.log(deletedPhotos);
       setPhotos((prev) =>
         prev.filter((photo) => !selectedPhotos.has(photo.id))
       );
@@ -301,7 +310,6 @@ export default function PhotoList({ userId }: Props) {
 
   useEffect(() => {
     if (editPhoto && user) {
-      console.log(editPhoto);
       setEditAlt(editPhoto.alt ?? "");
       setAddToPortfolio(editPhoto.portfolio ?? false);
       setMakeProfilePicture(
@@ -385,53 +393,16 @@ export default function PhotoList({ userId }: Props) {
           </div>
         ) : (
           photos.map((photo) => {
-            const isSelected = selectedPhotos.has(photo.id);
-
             return (
-              <Card
+              <PhotoCard
                 key={photo.id}
-                onClick={() => {
-                  if (onSelect) {
-                    toggleSelect(photo.id);
-                  } else {
-                    setEditPhoto(photo);
-                    setEditDialogOpen(true);
-                  }
-                }}
-                className={`relative border cursor-pointer transition-colors hover:border-black/50
-                  isSelected ? "border-black/50" : "border-transparent"`}
-              >
-                <CardContent className="p-0">
-                  <div className="relative aspect-square w-full  group">
-                    <Image
-                      src={photo.src.large}
-                      alt={photo.alt}
-                      fill
-                      sizes="(max-width: 768px) 30vw, (max-width: 1200px) 10vw, 200px"
-                      className="object-cover rounded-md p-1"
-                    />
-
-                    <div className="absolute inset-0 bg-transparent rounded-md group-hover:bg-black/15 transition-colors pointer-events-none" />
-
-                    {onSelect && (
-                      <div
-                        className="absolute top-2 left-2 z-10"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div
-                          onClick={() => toggleSelect(photo.id)}
-                          className={`w-5 h-5 flex items-center justify-center rounded-full border-2 border-spacing-2 border-white bg-white transition-colors ${
-                            isSelected ? "bg-blue-500/75" : "bg-white/60"
-                          }`}
-                        ></div>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-                <div className="p-2 text-center text-xs text-muted-foreground truncate">
-                  {photo.alt || "Untitled"}
-                </div>
-              </Card>
+                photo={photo}
+                isSelected={selectedPhotos.has(photo.id)}
+                onSelect={!!onSelect}
+                toggleSelect={toggleSelect}
+                setEditPhoto={setEditPhoto}
+                setEditDialogOpen={setEditDialogOpen}
+              />
             );
           })
         )}
@@ -445,219 +416,41 @@ export default function PhotoList({ userId }: Props) {
           )}
         </div>
       </div>
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Photo</DialogTitle>
-            <DialogDescription>
-              Modify photo details like title.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex items-center justify-center mb-4">
-            {editPhoto && (
-              <div className="flex justify-center items-center">
-                <Image
-                  src={editPhoto.src.large}
-                  alt={editPhoto.alt}
-                  width={300}
-                  height={300}
-                />
-              </div>
-            )}
-          </div>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="alt">Photo Title</Label>
-              <Input
-                id="alt"
-                value={editAlt}
-                onChange={(e) => setEditAlt(e.target.value)}
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="portfolio"
-                checked={addToPortfolio}
-                onCheckedChange={(v) => setAddToPortfolio(!!v)}
-              />
-              <Label htmlFor="portfolio">Add to Portfolio</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="profile"
-                checked={makeProfilePicture}
-                onCheckedChange={(v) => setMakeProfilePicture(!!v)}
-              />
-              <Label htmlFor="profile">Set as Profile Picture</Label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setEditDialogOpen(false);
-                setEditPhoto(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button onClick={editSelected}>Save</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete {selectedPhotos.size} photo(s)?</DialogTitle>
-
-            {usedPhotos.length > 0 ? (
-              <>
-                <DialogDescription>
-                  Some selected photos are in use:
-                </DialogDescription>
-                <div className="space-y-4 text-sm p-2 text-red-600">
-                  {usedPhotos
-                    .filter((photo) => selectedPhotos.has(photo.id))
-                    .map((photo) => {
-                      return (
-                        <div
-                          key={photo.id}
-                          className="relative bg-muted p-3 rounded-lg flex items-start gap-4"
-                        >
-                          <button
-                            onClick={() =>
-                              setSelectedPhotos((prev) => {
-                                const updated = new Set(prev);
-                                updated.delete(photo.id);
-                                return updated;
-                              })
-                            }
-                            className="absolute top-2 right-2 text-muted-foreground hover:text-red-500 transition-colors"
-                            aria-label="Remove photo from selection"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-
-                          <div className="relative aspect-square w-20 h-20 shrink-0">
-                            <Image
-                              src={photo.url}
-                              alt={photo.fileName}
-                              fill
-                              sizes="(max-width: 768px) 30vw, (max-width: 1200px) 10vw, 200px"
-                              className="object-cover rounded-md"
-                            />
-                          </div>
-
-                          <div className="flex flex-col gap-1">
-                            <span className="font-medium text-red-700">
-                              {photo.fileName}
-                            </span>
-                            <ul className="list-disc list-inside pl-4 space-y-1">
-                              {photo.portfolio && <li>In portfolio</li>}
-                              {photo.articles.length > 0 && (
-                                <li>
-                                  Cover of article:{" "}
-                                  <span className="font-semibold">
-                                    {photo.articles
-                                      .map((a) => a.title)
-                                      .join(", ")}
-                                  </span>
-                                </li>
-                              )}
-                              {photo.galleries.length > 0 && (
-                                <li>
-                                  In galleries:{" "}
-                                  <span className="font-semibold">
-                                    {photo.galleries
-                                      .map((g) => g.title)
-                                      .join(", ")}
-                                  </span>
-                                </li>
-                              )}
-                              {photo.url === user?.profilePic && (
-                                <li>Used as profile picture</li>
-                              )}
-                            </ul>
-                          </div>
-                        </div>
-                      );
-                    })}
-
-                  <p className="mt-2">
-                    Deleting these photos may break links or remove them from
-                    published content.
-                  </p>
-                </div>
-              </>
-            ) : (
-              <DialogDescription>
-                This action cannot be undone. Are you sure you want to
-                permanently delete the selected photos?
-              </DialogDescription>
-            )}
-          </DialogHeader>
-
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={deleteSelected}>
-              Yes, Delete
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-      <Dialog
+      <EditPhotoDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        editPhoto={editPhoto}
+        editAlt={editAlt}
+        setEditAlt={setEditAlt}
+        addToPortfolio={addToPortfolio}
+        setAddToPortfolio={setAddToPortfolio}
+        makeProfilePicture={makeProfilePicture}
+        setMakeProfilePicture={setMakeProfilePicture}
+        onSave={editSelected}
+      />
+      <ConfirmDeleteDialog
+        open={confirmDialogOpen}
+        onOpenChange={setConfirmDialogOpen}
+        selectedPhotos={selectedPhotos}
+        usedPhotos={usedPhotos}
+        user={user}
+        onDelete={deleteSelected}
+        onDeselectPhoto={(id) =>
+          setSelectedPhotos((prev) => {
+            const updated = new Set(prev);
+            updated.delete(id);
+            return updated;
+          })
+        }
+      />
+      <ManagePortfolioDialog
         open={isPortfolioModalOpen}
         onOpenChange={setIsPortfolioModalOpen}
-      >
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Manage Portfolio</DialogTitle>
-            <DialogDescription>
-              Select the photos you want in your portfolio.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto">
-            {photos.map((photo) => {
-              const isSelected = selectedPhotos.has(photo.id);
-              return (
-                <div
-                  key={photo.id}
-                  className={cn(
-                    "relative cursor-pointer rounded overflow-hidden border-2",
-                    isSelected ? "border-blue-600" : "border-transparent"
-                  )}
-                  onClick={() => toggleSelect(photo.id)}
-                >
-                  <Image
-                    src={photo.src.large}
-                    alt=""
-                    width={300}
-                    height={200}
-                    className="object-cover w-full h-48"
-                  />
-                  {isSelected && (
-                    <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 text-xs rounded">
-                      Selected
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="flex justify-end mt-4">
-            <Button onClick={handleSavePortfolioChanges}>Save Changes</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        photos={photos}
+        selectedPhotos={selectedPhotos}
+        toggleSelect={toggleSelect}
+        onSave={handleSavePortfolioChanges}
+      />
     </div>
   );
 }

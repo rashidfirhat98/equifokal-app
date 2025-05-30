@@ -57,7 +57,6 @@ export async function POST(req: Request) {
     });
 
     if (isProfilePicBeingDeleted) {
-      console.log("triggered profile pic deletion");
       await prisma.user.update({
         where: { email: session.user.email },
         data: { profilePic: null },

@@ -35,7 +35,7 @@ export async function PATCH(
   if (!photo || !user) {
     return NextResponse.json({ error: "Photo not found" }, { status: 404 });
   }
-
+  const isRemovingProfilePic = !isProfilePic && user.profilePic === photo.url;
   const isChangingProfilePic = isProfilePic && user?.profilePic !== photo.url;
 
   const updatedImage = await prisma.image.update({
@@ -48,6 +48,7 @@ export async function PATCH(
   });
 
   let changedProfilePic = false;
+  let removedProfilePic = false;
 
   if (isChangingProfilePic) {
     await prisma.user.update({
@@ -57,5 +58,16 @@ export async function PATCH(
     changedProfilePic = true;
   }
 
-  return NextResponse.json({ updatedImage, changedProfilePic });
+  if (isRemovingProfilePic) {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { profilePic: null },
+    });
+    removedProfilePic = true;
+  }
+
+  return NextResponse.json(
+    { updatedImage, changedProfilePic, removedProfilePic },
+    { status: 200 }
+  );
 }
