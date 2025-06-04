@@ -233,3 +233,67 @@ export const getUserArticleCount = async (userId: string) => {
 
   return count;
 };
+
+export const updateUserArticle = async ({
+  articleId,
+  userId,
+  title,
+  content,
+  description,
+  uploadResult,
+}: {
+  articleId: number;
+  userId: string;
+  title: string;
+  content: string;
+  description: string;
+  uploadResult: any;
+}) => {
+  const existing = await prisma.article.findFirst({
+    where: { id: articleId, userId },
+  });
+
+  if (!existing) {
+    throw new Error("Article not found or unauthorized");
+  }
+
+  let coverImageId = existing.coverImageId || null;
+
+  if (uploadResult?.status === "success" && uploadResult.images?.length) {
+    coverImageId = uploadResult.images[0].id;
+  }
+
+  const updated = await prisma.article.update({
+    where: { id: articleId },
+    data: {
+      title,
+      content,
+      description,
+      coverImage: coverImageId ? { connect: { id: coverImageId } } : undefined,
+    },
+  });
+
+  return updated;
+};
+
+export const updateArticleGalleries = async ({
+  articleId,
+  galleryIds,
+}: {
+  articleId: number;
+  galleryIds: number[];
+}) => {
+  // Clear existing mappings
+  await prisma.articleGallery.deleteMany({
+    where: { articleId },
+  });
+
+  // Insert new ones
+  return await prisma.articleGallery.createMany({
+    data: galleryIds.map((galleryId) => ({
+      articleId,
+      galleryId,
+    })),
+    skipDuplicates: true,
+  });
+};
