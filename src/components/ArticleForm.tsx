@@ -45,6 +45,7 @@ import { extractPhotoDetails } from "@/lib/utils/extractPhotoDetails";
 
 type Props = {
   galleries?: z.infer<typeof GallerySchema>[];
+  existingArticle?: ArticleWithImagesAndGalleries;
 };
 
 const formSchema = z.object({
@@ -62,7 +63,7 @@ const formSchema = z.object({
   galleryIds: z.array(z.number()).optional(),
 });
 
-export default function ArticleForm({ galleries }: Props) {
+export default function ArticleForm({ galleries, existingArticle }: Props) {
   const router = useRouter();
   const [coverImage, setCoverImage] =
     useState<AcceptedCoverImageUploads | null>(null);
@@ -202,11 +203,16 @@ export default function ArticleForm({ galleries }: Props) {
           );
       }
 
-      const response = await fetch("/api/articles", {
-        method: "POST",
+      const method = isEditing ? "PATCH" : "POST";
+      const endpoint = isEditing
+        ? `/api/articles/${existingArticle.id}`
+        : "/api/articles";
+
+      const response = await fetch(endpoint, {
+        method,
         body: JSON.stringify({
           ...data,
-          uploadResult: coverImageUpload,
+          uploadResult: coverImageUpload ?? existingArticle?.coverImage,
         }),
       });
 

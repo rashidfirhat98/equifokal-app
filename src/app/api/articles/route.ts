@@ -1,9 +1,29 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
-import { uploadImages } from "@/lib/services/uploadImages";
-import { createArticle, getArticlesList } from "@/lib/services/articles";
-import { extractUploadData } from "@/lib/utils/extractUploadData";
+import {
+  createArticle,
+  getArticlesList,
+  updateArticleGalleries,
+  updateUserArticle,
+} from "@/lib/services/articles";
+import { z } from "zod";
+import { revalidatePath } from "next/cache";
+
+const EditArticleSchema = z.object({
+  title: z.string().min(3),
+  content: z.string().min(50),
+  description: z.string().min(30).max(140),
+  galleryIds: z.array(z.number()).optional(),
+  uploadResult: z
+    .object({
+      id: z.number(),
+      url: z.string().url(),
+      fileName: z.string(),
+      metadata: z.any().optional(),
+    })
+    .optional(),
+});
 
 export async function GET(req: Request) {
   try {
@@ -78,6 +98,53 @@ export async function POST(req: Request) {
     return NextResponse.json(article, { status: 201 });
   } catch (error) {
     console.error("Error creating article:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const articleId = Number(params.id);
+    if (isNaN(articleId)) {
+      return NextResponse.json(
+        { error: "Invalid article ID" },
+        { status: 400 }
+      );
+    }
+
+    const { title, content, description, galleryIds, uploadResult } =
+      await req.json();
+
+    const article = await updateUserArticle({
+      articleId,
+      userId: session.user.id,
+      title,
+      content,
+      description,
+      uploadResult,
+    });
+
+    if (galleryIds?.length) {
+      await updateArticleGalleries({
+        articleId,
+        galleryIds,
+      });
+    }
+
+    return NextResponse.json({ article }, { status: 200 });
+  } catch (error) {
+    console.error("Error updating article:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
