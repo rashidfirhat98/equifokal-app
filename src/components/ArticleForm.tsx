@@ -42,10 +42,11 @@ import {
 } from "@/models/ImageUploadSchema";
 import { Textarea } from "./ui/textarea";
 import { extractPhotoDetails } from "@/lib/utils/extractPhotoDetails";
+import { Article } from "@/models/Article";
 
 type Props = {
   galleries?: z.infer<typeof GallerySchema>[];
-  existingArticle?: ArticleWithImagesAndGalleries;
+  existingArticle?: Article;
 };
 
 const formSchema = z.object({
@@ -203,6 +204,7 @@ export default function ArticleForm({ galleries, existingArticle }: Props) {
           );
       }
 
+      const isEditing = !!existingArticle;
       const method = isEditing ? "PATCH" : "POST";
       const endpoint = isEditing
         ? `/api/articles/${existingArticle.id}`
