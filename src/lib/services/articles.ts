@@ -247,7 +247,7 @@ export const updateUserArticle = async ({
   title: string;
   content: string;
   description: string;
-  uploadResult: any;
+  uploadResult: UploadImageResult;
 }) => {
   const existing = await prisma.article.findFirst({
     where: { id: articleId, userId },

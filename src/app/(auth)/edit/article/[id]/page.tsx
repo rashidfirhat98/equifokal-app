@@ -5,16 +5,16 @@ import ArticleForm from "@/components/ArticleForm";
 import { notFound, unauthorized } from "next/navigation";
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function EditArticlePage({ params }: Props) {
   const user = await fetchUserSession();
   if (!user) return unauthorized();
 
-  const articleId = params.id;
+  const { id } = await params;
 
-  const { article } = await fetchArticlePost(articleId);
+  const { article } = await fetchArticlePost(id);
   if (!article || article.user.id !== user.id) return notFound();
 
   const galleriesRes = await fetchUserGalleriesList(user.id);

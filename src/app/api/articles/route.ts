@@ -107,15 +107,15 @@ export async function POST(req: Request) {
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const articleId = Number(params.id);
+    const { id } = await params;
+    const articleId = Number(id);
     if (isNaN(articleId)) {
       return NextResponse.json(
         { error: "Invalid article ID" },
