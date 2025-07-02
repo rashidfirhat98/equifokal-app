@@ -84,58 +84,127 @@ export default function ArticleList({ userId, currentUserId }: Props) {
           </div>
         ) : articles.length > 0 ? (
           articles.map((article) => (
-            <div key={article.id} className="my-3 p-3 md:p-6 border-b-2 ">
-              <Link href={`/article/${article.id}`}>
-                <div className="grid grid-cols-12 ">
-                  <div className="flex justify-between flex-col col-span-8  ">
-                    <div>
-                      <h1 className="heading-4 font-bold md:heading-2">
-                        {article.title}
-                      </h1>
-                      <p className="muted md:lead">{article.description}</p>
-                    </div>
-                  </div>
-                  <div className="col-span-4 ml-4 md:mx-6">
-                    {article.coverImage && (
-                      <div className="relative aspect-[5/3]">
-                        <Image
-                          fill
-                          alt={article.coverImage.alt}
-                          src={article.coverImage.url}
-                          sizes="(max-width: 768px) 10vw, (max-width: 1200px) 25vw, 200px"
-                          className="object-cover"
-                        />
+            <div key={article.id}>
+              <div className="group relative my-3 p-3 md:p-6 border-b-2 overflow-hidden hidden md:block">
+                {/* Slide-on-hover content */}
+                <div className="transition-transform duration-300 ease-in-out group-hover:-translate-x-5">
+                  <Link href={`/article/${article.id}`}>
+                    <div className="grid grid-cols-12 gap-4 items-start">
+                      {/* Text */}
+                      <div className="col-span-8 flex flex-col justify-between">
+                        <div>
+                          <h1 className="heading-4 font-bold md:heading-2">
+                            {article.title}
+                          </h1>
+                          <p className="muted md:lead">{article.description}</p>
+                        </div>
                       </div>
+
+                      {/* Image */}
+                      <div className="col-span-4 ml-4 md:mx-6">
+                        {article.coverImage && (
+                          <div className="relative aspect-[5/3]">
+                            <Image
+                              fill
+                              alt={article.coverImage.alt}
+                              src={article.coverImage.url}
+                              className="object-cover"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* Author Row */}
+                  <div className="flex pt-3 items-center gap-4">
+                    <ProfilePictureIcon
+                      profilePic={article.user.profilePic}
+                      width={30}
+                      height={30}
+                    />
+                    <div>
+                      <p className="text-sm font-semibold md:text-lg">
+                        By {article.user.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground md:text-sm">
+                        {article.createdAt}
+                      </p>
+                    </div>
+                    {currentUserId && (
+                      <FollowButton
+                        followerId={article.user.id}
+                        followingId={currentUserId}
+                        isFollowingInitial={article.user.isFollowing}
+                      />
                     )}
                   </div>
-                  {/* <div className="col-span-1 flex flex-col justify-center items-end  py-6 ml-6">
-                  <p className="muted">Publish</p>
-                  <p className="muted">Edit</p>
-                  <p className="muted">Delete</p>
-                </div> */}
                 </div>
-              </Link>
-              <div className="flex pt-3 items-center gap-4">
-                <ProfilePictureIcon
-                  profilePic={article.user.profilePic}
-                  width={30}
-                  height={30}
-                />
-                <div>
-                  <p className="text-sm font-semibold md:text-lg">
-                    By {article.user.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground md:text-sm">
-                    {article.createdAt}
-                  </p>
+
+                {/* Slide-in edit/delete */}
+                <div
+                  className={`
+      absolute top-3 right-3 h-full w-[80px]
+      flex flex-col justify-center items-end space-y-2
+      opacity-0 translate-x-full pointer-events-none
+      group-hover:opacity-100 group-hover:translate-x-0 group-hover:pointer-events-auto
+      transition-all duration-300 ease-in-out
+    `}
+                >
+                  <button className="text-sm text-blue-600 hover:underline">
+                    Edit
+                  </button>
+                  <button className="text-sm text-red-600 hover:underline">
+                    Delete
+                  </button>
                 </div>
-                {currentUserId && (
-                  <FollowButton
-                    followerId={article.user.id}
-                    followingId={currentUserId}
-                    isFollowingInitial={article.user.isFollowing}
+
+                {/*Mobile view*/}
+              </div>
+              <div
+                key={article.id}
+                className="block md:hidden my-3 p-4 border-b"
+              >
+                <Link href={`/article/${article.id}`}>
+                  <h2 className="text-lg font-bold">{article.title}</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {article.description}
+                  </p>
+
+                  {article.coverImage && (
+                    <div className="relative aspect-[5/3] mt-3">
+                      <Image
+                        fill
+                        alt={article.coverImage.alt}
+                        src={article.coverImage.url}
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
+                </Link>
+
+                {/* Author */}
+                <div className="flex pt-3 items-center gap-3">
+                  <ProfilePictureIcon
+                    profilePic={article.user.profilePic}
+                    width={30}
+                    height={30}
                   />
-                )}
+                  <div>
+                    <p className="text-sm font-semibold">
+                      By {article.user.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {article.createdAt}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Mobile action buttons (always visible or tucked in menu) */}
+                <div className="mt-3 flex gap-4">
+                  <button className="text-blue-600 text-sm">Edit</button>
+                  <button className="text-red-600 text-sm">Delete</button>
+                </div>
               </div>
             </div>
           ))
